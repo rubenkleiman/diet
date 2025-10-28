@@ -1,136 +1,140 @@
 {
-        "Hidden Farms Maple Syrup": {
-            "serving": "30 ml",
-            "density": 1.37,
-            "data": {
-                "carbohydrates": "27 g",
-                "sugars": "24 g",
-                "calcium": "30 mg",
-                "potassium": "90 mg"
-            }
-        },
-        "Bob's Red Mill Thick Rolled Oats": {
-            "serving": "48 g",
-            "data": {
-                "calories": 180,
-                "saturatedFat": "0.5 g",
-                "carbohydrates": "33 g",
-                "dietary fiber": "4 g",
-                "protein": "5 g",
-                "calcium": "14 mg",
-                "potassium": "174 mg",
-                "iron": "2 mg"
-            }
-        },
-        "Sunflower Seeds": {
-            "serving": "28.4 g",
-            "data": {
-                "calories": 200,
-                "carbohydrates": "7 g",
-                "dietary fiber": "12 g",
-                "sugars": "1 g",
-                "fat": "19 g",
-                "potassium": "497 mg",
-                "calcium": "22 mg",
-                "protein": "5.4 g",
-                "vitamin C": "1.4 g",
-                "vitamin E": "7 g"
-
-            }
-
-        },
-        "Strauss Non-Fat European-Style Yogurt": {
-            "serving": "170 g",
-            "density": 1.06,
-            "data": {
-                "calories": 100,
-                "cholesterol": "5 mg",
-                "sodium": "105 mg",
-                "carbohydrates": "17 g",
-                "sugars": "8 g",
-                "protein": "8 g",
-                "calcium": "380 mg",
-                "potassium": "473 mg"
-            }
-        },
-        "365 Organic Mediteranean Olive Oil": {
-            "serving": "15 ml",
-            "density": 0.916,
-            "data": {
-                "calories": 120,
-                "fat": "13.5 mg",
-                "saturatedFat": "2 g",
-                "polysaturatedFat": "1.5 g",
-                "monosaturatedFat": "10 g"
-            }
-        },
-        "Clover Non-Fat Organic Milk": {
-            "serving": "240 ml",
-            "density": 1.033,
-            "data": {
-                "calories": 90,
-                "sodium": "130 mg",
-                "cholesterol": "3 mg",
-                "carbohydrates": "12 g",
-                "sugars": "12 g",
-                "protein": "9 g",
-                "vitamin D": "2.5 mcg",
-                "vitamin A": "150 mcg",
-                "potassium": "420 mg",
-                "calcium": "310 mg"
-            }
-        },
-        "Aurora Dried Cranberries": {
+    "Weihenstephaner Hefe Weissbier": {
+        "serving": "330 ml",
+        "density": 1.010,
+        "data": {
+            "calories": 215
+        }
+    },
+    "Hidden Farms Maple Syrup": {
+        "serving": "30 ml",
+        "density": 1.37,
+        "data": {
+            "carbohydrates": "27 g",
+            "sugars": "24 g",
+            "calcium": "30 mg",
+            "potassium": "90 mg"
+        }
+    },
+    "Bob's Red Mill Thick Rolled Oats": {
+        "serving": "48 g",
+        "data": {
+            "calories": 180,
+            "saturatedFat": "0.5 g",
+            "carbohydrates": "33 g",
+            "dietary fiber": "4 g",
+            "protein": "5 g",
+            "calcium": "14 mg",
+            "potassium": "174 mg",
+            "iron": "2 mg"
+        }
+    },
+    "Sunflower Seeds": {
+        "serving": "28.4 g",
+        "data": {
+            "calories": 200,
+            "carbohydrates": "7 g",
+            "dietary fiber": "12 g",
+            "sugars": "1 g",
+            "fat": "19 g",
+            "potassium": "497 mg",
+            "calcium": "22 mg",
+            "protein": "5.4 g",
+            "vitamin C": "1.4 g",
+            "vitamin E": "7 g"
+        }
+    },
+    "Strauss Non-Fat European-Style Yogurt": {
+        "serving": "170 g",
+        "density": 1.06,
+        "data": {
+            "calories": 100,
+            "cholesterol": "5 mg",
+            "sodium": "105 mg",
+            "carbohydrates": "17 g",
+            "sugars": "8 g",
+            "protein": "8 g",
+            "calcium": "380 mg",
+            "potassium": "473 mg"
+        }
+    },
+    "365 Organic Mediteranean Olive Oil": {
+        "serving": "15 ml",
+        "density": 0.916,
+        "data": {
+            "calories": 120,
+            "fat": "13.5 mg",
+            "saturatedFat": "2 g",
+            "polysaturatedFat": "1.5 g",
+            "monosaturatedFat": "10 g"
+        }
+    },
+    "Clover Non-Fat Organic Milk": {
+        "serving": "240 ml",
+        "density": 1.033,
+        "data": {
+            "calories": 90,
+            "sodium": "130 mg",
+            "cholesterol": "3 mg",
+            "carbohydrates": "12 g",
+            "sugars": "12 g",
+            "protein": "9 g",
+            "vitamin D": "2.5 mcg",
+            "vitamin A": "150 mcg",
+            "potassium": "420 mg",
+            "calcium": "310 mg"
+        }
+    },
+    "Aurora Dried Cranberries": {
         "serving": "40 g",
-            "data": {
-                "calories": 140,
-                "carbohydrates": "33 g",
-                "dietary fiber": "20 g",
-                "sugars": "2 g",
-                "iron": "20 mg",
-                "vitamin C": "20 mg"
-            }
-        },
-        "Blueberries": {
-            "serving": "100 g",
-            "data": {
-                "calories": 57,
-                "sodium": "1 mg",
-                "carbohydrates": "9 g",
-                "dietary fiber": "1 g",
-                "sugars": "7 g",
-                "calcium": "10 mg",
-                "iron": "0.2 mg",
-                "vitamin A": "20 mcg",
-                "vitamin C": "6 mg"
-            }
-        },
-        "Bananas": {
-            "serving": "225 g",
-            "data": {
-                "calories": 200,
-                "fats": "0.5 g",
-                "sodium": "2 mg",
-                "carbohydrates": "51 g",
-                "dietary fiber": "6 g",
-                "sugars": "28 g",
-                "calcium": "10 mg",
-                "iron": "0.6 mg",
-                "potassium": "810 mg",
-                "phosphorus": "50 mg",
-                "magnesium": "60 mg",
-                "zinc": "0.3 mg",
-                "selenium": "2 mcg",
-                "manganese": "0.6 mg",
-                "vitamin A": "40 mcg",
-                "vitamin C": "20 mg",
-                "vitamin E": "0.2 mg",
-                "vitamin K": "0.1 mcg",
-                "vitamin B6": "0.8 mg",
-                "thiamin": "0.1 mg",
-                "riboflavin": "0.2 mg",
-                "niacin": "1.5 mg"
-            }
-
+        "data": {
+            "calories": 140,
+            "carbohydrates": "33 g",
+            "dietary fiber": "20 g",
+            "sugars": "2 g",
+            "iron": "20 mg",
+            "vitamin C": "20 mg"
+        }
+    },
+    "Blueberries": {
+        "serving": "100 g",
+        "data": {
+            "calories": 57,
+            "sodium": "1 mg",
+            "carbohydrates": "9 g",
+            "dietary fiber": "1 g",
+            "sugars": "7 g",
+            "calcium": "10 mg",
+            "iron": "0.2 mg",
+            "vitamin A": "20 mcg",
+            "vitamin C": "6 mg"
+        }
+    },
+    "Bananas": {
+        "serving": "225 g",
+        "data": {
+            "calories": 200,
+            "fats": "0.5 g",
+            "sodium": "2 mg",
+            "carbohydrates": "51 g",
+            "dietary fiber": "6 g",
+            "sugars": "28 g",
+            "calcium": "10 mg",
+            "iron": "0.6 mg",
+            "potassium": "810 mg",
+            "phosphorus": "50 mg",
+            "magnesium": "60 mg",
+            "zinc": "0.3 mg",
+            "selenium": "2 mcg",
+            "manganese": "0.6 mg",
+            "vitamin A": "40 mcg",
+            "vitamin C": "20 mg",
+            "vitamin E": "0.2 mg",
+            "vitamin K": "0.1 mcg",
+            "vitamin B6": "0.8 mg",
+            "thiamin": "0.1 mg",
+            "riboflavin": "0.2 mg",
+            "niacin": "1.5 mg"
         }
     }
+}

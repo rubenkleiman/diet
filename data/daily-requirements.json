@@ -1,0 +1,139 @@
+{
+  "calories": {
+    "recommended": "2000 cal",
+    "note": "Based on 2000 cal/day reference diet for adults",
+    "source": "FDA Daily Value"
+  },
+  "protein": {
+    "recommended": "50 g",
+    "minimum": "0.8 g/kg body weight",
+    "note": "For 70-year-old male, 166 lbs (75 kg): minimum ~60g/day",
+    "source": "FDA Daily Value / RDA"
+  },
+  "fat": {
+    "recommended": "78 g",
+    "note": "Based on 20-35% of 2000 calories",
+    "source": "FDA Daily Value"
+  },
+  "saturatedFat": {
+    "maximum": "20 g",
+    "note": "Less than 10% of daily calories",
+    "source": "FDA Daily Value"
+  },
+  "cholesterol": {
+    "maximum": "300 mg",
+    "note": "Daily limit",
+    "source": "FDA Daily Value"
+  },
+  "sodium": {
+    "maximum": "2300 mg",
+    "dashRecommendation": "1500 mg",
+    "note": "DASH diet recommends lower 1500mg for blood pressure control",
+    "source": "FDA Daily Value / DASH Diet Guidelines"
+  },
+  "carbohydrates": {
+    "recommended": "275 g",
+    "note": "Based on 45-65% of daily calories (2000 cal)",
+    "source": "FDA Daily Value"
+  },
+  "dietary fiber": {
+    "recommended": "28 g",
+    "note": "Adequate Intake for adults",
+    "source": "FDA Daily Value"
+  },
+  "sugars": {
+    "maximum": "50 g",
+    "note": "Added sugars should be less than 10% of calories",
+    "source": "FDA / WHO Guidelines"
+  },
+  "calcium": {
+    "recommended": "1300 mg",
+    "note": "For adults 51+ years (males: 1000mg, females: 1200mg; using higher value)",
+    "source": "FDA Daily Value"
+  },
+  "iron": {
+    "recommended": "18 mg",
+    "note": "For adults (males 8mg, females 18mg; using DV)",
+    "source": "FDA Daily Value"
+  },
+  "potassium": {
+    "recommended": "4700 mg",
+    "note": "Adequate Intake for adults",
+    "source": "FDA Daily Value"
+  },
+  "phosphorus": {
+    "recommended": "1250 mg",
+    "note": "RDA for adults",
+    "source": "FDA Daily Value"
+  },
+  "magnesium": {
+    "recommended": "420 mg",
+    "note": "RDA for males 70+ years",
+    "source": "FDA Daily Value"
+  },
+  "zinc": {
+    "recommended": "11 mg",
+    "note": "RDA for adult males",
+    "source": "FDA Daily Value"
+  },
+  "selenium": {
+    "recommended": "55 mcg",
+    "note": "RDA for adults",
+    "source": "FDA Daily Value"
+  },
+  "manganese": {
+    "recommended": "2.3 mg",
+    "note": "Adequate Intake for adult males",
+    "source": "FDA Daily Value"
+  },
+  "vitamin A": {
+    "recommended": "900 mcg",
+    "note": "RDA for adult males (RAE - Retinol Activity Equivalents)",
+    "source": "FDA Daily Value"
+  },
+  "vitamin C": {
+    "recommended": "90 mg",
+    "note": "RDA for adult males",
+    "source": "FDA Daily Value"
+  },
+  "vitamin D": {
+    "recommended": "20 mcg",
+    "note": "RDA for adults 70+ years (800 IU)",
+    "source": "FDA Daily Value"
+  },
+  "vitamin E": {
+    "recommended": "15 mg",
+    "note": "RDA for adults (alpha-tocopherol)",
+    "source": "FDA Daily Value"
+  },
+  "vitamin K": {
+    "recommended": "120 mcg",
+    "note": "Adequate Intake for adult males",
+    "source": "FDA Daily Value"
+  },
+  "vitamin B6": {
+    "recommended": "1.7 mg",
+    "note": "RDA for males 51+ years",
+    "source": "FDA Daily Value"
+  },
+  "thiamin": {
+    "recommended": "1.2 mg",
+    "note": "RDA for adult males",
+    "source": "FDA Daily Value"
+  },
+  "riboflavin": {
+    "recommended": "1.3 mg",
+    "note": "RDA for adult males",
+    "source": "FDA Daily Value"
+  },
+  "niacin": {
+    "recommended": "16 mg",
+    "note": "RDA for adult males (NE - Niacin Equivalents)",
+    "source": "FDA Daily Value"
+  },
+  "oxalates": {
+    "maximum": "50 mg",
+    "note": "For kidney stone prevention; some sources recommend <100mg, stricter protocols <50mg",
+    "source": "Clinical guidelines for kidney stone prevention"
+  }
+}

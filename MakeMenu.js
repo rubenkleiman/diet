@@ -5,6 +5,8 @@ import { Oxalates } from "./Oxalates.js";
 import DashCalculator from "./DashCalculator.js";
 import Validator from "./Validator.js";
 
+// TODO allow ml in recipes.json as long as there is a density for it in brands.json; else error
+
 class MakeMenu {
     constructor() {
         new Validator().validate()
@@ -28,7 +30,7 @@ class MakeMenu {
             return
         }
 
-        const results = this.calculateRecipe(recipe, !summary)
+        const results = this.calculateRecipe(recipe, !summary, [])
 
         // Filter fields if summary requested
         const fieldsToShow = summary ? MakeMenu.summaryFields : Object.keys(results.totals)
@@ -70,8 +72,9 @@ class MakeMenu {
      * @param {Object} addedIngredients - New ingredients to add (e.g., {"Almonds": "20 g"})
      * @param {Array<string>} removedIngredients - Ingredients to remove
      * @param {boolean} summary - If true, show only summary fields
+     * @param {Array<string>} explained - List of nutrients to show contribution breakdown (e.g., ["sodium", "sugars"])
      */
-    compareRecipes(recipeName, variations = {}, addedIngredients = {}, removedIngredients = [], summary = false) {
+    compareRecipes(recipeName, variations = {}, addedIngredients = {}, removedIngredients = [], summary = false, explained = []) {
         const recipe = Recipes.find(recipeName)
         if (!recipe) {
             console.error(`Recipe '${recipeName}' not in recipes.json`)
@@ -112,7 +115,7 @@ class MakeMenu {
         }
 
         // Calculate original recipe
-        const originalResults = this.calculateRecipe(recipe, false)
+        const originalResults = this.calculateRecipe(recipe, false, explained)
 
         // Build modified recipe
         const modifiedIngredients = {}
@@ -160,7 +163,7 @@ class MakeMenu {
         }
 
         // Calculate modified recipe
-        const modifiedResults = this.calculateRecipe(modifiedRecipe, false)
+        const modifiedResults = this.calculateRecipe(modifiedRecipe, false, explained)
 
         // Print comparison
         this.printComparison(
@@ -170,7 +173,8 @@ class MakeMenu {
             variations,
             addedIngredients,
             removedIngredients,
-            summary
+            summary,
+            explained
         )
     }
 
@@ -178,18 +182,27 @@ class MakeMenu {
      * Calculate nutritional totals for a recipe
      * @param {Object} recipe - Recipe object with getIngredients() method
      * @param {boolean} includeDetails - Whether to include per-ingredient details
-     * @returns {Object} - Results with totals, dash, oxalate info
+     * @param {Array<string>} trackContributions - List of nutrients to track per-ingredient contributions
+     * @returns {Object} - Results with totals, dash, oxalate info, and optional contributions
      */
-    calculateRecipe(recipe, includeDetails = false) {
+    calculateRecipe(recipe, includeDetails = false, trackContributions = []) {
         const totals = {}
         const details = []
+        const contributions = {}
         let totalOxalates = 0
+
+        // Initialize contribution tracking
+        for (const nutrient of trackContributions) {
+            contributions[nutrient] = {}
+        }
 
         const ingredients = recipe.getIngredients()
 
         for (const { name, amount, unit } of ingredients) {
             const brand = Brands.find(name)
             if (!brand) continue
+
+            if (amount === 0) continue
 
             const gramsPerServing = Converter.toGrams(brand.serving, brand.density)
             const recipeGrams = Converter.toGrams(`${amount} ${unit}`, brand.density)
@@ -224,6 +237,13 @@ class MakeMenu {
                 })
             }
 
+            // Track contributions for specified nutrients
+            for (const nutrient of trackContributions) {
+                if (ingredientTotals[nutrient] !== undefined) {
+                    contributions[nutrient][name] = ingredientTotals[nutrient]
+                }
+            }
+
             for (const [key, value] of Object.entries(ingredientTotals)) {
                 totals[key] = (totals[key] || 0) + value
             }
@@ -246,7 +266,8 @@ class MakeMenu {
             dashReasons: dashResult.reasons,
             oxalateLevel,
             oxalateMg: totalOxalates,
-            details: includeDetails ? details : undefined
+            details: includeDetails ? details : undefined,
+            contributions: trackContributions.length > 0 ? contributions : undefined
         }
     }
 
@@ -282,7 +303,7 @@ class MakeMenu {
         console.log("\n" + "=".repeat(60) + "\n")
     }
 
-    printComparison(recipeName, original, modified, variations, addedIngredients, removedIngredients, summary) {
+    printComparison(recipeName, original, modified, variations, addedIngredients, removedIngredients, summary, explained) {
         console.log("\n" + "=".repeat(80))
         console.log(`RECIPE COMPARISON: ${recipeName}`)
         console.log("=".repeat(80))
@@ -355,6 +376,57 @@ class MakeMenu {
         console.log("\nDASH Reasons (Original): " + original.dashReasons)
         console.log("DASH Reasons (Modified): " + modified.dashReasons)
 
+        // Show nutrient contribution breakdown if requested
+        if (explained && explained.length > 0) {
+            console.log("\nNUTRIENT CONTRIBUTION BREAKDOWN:")
+            console.log("-".repeat(80))
+
+            for (const nutrient of explained) {
+                // Show for both original and modified
+                console.log(`\n${nutrient.toUpperCase()}:`)
+
+                if (original.contributions && original.contributions[nutrient]) {
+                    const origContrib = original.contributions[nutrient]
+                    const origTotal = original.totals[nutrient] || 0
+
+                    if (origTotal > 0) {
+                        console.log(`  Original (total: ${origTotal.toFixed(2)}):`)
+
+                        // Sort by contribution amount (descending)
+                        const sortedOrig = Object.entries(origContrib)
+                            .sort((a, b) => b[1] - a[1])
+
+                        for (const [ingredientName, amount] of sortedOrig) {
+                            const percentage = (amount / origTotal * 100).toFixed(1)
+                            console.log(`    ${percentage.padStart(5)}% from '${ingredientName}' (${amount.toFixed(2)})`)
+                        }
+                    } else {
+                        console.log(`  Original: None`)
+                    }
+                }
+
+                if (modified.contributions && modified.contributions[nutrient]) {
+                    const modContrib = modified.contributions[nutrient]
+                    const modTotal = modified.totals[nutrient] || 0
+
+                    if (modTotal > 0) {
+                        console.log(`  Modified (total: ${modTotal.toFixed(2)}):`)
+
+                        // Sort by contribution amount (descending)
+                        const sortedMod = Object.entries(modContrib)
+                            .sort((a, b) => b[1] - a[1])
+
+                        for (const [ingredientName, amount] of sortedMod) {
+                            const percentage = (amount / modTotal * 100).toFixed(1)
+                            console.log(`    ${percentage.padStart(5)}% from '${ingredientName}' (${amount.toFixed(2)})`)
+                        }
+                    } else {
+                        console.log(`  Modified: None`)
+                    }
+                }
+            }
+        }
+
         console.log("\n" + "=".repeat(80) + "\n")
     }
 }
@@ -363,7 +435,7 @@ class MakeMenu {
 const menu = new MakeMenu()
 
 // Print single recipe - detailed view
-// menu.printRecipe("Granola With Milk", true, true)
+// menu.printRecipe("Granola With Milk", false, false)
 
 // Print single recipe - summary view
 // menu.printRecipe("Granola With Milk", true, false)
@@ -371,16 +443,14 @@ const menu = new MakeMenu()
 // Print as JSON
 // menu.printRecipe("Granola With Milk", true, true)
 
-// Compare recipes
+// Compare recipes with nutrient contribution breakdown
 menu.compareRecipes(
     "Granola With Milk",
-    {
-        "365 Organic Mediteranean Olive Oil": "15 g",
-        "Hidden Farms Maple Syrup": "15 g",
-    }, //{"Bob's Red Mill Thick Rolled Oats": "100 g"}, // increase oats
-    {}, // no added ingredients
-    [], //["Blueberries","Bananas"], // remove blueberries
-    true // summary
+    {},//{ "Aurora Dried Cranberries": "0 g" }, // increase oats
+    null, // no added ingredients
+    [],//["Blueberries"], // remove blueberries
+    true, // summary view
+    ["sodium", "calories", "potassium", "protein"] // explain these nutrients
 )
 
 export default MakeMenu
