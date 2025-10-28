@@ -14,7 +14,6 @@ export default class Validator {
     validate() {
         this.validateBrands()
         this.validateRecipes()
-        console.log(`Data valid.`)
     }
 
     validateRecipes() {
