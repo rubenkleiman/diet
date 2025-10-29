@@ -1,6 +1,7 @@
 {
     "Bianco DiNapoli Crushed Tomatos":{
         "serving": "61 g",
+        "oxalatePerGram": "0.136 mg/g",
         "data": {
             "calories": 15,
             "sodium": "80 mg",
@@ -15,6 +16,7 @@
     },
     "Spaghetti 12":{
         "serving": "56 g",
+        "oxalatePerGram": "0.25 mg/g",
         "data": {
             "calories": 200,
             "fat": "1 g",
@@ -33,6 +35,7 @@
     },
     "Mazzocco Zinfandel":{
         "serving": "148 g",
+        "oxalatePerGram": "0.25 mg/g",
         "data": {
             "calories": 129,
             "phosphorus": "20 mg",
@@ -42,6 +45,7 @@
     "Weihenstephaner Hefe Weissbier": {
         "serving": "330 ml",
         "density": 1.010,
+        "oxalatePerGram": "0.017 mg/g",
         "data": {
             "calories": 215,
             "protein": "3 g"
@@ -50,6 +54,7 @@
     "Blue Moon Light": {
         "serving": "355 ml",
         "density": 1,
+        "oxalatePerGram": "0.013 mg/g",
         "data": {
             "calories": 95,
             "carbohydrates": "3.6 g",
@@ -59,6 +64,7 @@
     "Blue Moon": {
         "serving": "355 ml",
         "density": 1,
+        "oxalatePerGram": "0.017 mg/g",
         "data": {
             "calories": 170,
             "carbohydrates": "14 g",
@@ -71,6 +77,7 @@
     "Hidden Farms Maple Syrup": {
         "serving": "30 ml",
         "density": 1.37,
+        "oxalatePerGram": "0.04 mg/g",
         "data": {
             "carbohydrates": "27 g",
             "sugars": "24 g",
@@ -80,6 +87,7 @@
     },
     "Bob's Red Mill Thick Rolled Oats": {
         "serving": "48 g",
+        "oxalatePerGram": "0.15 mg/g",
         "data": {
             "calories": 180,
             "saturatedFat": "0.5 g",
@@ -93,6 +101,7 @@
     },
     "Sunflower Seeds": {
         "serving": "28.4 g",
+        "oxalatePerGram": "0.04 mg/g",
         "data": {
             "calories": 200,
             "carbohydrates": "7 g",
@@ -109,6 +118,7 @@
     "Strauss Non-Fat European-Style Yogurt": {
         "serving": "170 g",
         "density": 1.06,
+        "oxalatePerGram": "0.006 mg/g",
         "data": {
             "calories": 100,
             "cholesterol": "5 mg",
@@ -123,6 +133,7 @@
     "365 Organic Mediteranean Olive Oil": {
         "serving": "15 ml",
         "density": 0.916,
+        "oxalatePerGram": "0 mg/g",
         "data": {
             "calories": 120,
             "fat": "13.5 mg",
@@ -134,6 +145,7 @@
     "Clover Non-Fat Organic Milk": {
         "serving": "240 ml",
         "density": 1.033,
+        "oxalatePerGram": "0.004 mg/g",
         "data": {
             "calories": 90,
             "sodium": "130 mg",
@@ -149,6 +161,7 @@
     },
     "Aurora Dried Cranberries": {
         "serving": "40 g",
+        "oxalatePerGram": "0.5 mg/g",
         "data": {
             "calories": 140,
             "carbohydrates": "33 g",
@@ -160,6 +173,7 @@
     },
     "Blueberries": {
         "serving": "100 g",
+        "oxalatePerGram": "0.2 mg/g",
         "data": {
             "calories": 57,
             "sodium": "1 mg",
@@ -174,6 +188,7 @@
     },
     "Bananas": {
         "serving": "225 g",
+        "oxalatePerGram": "0.15 mg/g",
         "data": {
             "calories": 200,
             "fats": "0.5 g",
