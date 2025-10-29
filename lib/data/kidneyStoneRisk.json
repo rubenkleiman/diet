@@ -1,0 +1,14 @@
+{
+  "Normal": {
+    "maxOxalatesPerDay": 200,
+    "description": "Standard diet with normal kidney stone risk"
+  },
+  "High": {
+    "maxOxalatesPerDay": 50,
+    "description": "Reduced oxalate intake for those with history of kidney stones"
+  },
+  "Extremely High": {
+    "maxOxalatesPerDay": 10,
+    "description": "Very strict oxalate restriction for severe kidney stone risk"
+  }
+}

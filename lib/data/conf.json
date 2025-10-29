@@ -1,0 +1,18 @@
+{
+  "ui": {
+    "recipeListMaxHeight": "400px",
+    "recipeDetailsMaxHeight": "500px",
+    "searchDebounceMs": 300
+  },
+  "comparison": {
+    "maxVariations": 10,
+    "maxAddedIngredients": 5
+  },
+  "notes": {
+    "recipeListMaxHeight": "Maximum height of the recipe list before scrolling",
+    "recipeDetailsMaxHeight": "Maximum height of the recipe details section before scrolling",
+    "searchDebounceMs": "Delay in milliseconds before applying search filter",
+    "maxVariations": "Maximum number of ingredient variations allowed in comparisons",
+    "maxAddedIngredients": "Maximum number of new ingredients that can be added in comparisons"
+  }
+}

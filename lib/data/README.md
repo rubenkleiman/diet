@@ -1,3 +1,11 @@
+# TODO
+
+- remove Info button: single click should change the display as in the ingredients page
+- keep oxalate info to brands.json and remove oxalates.json: consult on best representation
+- allow ml in recipes.json as long as there is a density for it in brands.json; else error
+- oz to g conversions
+- except for oxalates and the compact.display, omit displaying nutrition data when there's zero content
+
 #  brand.json
 
 1. serving field

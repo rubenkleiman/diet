@@ -12,6 +12,15 @@
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/MakeMenu.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "app.js",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/app.js"
         }
     ]
 }
