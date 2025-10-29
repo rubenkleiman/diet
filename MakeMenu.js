@@ -444,7 +444,7 @@ const menu = new MakeMenu()
 // menu.printRecipe("Granola With Milk", true, false)
 
 // Print as JSON
-// menu.printRecipe("Granola With Milk", true, true)
+menu.printRecipe("Granola With Milk", true, false)
 
 // Compare recipes with nutrient contribution breakdown
 menu.compareRecipes(
