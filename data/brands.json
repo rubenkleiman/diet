@@ -6,6 +6,27 @@
             "calories": 215
         }
     },
+    "Blue Moon Light": {
+        "serving": "355 ml",
+        "density": 1,
+        "data": {
+            "calories": 95,
+            "carbohydrates": "3.6 g",
+            "protein": "1.1 g"
+        }
+    },
+    "Blue Moon": {
+        "serving": "355 ml",
+        "density": 1,
+        "data": {
+            "calories": 170,
+            "carbohydrates": "14 g",
+            "sodium": "14 g",
+            "protein": "2 g",
+            "calcium": "14 mg",
+            "potassium": "96 mg"
+        }
+    },
     "Hidden Farms Maple Syrup": {
         "serving": "30 ml",
         "density": 1.37,

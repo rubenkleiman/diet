@@ -33,7 +33,7 @@ export default class Validator {
             if (!this.brands[ingredientName]) {
                 throw Error(`Recipe "${name}" ingredient "${ingredientName}" has no brand.json data.`)
             }
-            this.validateMeasure(measure)
+            this.validateMeasure(name, ingredientName, measure)
         }
     }
 
@@ -48,28 +48,28 @@ export default class Validator {
         if (!brand.serving || (typeof brand.serving != "string") || !brand.data || (typeof brand.data != "object") || Array.isArray(brand.data)) {
             throw Error(`Brand "${brandName}" invalid serving ("${brand.serving}") or data fields:\n${JSON.stringify(brand.data, null, 2)}`)
         }
-        const { unit } = this.validateMeasure(brand.serving)
+        const { unit } = this.validateMeasure(brandName, "", brand.serving)
         if (Validator.liquidUnits.includes(unit) && (typeof brand.density != "number")) {
             throw Error(`Density must be a number (is ${brand.density})`)
         }
         this.validateData(brandName, brand.data)
     }
 
-    validateMeasure(measure) {
+    validateMeasure(brandName, fieldName, measure) {
         if (typeof measure != "string") {
-            throw Error(`Measure "${measure}" is not a string`)
+            throw Error(`Measure "${measure}" in "${brandName}" "${fieldName} is not a string`)
         }
         const comp = measure.split(" ").map(_ => _.trim())
         if (comp.length != 2) {
-            throw Error(`Measure "${measure}" is invalid. Must be "<number> <unit string>"`)
+            throw Error(`Measure "${measure}" in "${brandName}" "${fieldName} is invalid. Must be "<number> <unit string>"`)
         }
         const unit = comp[1]
         if (!Validator.supportedUnits.includes(unit)) {
-            throw Error(`Unit is not supported (is "${unit}")`)
+            throw Error(`Unit is not supported (is "${unit}") in "${brandName}" "${fieldName}" `)
         }
         const amount = Number(comp[0])
         if (isNaN(amount)) {
-            throw Error(`Amount must be a number (is "${comp[0]}")`)
+            throw Error(`Amount must be a number (is "${comp[0]}") in "${brandName}" "${fieldName} `)
         }
         return { amount, unit }
     }
@@ -99,7 +99,7 @@ export default class Validator {
         } else if (typeof measure != "string") {
             throw Error(`Brand "${brandName}" data "${fieldName}" value must be a string (is "${measure}" type: ${typeof measure})`)
         } else {
-            this.validateMeasure(measure)
+            this.validateMeasure(brandName, fieldName, measure)
         }
     }
 
