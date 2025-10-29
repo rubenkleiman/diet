@@ -132,13 +132,6 @@ function setupEventListeners() {
         filterRecipes(e.target.value);
     });
 
-    // Info button
-    document.getElementById('infoButton').addEventListener('click', () => {
-        if (selectedRecipeId) {
-            showRecipeDetails(selectedRecipeId);
-        }
-    });
-
     // Summary checkbox
     document.getElementById('summaryCheckbox').addEventListener('change', () => {
         if (selectedRecipeId) {
@@ -212,8 +205,10 @@ function renderRecipeList(recipesToShow) {
             }
         });
         
-        li.addEventListener('click', () => selectRecipe(recipe.id));
-        li.addEventListener('dblclick', () => showRecipeDetails(recipe.id));
+        li.addEventListener('click', () => {
+            selectRecipe(recipe.id);
+            showRecipeDetails(recipe.id);
+        });
         
         listElement.appendChild(li);
     });
@@ -283,7 +278,6 @@ function selectRecipe(recipeId) {
     }
 
     selectedRecipeId = recipeId;
-    document.getElementById('infoButton').disabled = false;
 }
 
 // Show recipe details with % daily values
@@ -321,6 +315,9 @@ function renderRecipeDetails(data) {
     html += '<table class="nutrition-table">';
     
     for (const [key, value] of Object.entries(data.totals)) {
+        // Skip zero values except for oxalates
+        if (value === 0 && key !== 'oxalates') continue;
+        
         const formattedValue = typeof value === 'number' ? value.toFixed(2) : value;
         let percentDaily = '';
         
@@ -372,6 +369,9 @@ function renderRecipeDetails(data) {
             html += `<h4>${ingredient.name} (${ingredient.amount.toFixed(1)}g)</h4>`;
             html += '<table class="nutrition-table">';
             for (const [key, value] of Object.entries(ingredient.nutritionScaled)) {
+                // Skip zero values except for oxalates
+                if (value === 0 && key !== 'oxalates') continue;
+                
                 const formattedValue = typeof value === 'number' ? value.toFixed(2) : value;
                 html += `<tr><td class="nutrient-name">${key}</td><td class="nutrient-value">${formattedValue}</td></tr>`;
             }
@@ -466,7 +466,7 @@ function renderIngredientList(ingredientsToShow) {
         li.className = 'ingredient-item';
         li.innerHTML = `
             <span class="ingredient-name">${ingredient.name}</span>
-            <span class="ingredient-compact">${ingredient.compact.display}</span>
+            <span class="ingredient-compact">${ingredient.compact}</span>
         `;
         
         li.addEventListener('click', () => showIngredientDetails(ingredient.name));
@@ -509,6 +509,11 @@ function renderIngredientDetails(data) {
     html += '<table class="nutrition-table">';
     
     for (const [key, value] of Object.entries(data.data)) {
+        // Skip zero values (but always show compact.display)
+        if ((typeof value === 'number' && value === 0) || (typeof value === 'string' && parseFloat(value) === 0)) {
+            continue;
+        }
+        
         let displayValue = value;
         if (key === 'calories') {
             displayValue = value;
