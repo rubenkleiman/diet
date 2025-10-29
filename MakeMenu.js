@@ -6,6 +6,8 @@ import DashCalculator from "./DashCalculator.js";
 import Validator from "./Validator.js";
 
 // TODO allow ml in recipes.json as long as there is a density for it in brands.json; else error
+// TODO oz to g conversions
+// constructor have kidney stone risk {high|medium|low} @ 50, 100, 250 mg/day and use it in oxalate level output
 
 class MakeMenu {
     constructor() {
@@ -436,6 +438,7 @@ const menu = new MakeMenu()
 
 // Print single recipe - detailed view
 // menu.printRecipe("Granola With Milk", false, false)
+// menu.printRecipe("Spaghetti al sugo", true, false)
 
 // Print single recipe - summary view
 // menu.printRecipe("Granola With Milk", true, false)
@@ -445,7 +448,7 @@ const menu = new MakeMenu()
 
 // Compare recipes with nutrient contribution breakdown
 menu.compareRecipes(
-    "Granola With Milk",
+    "Spaghetti al sugo",
     {},//{ "Aurora Dried Cranberries": "0 g" }, // increase oats
     null, // no added ingredients
     [],//["Blueberries"], // remove blueberries

@@ -1,9 +1,36 @@
 {
+    "Spaghetti 12":{
+        "serving": "56 g",
+        "data": {
+            "calories": 200,
+            "fat": "1 g",
+            "carbohydrates": "40 g",
+            "dietary fiber": "2 g",
+            "sugars": "2 g",
+            "protein": "8 g",
+            "calcium": "15 mg",
+            "iron": "1.5 mg",
+            "potassium": "139 mg",
+            "thiamin": "0.5 mg",
+            "riboflavin": "0.2 mg",
+            "niacin": "3.5 mg",
+            "folic acid": "111 mcg"
+        }
+    },
+    "Mazzocco Zinfandel":{
+        "serving": "148 g",
+        "data": {
+            "calories": 129,
+            "phosphorus": "20 mg",
+            "potassium": "110 mg"
+        }
+    },
     "Weihenstephaner Hefe Weissbier": {
         "serving": "330 ml",
         "density": 1.010,
         "data": {
-            "calories": 215
+            "calories": 215,
+            "protein": "3 g"
         }
     },
     "Blue Moon Light": {
