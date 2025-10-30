@@ -6,5 +6,8 @@
             "name": "Diet Database",
             "database": "${workspaceFolder:diet}/lib/db/diet.db"
         }
-    ]
+    ],
+    "files.exclude": {
+        "**/.db": false
+    }
 }
