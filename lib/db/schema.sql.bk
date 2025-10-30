@@ -1,0 +1,112 @@
+CREATE TABLE IF NOT EXISTS user(
+    id varchar(36) not null, -- assigned by logic (crypto.randomUUID() v4) 
+    display_name varchar(64) not NULL
+);
+
+-- "system user" is the default owner of brands, recipes, etc.
+insert into user(id, display_name) values('a70ff520-1125-4098-90b3-144e22ebe84a', 'Diet System');
+
+CREATE TABLE IF NOT EXISTS brands (
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    name varchar(255) NOT NULL,
+    user_id varchar(36) not null,
+    serving integer not null,
+    serving_unit varchar(8) check(serving_unit in ('g','mg','mcg','oz','ml','tsp','tbs','cup')),
+    density float,
+    oxalate_per_gram float,
+    oxalate_per_gram_unit varchar(8) check (oxalate_per_gram_unit in ('mg/g')),
+    constraint brans_user_fk foreign key(user_id) references user(id)
+);
+
+CREATE TABLE IF NOT EXISTS brand_data (
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    name varchar(255) NOT NULL,
+    user_id varchar(36) not null,
+    brand_id integer not null,
+    calories float,
+    sodium varchar(20),
+    sugars varchar(20),
+    protein varchar(20),
+    dietary_fiber varchar(20),
+    carbohydrates varchar(20),
+    calcium varchar(20),
+    potassium varchar(20),
+    magnesium varchar(20),
+    selenium varchar(20),
+    manganese varchar(20),
+    zinc varchar(20),
+    iron varchar(20),
+    fat varchar(20),
+    saturated_fat varchar(20),
+    polysaturated_fat varchar(20),
+    monosaturated_fat varchar(20),
+    thiamin varchar(20),
+    riboflavin varchar(20),
+    niacin varchar(20),
+    folic_acid varchar(20),
+    phosphorus varchar(20),
+    vitamin_a varchar(20),
+    vitamin_b varchar(20),
+    vitamin_c varchar(20),
+    vitamin_d varchar(20),
+    vitamin_e varchar(20),
+    vitamin_k varchar(20),
+    constraint brand_fk foreign key(brand_id) references brands(id),
+    constraint brand_data_user_fk foreign key(user_id) references user(id)
+);
+
+CREATE TABLE IF NOT EXISTS recipes(
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    name varchar(255) NOT NULL,
+);
+
+CREATE TABLE IF NOT EXISTS recipe(
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    name varchar(255) NOT NULL,
+    user_id varchar(36) not null,
+    recipes_id integer not null,
+    constraint recipe_fk foreign key(recipes_id) references recipes(id),
+    constraint recipe_user_fk foreign key(user_id) references user(id)
+);
+
+CREATE TABLE IF NOT EXISTS recipe_item(
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    name varchar(255) NOT NULL,
+    recipe_id integer not null,
+    order integer default 1,
+    brand_id integer not null,
+    amount float not NULL,
+    unit varchar(6) check (unit in ('g','mg','mcg','oz','ml','tsp','tbs','cup')),
+    constraint recipe_item_brand_fk foreign key(brand_id) references brands(id)
+);
+
+CREATE TABLE IF NOT EXISTS daily_requirements(
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    name varchar(255) NOT NULL,
+    recommended varchar(255) not null,
+    dash_recommendation varchar(255),
+    minimum varchar(255),
+    maximum varchar(255),
+    note varchar(255),
+    source varchar(255)
+);
+
+CREATE TABLE IF NOT EXISTS menus(
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    name varchar(255) NOT NULL,
+    user_id varchar(36) not null,
+    type varchar(16) not null check(type in ('Dinner','Lunch','Breakfast','Snack','Other')),
+    constraint menus_user_fk foreign key(user_id) references user(id)
+);
+
+CREATE TABLE IF NOT EXISTS menu_item(
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    name varchar(255) NOT NULL,
+    menus_id integer not null,
+    recipes_id integer not null,
+    constraint menu_item_menu_fk foreign key(menus_id) references menus(id),
+    constraint menu_item_recipes_fk foreign key(recipes_id) references recipes(id)
+);
+
+
+--  kidney_stone_risk maintained in kidneyStoneRisk.json

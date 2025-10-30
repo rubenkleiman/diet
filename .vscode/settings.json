@@ -1,0 +1,10 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "Diet Database",
+            "database": "${workspaceFolder:diet}/lib/db/diet.db"
+        }
+    ]
+}

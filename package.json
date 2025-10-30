@@ -1,6 +1,17 @@
 {
   "type": "module",
+  "scripts": {
+    "db:init": "node lib/db/init.js",
+    "db:reset": "node lib/db/init.js --reset",
+    "db:test": "node lib/db/test.js",
+    "db:populate": "node lib/db/Populate.js",
+    "db:backup": "node lib/db/Backup.js",
+    "db:backup:list": "node lib/db/Backup.js --list",
+    "db:restore": "node lib/db/Backup.js --restore"
+  },
   "dependencies": {
+    "sqlite3": "^5.1.7",
+    "sqlite": "^5.1.1",
     "express": "^5.1.0"
   }
 }
