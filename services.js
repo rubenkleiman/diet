@@ -1,7 +1,9 @@
-// FIXED 2025-10-29 1pm
+// FIXED 2025-10-30 5:20pm PDT
+// Updated: async methods, database repositories, brandId instead of brandName
 import MakeMenu from './lib/MakeMenu.js'
-import { Recipes } from './lib/Recipes.js'
 import IngredientsManager from './lib/IngredientsManager.js'
+import RecipeRepository from './lib/db/RecipeRepository.js'
+import database from './lib/db/Database.js'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -9,40 +11,65 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+// System user ID (auto-logged in for now)
+const SYSTEM_USER_ID = 'a70ff520-1125-4098-90b3-144e22ebe84a'
+
 class ServicesClass {
     constructor() {
         this.menu = new MakeMenu()
-        this.recipeIdMap = this.buildRecipeIdMap()
         this.ingredientsManager = IngredientsManager
+        this.recipeRepository = RecipeRepository
+        this.currentUserId = SYSTEM_USER_ID // Hardcoded for now
         
         // Load kidney stone risk data from lib/data
         const kidneyRiskPath = path.join(__dirname, 'lib', 'data', 'kidneyStoneRisk.json')
         this.kidneyStoneRiskData = JSON.parse(fs.readFileSync(kidneyRiskPath, 'utf8'))
         
-        // Load daily requirements from lib/data
-        const dailyReqPath = path.join(__dirname, 'lib', 'data', 'dailyRequirements.json')
-        this.dailyRequirements = JSON.parse(fs.readFileSync(dailyReqPath, 'utf8'))
+        // Daily requirements will be loaded from database
+        this.dailyRequirements = null
+        
+        // Recipe ID map (lazy loaded)
+        this.recipeIdMap = null
     }
 
     /**
-     * Creates canonical recipe IDs from recipe names
-     * @returns {Object} Map of recipeId -> recipeName and recipeName -> recipeId
+     * Load daily requirements from database
      */
-    buildRecipeIdMap() {
-        const map = {
+    async loadDailyRequirements() {
+        if (this.dailyRequirements) return
+
+        const requirements = await database.all('SELECT * FROM daily_requirements')
+        this.dailyRequirements = {}
+        
+        for (const req of requirements) {
+            this.dailyRequirements[req.name] = {
+                recommended: req.recommended,
+                dashRecommendation: req.dash_recommendation,
+                minimum: req.minimum,
+                maximum: req.maximum,
+                note: req.note,
+                source: req.source
+            }
+        }
+    }
+
+    /**
+     * Initialize recipe ID map from database
+     */
+    async initRecipeIdMap() {
+        if (this.recipeIdMap) return
+
+        const recipes = await this.recipeRepository.getList(this.currentUserId)
+        this.recipeIdMap = {
             toName: {},
             toId: {}
         }
-        
-        const recipeNames = this.menu.getAllRecipeNames()
-        
-        for (const name of recipeNames) {
-            const id = this.canonicalizeRecipeId(name)
-            map.toName[id] = name
-            map.toId[name] = id
+
+        for (const recipe of recipes) {
+            const id = this.canonicalizeRecipeId(recipe.name)
+            this.recipeIdMap.toName[id] = recipe.name
+            this.recipeIdMap.toId[recipe.name] = id
         }
-        
-        return map
     }
 
     /**
@@ -65,18 +92,19 @@ class ServicesClass {
      * @returns {string|null} Recipe name or null if not found
      */
     getRecipeNameFromId(recipeId) {
-        return this.recipeIdMap.toName[recipeId] || null
+        return this.recipeIdMap?.toName[recipeId] || null
     }
 
     /**
      * Gets all recipes with their IDs
-     * @returns {Array} Array of {id, name} objects
+     * @returns {Promise<Array>} Array of {id, name} objects
      */
-    getAllRecipes() {
-        const recipeNames = this.menu.getAllRecipeNames()
-        return recipeNames.map(name => ({
-            id: this.recipeIdMap.toId[name],
-            name: name
+    async getAllRecipes() {
+        await this.initRecipeIdMap()
+        const recipes = await this.recipeRepository.getList(this.currentUserId)
+        return recipes.map(recipe => ({
+            id: this.recipeIdMap.toId[recipe.name],
+            name: recipe.name
         }))
     }
 
@@ -84,9 +112,10 @@ class ServicesClass {
      * Gets detailed nutrition information for a recipe
      * @param {string} recipeId - Canonical recipe ID
      * @param {boolean} summary - If true, return summary fields only
-     * @returns {Object|null} Recipe details or null if not found
+     * @returns {Promise<Object|null>} Recipe details or null if not found
      */
-    getRecipeDetails(recipeId, summary = false) {
+    async getRecipeDetails(recipeId, summary = false) {
+        await this.initRecipeIdMap()
         const recipeName = this.getRecipeNameFromId(recipeId)
         if (!recipeName) {
             return null
@@ -103,9 +132,10 @@ class ServicesClass {
      * @param {Array<string>} removedIngredients - Ingredients to remove
      * @param {boolean} summary - Summary mode
      * @param {Array<string>} explained - Nutrients to explain
-     * @returns {Object|null} Comparison data or null if not found
+     * @returns {Promise<Object|null>} Comparison data or null if not found
      */
-    compareRecipeVariations(recipeId, variations = {}, addedIngredients = {}, removedIngredients = [], summary = false, explained = []) {
+    async compareRecipeVariations(recipeId, variations = {}, addedIngredients = {}, removedIngredients = [], summary = false, explained = []) {
+        await this.initRecipeIdMap()
         const recipeName = this.getRecipeNameFromId(recipeId)
         if (!recipeName) {
             return null
@@ -123,28 +153,28 @@ class ServicesClass {
 
     /**
      * Gets all ingredients with compact info
-     * @returns {Array} Array of ingredients
+     * @returns {Promise<Array>} Array of ingredients
      */
-    getAllIngredients() {
-        return this.ingredientsManager.getAllIngredients()
+    async getAllIngredients() {
+        return await this.ingredientsManager.getAllIngredients(this.currentUserId)
     }
 
     /**
      * Searches ingredients by term
      * @param {string} searchTerm 
-     * @returns {Array} Filtered ingredients
+     * @returns {Promise<Array>} Filtered ingredients
      */
-    searchIngredients(searchTerm) {
-        return this.ingredientsManager.searchIngredients(searchTerm)
+    async searchIngredients(searchTerm) {
+        return await this.ingredientsManager.searchIngredients(searchTerm, this.currentUserId)
     }
 
     /**
      * Gets detailed info for a specific ingredient
-     * @param {string} brandName 
-     * @returns {Object|null} Ingredient details
+     * @param {number} brandId - Brand ID
+     * @returns {Promise<Object|null>} Ingredient details
      */
-    getIngredientDetails(brandName) {
-        return this.ingredientsManager.getIngredientDetails(brandName)
+    async getIngredientDetails(brandId) {
+        return await this.ingredientsManager.getIngredientDetails(brandId, this.currentUserId)
     }
 
     /**
@@ -157,9 +187,10 @@ class ServicesClass {
 
     /**
      * Gets daily requirements
-     * @returns {Object} Daily requirements data
+     * @returns {Promise<Object>} Daily requirements data
      */
-    getDailyRequirements() {
+    async getDailyRequirements() {
+        await this.loadDailyRequirements()
         return this.dailyRequirements
     }
 

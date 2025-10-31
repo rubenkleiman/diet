@@ -1,4 +1,4 @@
-// FIXED 2025-10-29 1pm
+// FIXED 2025-10-30 5:15pm
 // No changes needed - client.js only accesses data through API calls
 
 // State management
@@ -469,7 +469,7 @@ function renderIngredientList(ingredientsToShow) {
             <span class="ingredient-compact">${ingredient.compact}</span>
         `;
         
-        li.addEventListener('click', () => showIngredientDetails(ingredient.name));
+        li.addEventListener('click', () => showIngredientDetails(ingredient.id));
         
         listElement.appendChild(li);
     });

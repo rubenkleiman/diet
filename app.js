@@ -1,4 +1,5 @@
-// FIXED 2025-10-29 1pm
+// FIXED 2025-10-30 5:15pm PDT
+// Updated: async routes, ingredients use brandId instead of brandName
 import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -29,9 +30,9 @@ app.get('/', (req, res) => {
  * GET /api/recipes
  * Returns list of all recipes with their canonical IDs
  */
-app.get('/api/recipes', (req, res) => {
+app.get('/api/recipes', async (req, res) => {
     try {
-        const recipes = services.getAllRecipes()
+        const recipes = await services.getAllRecipes()
         res.json({
             success: true,
             data: recipes
@@ -50,12 +51,12 @@ app.get('/api/recipes', (req, res) => {
  * Query params:
  *   - summary: boolean (default: false)
  */
-app.get('/api/recipes/:recipeId', (req, res) => {
+app.get('/api/recipes/:recipeId', async (req, res) => {
     try {
         const { recipeId } = req.params
         const summary = req.query.summary === 'true'
         
-        const recipeData = services.getRecipeDetails(recipeId, summary)
+        const recipeData = await services.getRecipeDetails(recipeId, summary)
         
         if (!recipeData) {
             return res.status(404).json({
@@ -98,12 +99,12 @@ app.get('/api/config', (req, res) => {
  * GET /api/ingredients
  * Returns list of all ingredients with compact info
  */
-app.get('/api/ingredients', (req, res) => {
+app.get('/api/ingredients', async (req, res) => {
     try {
         const searchTerm = req.query.search || ''
         const ingredients = searchTerm 
-            ? services.searchIngredients(searchTerm)
-            : services.getAllIngredients()
+            ? await services.searchIngredients(searchTerm)
+            : await services.getAllIngredients()
         
         res.json({
             success: true,
@@ -118,13 +119,20 @@ app.get('/api/ingredients', (req, res) => {
 })
 
 /**
- * GET /api/ingredients/:brandName
+ * GET /api/ingredients/:brandId
  * Returns detailed information for a specific ingredient
  */
-app.get('/api/ingredients/:brandName', (req, res) => {
+app.get('/api/ingredients/:brandId', async (req, res) => {
     try {
-        const { brandName } = req.params
-        const ingredient = services.getIngredientDetails(decodeURIComponent(brandName))
+        const brandId = parseInt(req.params.brandId)
+        if (isNaN(brandId)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid brand ID'
+            })
+        }
+        
+        const ingredient = await services.getIngredientDetails(brandId)
         
         if (!ingredient) {
             return res.status(404).json({

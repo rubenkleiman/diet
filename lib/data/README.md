@@ -1,7 +1,7 @@
 # TODO
 
-- allow ml in recipes.json as long as there is a density for it in brands.json; else error
-- oz to g conversions
+- seems that /api/ingredients/:brandName should more safely be /api/ingredients/:brandId
+- api/conf should have only client data. Would be better to name the file: conf.json => client-conf.json
 - except for oxalates and the compact.display, omit displaying nutrition data when there's zero content
 
 #  brand.json
