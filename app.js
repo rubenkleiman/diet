@@ -1,4 +1,4 @@
-// FIXED 2025-10-30 5:15pm PDT
+// FIXED 2025-10-31 - Added CRUD endpoints for recipes
 // Updated: async routes, ingredients use brandId instead of brandName
 import express from 'express'
 import path from 'path'
@@ -11,6 +11,9 @@ const __dirname = path.dirname(__filename)
 
 const app = express()
 const PORT = 8080
+
+// System user (always logged in during development)
+const SYSTEM_USER_ID = 'a70ff520-1125-4098-90b3-144e22ebe84a'
 
 // Middleware
 app.use(express.json())
@@ -68,6 +71,152 @@ app.get('/api/recipes/:recipeId', async (req, res) => {
         res.json({
             success: true,
             data: recipeData
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        })
+    }
+})
+
+/**
+ * GET /api/recipes/:recipeId/full
+ * Returns full recipe data for editing (with brandIds, amounts, units)
+ */
+app.get('/api/recipes/:recipeId/full', async (req, res) => {
+    try {
+        const { recipeId } = req.params
+        
+        const recipeData = await services.getRecipeFullDetails(recipeId, SYSTEM_USER_ID)
+        
+        if (!recipeData) {
+            return res.status(404).json({
+                success: false,
+                error: 'Recipe not found'
+            })
+        }
+        
+        res.json({
+            success: true,
+            data: recipeData
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        })
+    }
+})
+
+/**
+ * POST /api/recipes
+ * Create a new recipe
+ * Body: { name, ingredients: [{brandId, amount, unit}] }
+ */
+app.post('/api/recipes', async (req, res) => {
+    try {
+        const { name, ingredients } = req.body
+        
+        if (!name || !ingredients || !Array.isArray(ingredients)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid request: name and ingredients array required'
+            })
+        }
+        
+        if (ingredients.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'At least one ingredient is required'
+            })
+        }
+        
+        // Validate ingredients
+        for (const ing of ingredients) {
+            if (!ing.brandId || !ing.amount || !ing.unit) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Each ingredient must have brandId, amount, and unit'
+                })
+            }
+        }
+        
+        const recipeId = await services.createRecipe(name, ingredients, SYSTEM_USER_ID)
+        
+        res.json({
+            success: true,
+            data: { id: recipeId }
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        })
+    }
+})
+
+/**
+ * PUT /api/recipes/:recipeId
+ * Update an existing recipe
+ * Body: { name, ingredients: [{brandId, amount, unit}] }
+ */
+app.put('/api/recipes/:recipeId', async (req, res) => {
+    try {
+        const { recipeId } = req.params
+        const { name, ingredients } = req.body
+        
+        if (!name || !ingredients || !Array.isArray(ingredients)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid request: name and ingredients array required'
+            })
+        }
+        
+        if (ingredients.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'At least one ingredient is required'
+            })
+        }
+        
+        // Validate ingredients
+        for (const ing of ingredients) {
+            if (!ing.brandId || !ing.amount || !ing.unit) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Each ingredient must have brandId, amount, and unit'
+                })
+            }
+        }
+        
+        await services.updateRecipe(recipeId, name, ingredients, SYSTEM_USER_ID)
+        
+        res.json({
+            success: true,
+            data: { id: recipeId }
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        })
+    }
+})
+
+/**
+ * DELETE /api/recipes/:recipeId
+ * Delete a recipe
+ */
+app.delete('/api/recipes/:recipeId', async (req, res) => {
+    try {
+        const { recipeId } = req.params
+        
+        await services.deleteRecipe(recipeId, SYSTEM_USER_ID)
+        
+        res.json({
+            success: true,
+            data: { deleted: true }
         })
     } catch (error) {
         res.status(500).json({
@@ -202,14 +351,17 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
     console.log(`Diet Guidelines server running at http://localhost:${PORT}`)
     console.log(`API endpoints:`)
-    console.log(`  GET /api/recipes - List all recipes`)
-    console.log(`  GET /api/recipes/:recipeId - Get recipe details`)
-    console.log(`  GET /api/ingredients - List all ingredients`)
-    console.log(`  GET /api/ingredients?search=term - Search ingredients`)
-    console.log(`  GET /api/ingredients/:brandName - Get ingredient details`)
-    console.log(`  GET /api/kidney-stone-risk - Get kidney stone risk data`)
-    console.log(`  GET /api/daily-requirements - Get daily nutritional requirements`)
-    console.log(`  GET /api/config - Get UI configuration`)
+    console.log(`  GET    /api/recipes - List all recipes`)
+    console.log(`  GET    /api/recipes/:recipeId - Get recipe details`)
+    console.log(`  POST   /api/recipes - Create new recipe`)
+    console.log(`  PUT    /api/recipes/:recipeId - Update recipe`)
+    console.log(`  DELETE /api/recipes/:recipeId - Delete recipe`)
+    console.log(`  GET    /api/ingredients - List all ingredients`)
+    console.log(`  GET    /api/ingredients?search=term - Search ingredients`)
+    console.log(`  GET    /api/ingredients/:brandId - Get ingredient details`)
+    console.log(`  GET    /api/kidney-stone-risk - Get kidney stone risk data`)
+    console.log(`  GET    /api/daily-requirements - Get daily nutritional requirements`)
+    console.log(`  GET    /api/config - Get UI configuration`)
 })
 
 export default app

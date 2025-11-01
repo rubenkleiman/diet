@@ -1,7 +1,7 @@
 {
   "ui": {
     "recipeListMaxHeight": "400px",
-    "recipeDetailsMaxHeight": "6  00px",
+    "recipeDetailsMaxHeight": "1200px",
     "searchDebounceMs": 300
   },
   "comparison": {

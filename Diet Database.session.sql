@@ -8,6 +8,11 @@ select (select count(*) from users) users,
 select * from users;
 select * from brands;
 select * from recipes;
+select * from recipe_items;
+select r.name, i.* from recipes r 
+    inner join recipe_items i
+    on r.id = i.recipe_id
+    order by r.id, i.item_order;
 select * from daily_requirements;
 select * from menus;
 select m.name from menus m

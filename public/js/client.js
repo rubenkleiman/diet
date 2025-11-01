@@ -14,6 +14,11 @@ let userSettings = {
     kidneyStoneRisk: 'Normal'
 };
 
+// Recipe editor state
+let editingRecipeId = null;
+let selectedIngredientsForRecipe = []; // Array of {brandId, name, amount, unit}
+let ingredientSearchTimeout = null;
+
 // Initialize app
 async function init() {
     loadUserSettings();
@@ -221,6 +226,21 @@ function setupEventListeners() {
             filterIngredients(e.target.value);
         });
     }
+
+    // Recipe editor ingredient search
+    const ingredientSearchBox = document.getElementById('ingredientSearchBox');
+    if (ingredientSearchBox) {
+        ingredientSearchBox.addEventListener('input', (e) => {
+            handleIngredientSearch(e.target.value);
+        });
+        
+        // Close search results when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.ingredient-search')) {
+                hideIngredientSearchResults();
+            }
+        });
+    }
 }
 
 // Load all recipes
@@ -255,8 +275,17 @@ function renderRecipeList(recipesToShow) {
         const li = document.createElement('li');
         li.className = 'recipe-item';
         li.dataset.recipeId = recipe.id;
+        li.textContent = recipe.name; // Set initial text immediately
         
-        // Fetch summary data to show calories and oxalates
+        // Add click handler
+        li.addEventListener('click', () => {
+            selectRecipe(recipe.id);
+            showRecipeDetails(recipe.id);
+        });
+        
+        listElement.appendChild(li);
+        
+        // Fetch summary data to show calories and oxalates (async)
         fetchRecipeSummary(recipe.id).then(data => {
             if (data) {
                 const calories = data.totals.calories || 0;
@@ -271,17 +300,13 @@ function renderRecipeList(recipesToShow) {
                         <span class="recipe-oxalates" style="color: ${oxalateRisk.color}">${oxalates.toFixed(1)}mg ox</span>
                     </span>
                 `;
-            } else {
-                li.textContent = recipe.name;
+                
+                // Re-select if this is the selected recipe
+                if (recipe.id === selectedRecipeId) {
+                    li.classList.add('selected');
+                }
             }
         });
-        
-        li.addEventListener('click', () => {
-            selectRecipe(recipe.id);
-            showRecipeDetails(recipe.id);
-        });
-        
-        listElement.appendChild(li);
     });
 }
 
@@ -349,6 +374,12 @@ function selectRecipe(recipeId) {
     }
 
     selectedRecipeId = recipeId;
+    
+    // Enable/disable edit and delete buttons
+    const editBtn = document.getElementById('editRecipeBtn');
+    const deleteBtn = document.getElementById('deleteRecipeBtn');
+    if (editBtn) editBtn.disabled = false;
+    if (deleteBtn) deleteBtn.disabled = false;
 }
 
 // Show recipe details with % daily values
@@ -640,5 +671,361 @@ window.closeMobileMenu = closeMobileMenu;
 window.applySettings = applySettings;
 window.cancelSettings = cancelSettings;
 
+// Recipe editor functions
+window.createRecipe = createRecipe;
+window.editRecipe = editRecipe;
+window.deleteRecipe = deleteRecipe;
+window.closeRecipeEditor = closeRecipeEditor;
+window.saveRecipe = saveRecipe;
+
 // Initialize on load
 init();
+
+// ===== RECIPE EDITOR FUNCTIONS =====
+
+function createRecipe() {
+    editingRecipeId = null;
+    selectedIngredientsForRecipe = [];
+    
+    document.getElementById('editPanelTitle').textContent = 'Create New Recipe';
+    document.getElementById('recipeNameInput').value = '';
+    document.getElementById('ingredientSearchBox').value = '';
+    
+    renderSelectedIngredients();
+    openRecipeEditor();
+}
+
+async function editRecipe() {
+    if (!selectedRecipeId) return;
+    
+    editingRecipeId = selectedRecipeId;
+    
+    // Fetch full recipe details from database
+    try {
+        const response = await fetch(`/api/recipes/${selectedRecipeId}/full`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const recipe = result.data;
+            
+            document.getElementById('editPanelTitle').textContent = 'Edit Recipe';
+            document.getElementById('recipeNameInput').value = recipe.name;
+            document.getElementById('ingredientSearchBox').value = '';
+            
+            // Load ingredients with proper brandId, amount, and unit
+            selectedIngredientsForRecipe = recipe.ingredients.map(ing => ({
+                brandId: ing.brandId,
+                name: ing.brandName,
+                amount: ing.amount,
+                unit: ing.unit
+            }));
+            
+            renderSelectedIngredients();
+            openRecipeEditor();
+        }
+    } catch (error) {
+        console.error('Error loading recipe for editing:', error);
+        alert('Failed to load recipe details');
+    }
+}
+
+async function deleteRecipe() {
+    if (!selectedRecipeId) return;
+    
+    const recipe = recipes.find(r => r.id === selectedRecipeId);
+    if (!recipe) return;
+    
+    if (!confirm(`Delete recipe "${recipe.name}"? This cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/recipes/${selectedRecipeId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Reload recipes
+            await loadRecipes();
+            renderRecipeList(recipes);
+            
+            // Clear selection
+            selectedRecipeId = null;
+            document.getElementById('editRecipeBtn').disabled = true;
+            document.getElementById('deleteRecipeBtn').disabled = true;
+            document.getElementById('recipeDetailsSection').style.display = 'none';
+            
+            alert('Recipe deleted successfully');
+        } else {
+            alert('Failed to delete recipe: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error deleting recipe:', error);
+        alert('Failed to delete recipe');
+    }
+}
+
+function openRecipeEditor() {
+    const panel = document.getElementById('recipeEditPanel');
+    if (panel) {
+        panel.classList.add('active');
+    }
+}
+
+function closeRecipeEditor() {
+    const panel = document.getElementById('recipeEditPanel');
+    if (panel) {
+        panel.classList.remove('active');
+    }
+    
+    // Clear form
+    editingRecipeId = null;
+    selectedIngredientsForRecipe = [];
+    document.getElementById('recipeNameInput').value = '';
+    document.getElementById('ingredientSearchBox').value = '';
+    hideIngredientSearchResults();
+    clearErrors();
+}
+
+async function saveRecipe(event) {
+    event.preventDefault();
+    
+    // Validate
+    const recipeName = document.getElementById('recipeNameInput').value.trim();
+    if (!recipeName) {
+        showError('recipeNameError', 'Recipe name is required');
+        return;
+    }
+    
+    if (selectedIngredientsForRecipe.length === 0) {
+        showError('ingredientsError', 'At least one ingredient is required');
+        return;
+    }
+    
+    // Validate all ingredients have amounts
+    for (const ing of selectedIngredientsForRecipe) {
+        if (!ing.amount || ing.amount <= 0) {
+            showError('ingredientsError', 'All ingredients must have valid amounts');
+            return;
+        }
+    }
+    
+    clearErrors();
+    
+    // Prepare payload
+    const payload = {
+        name: recipeName,
+        ingredients: selectedIngredientsForRecipe.map(ing => ({
+            brandId: ing.brandId,
+            amount: parseFloat(ing.amount),
+            unit: ing.unit
+        }))
+    };
+    
+    try {
+        const url = editingRecipeId 
+            ? `/api/recipes/${editingRecipeId}` 
+            : '/api/recipes';
+        const method = editingRecipeId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Reload recipes
+            await loadRecipes();
+            renderRecipeList(recipes);
+            closeRecipeEditor();
+            
+            alert(editingRecipeId ? 'Recipe updated successfully' : 'Recipe created successfully');
+        } else {
+            showError('ingredientsError', result.error || 'Failed to save recipe');
+        }
+    } catch (error) {
+        console.error('Error saving recipe:', error);
+        showError('ingredientsError', 'Failed to save recipe');
+    }
+}
+
+// Ingredient search for recipe editor
+function handleIngredientSearch(searchTerm) {
+    clearTimeout(ingredientSearchTimeout);
+    
+    if (!searchTerm || searchTerm.trim().length < 2) {
+        hideIngredientSearchResults();
+        return;
+    }
+    
+    ingredientSearchTimeout = setTimeout(() => {
+        performIngredientSearch(searchTerm.trim());
+    }, 300);
+}
+
+async function performIngredientSearch(searchTerm) {
+    try {
+        const response = await fetch(`/api/ingredients?search=${encodeURIComponent(searchTerm)}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            displayIngredientSearchResults(result.data);
+        }
+    } catch (error) {
+        console.error('Error searching ingredients:', error);
+    }
+}
+
+function displayIngredientSearchResults(results) {
+    const resultsContainer = document.getElementById('ingredientSearchResults');
+    if (!resultsContainer) return;
+    
+    if (results.length === 0) {
+        resultsContainer.innerHTML = '<div class="search-result-item">No ingredients found</div>';
+        resultsContainer.classList.add('show');
+        return;
+    }
+    
+    resultsContainer.innerHTML = '';
+    
+    results.forEach(ingredient => {
+        // Check if already added
+        const alreadyAdded = selectedIngredientsForRecipe.some(ing => ing.brandId === ingredient.id);
+        
+        const item = document.createElement('div');
+        item.className = 'search-result-item';
+        if (alreadyAdded) item.classList.add('selected');
+        item.textContent = ingredient.name;
+        
+        if (!alreadyAdded) {
+            item.style.cursor = 'pointer';
+            item.addEventListener('click', () => {
+                addIngredientToRecipe(ingredient);
+            });
+        } else {
+            item.style.opacity = '0.5';
+            item.style.cursor = 'not-allowed';
+            item.title = 'Already added';
+        }
+        
+        resultsContainer.appendChild(item);
+    });
+    
+    resultsContainer.classList.add('show');
+}
+
+function hideIngredientSearchResults() {
+    const resultsContainer = document.getElementById('ingredientSearchResults');
+    if (resultsContainer) {
+        resultsContainer.classList.remove('show');
+    }
+}
+
+function addIngredientToRecipe(ingredient) {
+    // Check if already added
+    if (selectedIngredientsForRecipe.some(ing => ing.brandId === ingredient.id)) {
+        return;
+    }
+    
+    selectedIngredientsForRecipe.push({
+        brandId: ingredient.id,
+        name: ingredient.name,
+        amount: 100,
+        unit: 'g'
+    });
+    
+    renderSelectedIngredients();
+    hideIngredientSearchResults();
+    
+    // Clear search box
+    document.getElementById('ingredientSearchBox').value = '';
+}
+
+function removeIngredientFromRecipe(index) {
+    selectedIngredientsForRecipe.splice(index, 1);
+    renderSelectedIngredients();
+}
+
+function updateIngredientAmount(index, amount) {
+    selectedIngredientsForRecipe[index].amount = amount;
+}
+
+function updateIngredientUnit(index, unit) {
+    selectedIngredientsForRecipe[index].unit = unit;
+}
+
+function renderSelectedIngredients() {
+    const container = document.getElementById('ingredientRows');
+    if (!container) return;
+    
+    if (selectedIngredientsForRecipe.length === 0) {
+        container.innerHTML = '<div class="no-ingredients-message">No ingredients added yet</div>';
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    selectedIngredientsForRecipe.forEach((ingredient, index) => {
+        const row = document.createElement('div');
+        row.className = 'ingredient-row';
+        
+        row.innerHTML = `
+            <span class="ingredient-name" title="${ingredient.name}">${ingredient.name}</span>
+            <input 
+                type="number" 
+                class="amount-input" 
+                value="${ingredient.amount}" 
+                min="0.01" 
+                step="0.01"
+                onchange="updateIngredientAmount(${index}, this.value)"
+            >
+            <select 
+                class="unit-select"
+                onchange="updateIngredientUnit(${index}, this.value)"
+            >
+                <option value="g" ${ingredient.unit === 'g' ? 'selected' : ''}>g</option>
+                <option value="ml" ${ingredient.unit === 'ml' ? 'selected' : ''}>ml</option>
+                <option value="mg" ${ingredient.unit === 'mg' ? 'selected' : ''}>mg</option>
+                <option value="mcg" ${ingredient.unit === 'mcg' ? 'selected' : ''}>mcg</option>
+            </select>
+            <button 
+                type="button"
+                class="remove-btn" 
+                onclick="removeIngredientFromRecipe(${index})"
+                title="Remove ingredient"
+            >&times;</button>
+        `;
+        
+        container.appendChild(row);
+    });
+}
+
+function showError(elementId, message) {
+    const errorEl = document.getElementById(elementId);
+    if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.classList.add('show');
+    }
+}
+
+function clearErrors() {
+    document.querySelectorAll('.error-text').forEach(el => {
+        el.textContent = '';
+        el.classList.remove('show');
+    });
+}
+
+// Make ingredient functions globally available
+window.updateIngredientAmount = updateIngredientAmount;
+window.updateIngredientUnit = updateIngredientUnit;
+window.removeIngredientFromRecipe = removeIngredientFromRecipe;

@@ -1,8 +1,9 @@
-// FIXED 2025-10-30 5:20pm PDT
+// FIXED 2025-10-31 - Added CRUD methods for recipes
 // Updated: async methods, database repositories, brandId instead of brandName
 import MakeMenu from './lib/MakeMenu.js'
 import IngredientsManager from './lib/IngredientsManager.js'
 import RecipeRepository from './lib/db/RecipeRepository.js'
+import BrandRepository from './lib/db/BrandRepository.js'
 import database from './lib/db/Database.js'
 import fs from 'fs'
 import path from 'path'
@@ -19,6 +20,7 @@ class ServicesClass {
         this.menu = new MakeMenu()
         this.ingredientsManager = IngredientsManager
         this.recipeRepository = RecipeRepository
+        this.brandRepository = BrandRepository
         this.currentUserId = SYSTEM_USER_ID // Hardcoded for now
         
         // Load kidney stone risk data from lib/data
@@ -73,6 +75,14 @@ class ServicesClass {
     }
 
     /**
+     * Refresh recipe ID map (call after create/update/delete)
+     */
+    async refreshRecipeIdMap() {
+        this.recipeIdMap = null
+        await this.initRecipeIdMap()
+    }
+
+    /**
      * Converts recipe name to canonical ID
      * @param {string} name - Recipe name
      * @returns {string} Canonical ID (lowercase, hyphens, no special chars)
@@ -122,6 +132,140 @@ class ServicesClass {
         }
 
         return this.menu.getRecipeData(recipeName, summary)
+    }
+
+    /**
+     * Gets full recipe details for editing (with brandIds, amounts, units)
+     * @param {string} recipeId - Canonical recipe ID
+     * @param {string} userId - User ID
+     * @returns {Promise<Object|null>} Full recipe details or null if not found
+     */
+    async getRecipeFullDetails(recipeId, userId) {
+        await this.initRecipeIdMap()
+        const recipeName = this.getRecipeNameFromId(recipeId)
+        if (!recipeName) {
+            return null
+        }
+
+        // Get recipe from database
+        const recipe = await this.recipeRepository.getByName(recipeName, userId)
+        if (!recipe) {
+            return null
+        }
+
+        // Convert ingredients to include brandIds
+        const ingredients = []
+        for (const [brandName, measure] of Object.entries(recipe.ingredients)) {
+            // Get brand ID from database
+            const brandRecord = await database.get('SELECT id FROM brands WHERE name = ?', [brandName])
+            if (brandRecord) {
+                const measureParts = measure.split(' ')
+                ingredients.push({
+                    brandId: brandRecord.id,
+                    brandName: brandName,
+                    amount: parseFloat(measureParts[0]),
+                    unit: measureParts[1]
+                })
+            }
+        }
+
+        return {
+            id: recipe.id,
+            name: recipe.name,
+            ingredients: ingredients
+        }
+    }
+
+    /**
+     * Create a new recipe
+     * @param {string} name - Recipe name
+     * @param {Array} ingredients - Array of {brandId, amount, unit}
+     * @param {string} userId - User ID
+     * @returns {Promise<string>} Canonical recipe ID
+     */
+    async createRecipe(name, ingredients, userId) {
+        // Convert brandIds to brandNames for RecipeRepository
+        const ingredientsMap = {}
+        
+        for (const ing of ingredients) {
+            const brand = await this.brandRepository.getById(ing.brandId, userId)
+            if (!brand) {
+                throw new Error(`Brand with ID ${ing.brandId} not found`)
+            }
+            ingredientsMap[brand.name] = `${ing.amount} ${ing.unit}`
+        }
+        
+        // Create recipe in database
+        await this.recipeRepository.create(name, ingredientsMap, userId)
+        
+        // Refresh ID map
+        await this.refreshRecipeIdMap()
+        
+        // Return canonical ID
+        return this.canonicalizeRecipeId(name)
+    }
+
+    /**
+     * Update an existing recipe
+     * @param {string} recipeId - Canonical recipe ID
+     * @param {string} name - New recipe name
+     * @param {Array} ingredients - Array of {brandId, amount, unit}
+     * @param {string} userId - User ID
+     */
+    async updateRecipe(recipeId, name, ingredients, userId) {
+        await this.initRecipeIdMap()
+        const recipeName = this.getRecipeNameFromId(recipeId)
+        if (!recipeName) {
+            throw new Error('Recipe not found')
+        }
+        
+        // Get recipe database ID
+        const recipe = await this.recipeRepository.getByName(recipeName, userId)
+        if (!recipe) {
+            throw new Error('Recipe not found')
+        }
+        
+        // Convert brandIds to brandNames for RecipeRepository
+        const ingredientsMap = {}
+        
+        for (const ing of ingredients) {
+            const brand = await this.brandRepository.getById(ing.brandId, userId)
+            if (!brand) {
+                throw new Error(`Brand with ID ${ing.brandId} not found`)
+            }
+            ingredientsMap[brand.name] = `${ing.amount} ${ing.unit}`
+        }
+        
+        // Update recipe in database
+        await this.recipeRepository.update(recipe.id, name, ingredientsMap, userId)
+        
+        // Refresh ID map
+        await this.refreshRecipeIdMap()
+    }
+
+    /**
+     * Delete a recipe
+     * @param {string} recipeId - Canonical recipe ID
+     * @param {string} userId - User ID
+     */
+    async deleteRecipe(recipeId, userId) {
+        await this.initRecipeIdMap()
+        const recipeName = this.getRecipeNameFromId(recipeId)
+        if (!recipeName) {
+            throw new Error('Recipe not found')
+        }
+        
+        // Get recipe database ID
+        const recipe = await this.recipeRepository.getByName(recipeName, userId)
+        if (!recipe) {
+            throw new Error('Recipe not found')
+        }
+        
+        // Delete recipe from database
+        await this.recipeRepository.delete(recipe.id, userId)
+        
+        // Refresh ID map
+        await this.refreshRecipeIdMap()
     }
 
     /**

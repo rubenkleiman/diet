@@ -102,6 +102,20 @@
         <div id="recipesPage" class="page page-with-sidebar">
             <section class="recipe-list-section">
                 <h2>Recipes</h2>
+                
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="createRecipe()">
+                        <span class="btn-icon">+</span> Create Recipe
+                    </button>
+                    <button class="btn btn-secondary" id="editRecipeBtn" onclick="editRecipe()" disabled>
+                        <span class="btn-icon">✏️</span> Edit Recipe
+                    </button>
+                    <button class="btn btn-danger" id="deleteRecipeBtn" onclick="deleteRecipe()" disabled>
+                        <span class="btn-icon">🗑️</span> Delete
+                    </button>
+                </div>
+
                 <div class="search-box">
                     <input 
                         type="text" 
@@ -131,6 +145,63 @@
                     <!-- Recipe details will be loaded here -->
                 </div>
             </section>
+
+            <!-- Recipe Edit Panel -->
+            <div class="edit-panel" id="recipeEditPanel">
+                <div class="edit-panel-header">
+                    <h2 id="editPanelTitle">Create New Recipe</h2>
+                    <button class="close-btn" onclick="closeRecipeEditor()">&times;</button>
+                </div>
+                
+                <div class="edit-panel-body">
+                    <form id="recipeEditForm" onsubmit="saveRecipe(event)">
+                        <div class="form-group">
+                            <label for="recipeNameInput">Recipe Name *</label>
+                            <input 
+                                type="text" 
+                                id="recipeNameInput" 
+                                class="form-control"
+                                placeholder="Enter recipe name"
+                                required
+                            >
+                            <span class="error-text" id="recipeNameError"></span>
+                        </div>
+
+                        <div class="form-group ingredients-editor">
+                            <label>Ingredients *</label>
+                            
+                            <!-- Ingredient Search -->
+                            <div class="ingredient-search">
+                                <input 
+                                    type="text" 
+                                    id="ingredientSearchBox"
+                                    class="form-control"
+                                    placeholder="Search ingredients to add..."
+                                    autocomplete="off"
+                                >
+                                <div class="search-results" id="ingredientSearchResults">
+                                    <!-- Search results appear here -->
+                                </div>
+                            </div>
+
+                            <!-- Selected Ingredients List -->
+                            <div class="selected-ingredients" id="selectedIngredientsList">
+                                <h4>Selected Ingredients</h4>
+                                <div class="ingredient-rows" id="ingredientRows">
+                                    <!-- Ingredient rows appear here -->
+                                    <div class="no-ingredients-message">No ingredients added yet</div>
+                                </div>
+                            </div>
+                            <span class="error-text" id="ingredientsError"></span>
+                        </div>
+
+                        <div class="edit-panel-footer">
+                            <button type="button" class="btn btn-secondary" onclick="closeRecipeEditor()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Recipe</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <!-- SETTINGS PAGE -->
