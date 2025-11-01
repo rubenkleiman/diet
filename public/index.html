@@ -12,16 +12,96 @@
             <h1 class="nav-brand" onclick="navigateTo('home')">Diet Guidelines</h1>
             <ul class="nav-menu">
                 <li><a href="#" onclick="navigateTo('home'); return false;">Home</a></li>
-                <li><a href="#" onclick="navigateTo('settings'); return false;">Settings</a></li>
+                <li><a href="#" onclick="navigateTo('recipes'); return false;">Recipes</a></li>
                 <li><a href="#" onclick="navigateTo('ingredients'); return false;">Ingredients</a></li>
+                <li><a href="#" onclick="navigateTo('menus'); return false;">Menus</a></li>
+                <li class="account-dropdown">
+                    <button class="account-btn" onclick="toggleAccountDropdown()" aria-label="Account menu">
+                        <svg class="account-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="dropdown-menu" id="accountDropdown">
+                        <a href="#" onclick="navigateTo('profile'); return false;">User Profile</a>
+                        <a href="#" onclick="navigateTo('settings'); return false;">Settings</a>
+                    </div>
+                </li>
             </ul>
+            <!-- Mobile hamburger menu -->
+            <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+        <!-- Mobile menu -->
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="#" onclick="navigateTo('home'); closeMobileMenu(); return false;">Home</a>
+            <a href="#" onclick="navigateTo('recipes'); closeMobileMenu(); return false;">Recipes</a>
+            <a href="#" onclick="navigateTo('ingredients'); closeMobileMenu(); return false;">Ingredients</a>
+            <a href="#" onclick="navigateTo('menus'); closeMobileMenu(); return false;">Menus</a>
+            <a href="#" onclick="navigateTo('profile'); closeMobileMenu(); return false;">User Profile</a>
+            <a href="#" onclick="navigateTo('settings'); closeMobileMenu(); return false;">Settings</a>
         </div>
     </nav>
 
     <div class="container">
-        <!-- HOME PAGE -->
-        <main id="homePage" class="page">
+        <!-- HOME PAGE (NEW LANDING) -->
+        <div id="homePage" class="page active">
+            <section class="hero-section">
+                <h1>Welcome to Diet Guidelines</h1>
+                <p class="hero-description">
+                    A comprehensive nutrition tracking application designed to help you make informed dietary choices. 
+                    Track recipes, analyze nutritional content, monitor DASH diet adherence, and manage oxalate intake 
+                    for kidney stone prevention.
+                </p>
+            </section>
+
+            <section class="feature-cards">
+                <div class="feature-card" onclick="navigateTo('recipes')">
+                    <div class="card-icon">📋</div>
+                    <h2>Recipes</h2>
+                    <p>Browse and analyze <span id="recipeCount">0</span> recipes with detailed nutritional breakdowns</p>
+                    <span class="card-link">View Recipes →</span>
+                </div>
+
+                <div class="feature-card" onclick="navigateTo('ingredients')">
+                    <div class="card-icon">🥗</div>
+                    <h2>Ingredients</h2>
+                    <p>Explore <span id="ingredientCount">0</span> ingredients with comprehensive nutrition data</p>
+                    <span class="card-link">View Ingredients →</span>
+                </div>
+
+                <div class="feature-card" onclick="navigateTo('menus')">
+                    <div class="card-icon">📅</div>
+                    <h2>Menus</h2>
+                    <p>Plan your meals with customized menu collections (Coming Soon)</p>
+                    <span class="card-link">View Menus →</span>
+                </div>
+            </section>
+
+            <section class="info-section">
+                <div class="info-card">
+                    <h3>DASH Diet Adherence</h3>
+                    <p>Each recipe is rated for DASH (Dietary Approaches to Stop Hypertension) compliance, helping you maintain a heart-healthy diet.</p>
+                </div>
+                <div class="info-card">
+                    <h3>Oxalate Tracking</h3>
+                    <p>Monitor oxalate content in recipes to help prevent kidney stones. Set your risk level and get personalized warnings.</p>
+                </div>
+                <div class="info-card">
+                    <h3>Nutritional Analysis</h3>
+                    <p>View detailed nutritional breakdowns with percentage of daily values for all major nutrients.</p>
+                </div>
+            </section>
+        </div>
+
+        <!-- RECIPES PAGE (FORMER HOME PAGE) -->
+        <div id="recipesPage" class="page page-with-sidebar">
             <section class="recipe-list-section">
+                <h2>Recipes</h2>
                 <div class="search-box">
                     <input 
                         type="text" 
@@ -51,10 +131,10 @@
                     <!-- Recipe details will be loaded here -->
                 </div>
             </section>
-        </main>
+        </div>
 
         <!-- SETTINGS PAGE -->
-        <main id="settingsPage" class="page" style="display: none;">
+        <div id="settingsPage" class="page">
             <section class="settings-section">
                 <h2>Settings</h2>
                 <form id="settingsForm" class="settings-form">
@@ -106,10 +186,35 @@
                     </div>
                 </form>
             </section>
-        </main>
+        </div>
+
+        <!-- USER PROFILE PAGE -->
+        <div id="profilePage" class="page">
+            <section class="profile-section">
+                <h2>User Profile</h2>
+                <div class="profile-content">
+                    <div class="profile-avatar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <div class="profile-info">
+                        <div class="profile-field">
+                            <label>Display Name</label>
+                            <p id="profileDisplayName">Diet System</p>
+                        </div>
+                        <div class="profile-field">
+                            <label>User ID</label>
+                            <p class="user-id">a70ff520-1125-4098-90b3-144e22ebe84a</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
 
         <!-- INGREDIENTS PAGE -->
-        <main id="ingredientsPage" class="page" style="display: none;">
+        <div id="ingredientsPage" class="page page-single-column">
             <section class="ingredients-section">
                 <h2>Ingredients</h2>
                 <div class="search-box">
@@ -134,7 +239,20 @@
                     </div>
                 </div>
             </section>
-        </main>
+        </div>
+
+        <!-- MENUS PAGE (STUB) -->
+        <div id="menusPage" class="page">
+            <section class="menus-section">
+                <h2>Menus</h2>
+                <div class="coming-soon">
+                    <div class="coming-soon-icon">🚧</div>
+                    <h3>Coming Soon</h3>
+                    <p>Menu planning and meal collections will be available in a future update.</p>
+                    <button class="btn btn-primary" onclick="navigateTo('home')">Back to Home</button>
+                </div>
+            </section>
+        </div>
     </div>
 
     <script src="/js/client.js"></script>

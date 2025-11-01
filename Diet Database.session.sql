@@ -5,6 +5,7 @@ select (select count(*) from users) users,
     (select count(*) from menus) menus,
     (select count(*) from daily_requirements) daily_requirements;
 
+select * from users;
 select * from brands;
 select * from recipes;
 select * from daily_requirements;

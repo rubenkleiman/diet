@@ -1,11 +1,9 @@
-// FIXED 2025-10-30 5:15pm
-// No changes needed - client.js only accesses data through API calls
-
+// Diet Guidelines Client - Complete Rewrite
 // State management
 let recipes = [];
 let ingredients = [];
 let selectedRecipeId = null;
-let selectedIngredientName = null;
+let selectedIngredientId = null;
 let config = {};
 let kidneyStoneRiskData = {};
 let dailyRequirements = {};
@@ -23,7 +21,11 @@ async function init() {
     await loadKidneyStoneRiskData();
     await loadDailyRequirements();
     await loadRecipes();
+    await loadIngredients();
     setupEventListeners();
+    
+    // Update home page counts
+    updateHomeCounts();
     
     // Handle initial page from URL or default to home
     const page = window.location.hash.slice(1) || 'home';
@@ -95,15 +97,33 @@ function applyConfig() {
     }
 }
 
-// Navigation
-function navigateTo(page, pushState = true) {
-    // Hide all pages
-    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+// Update home page counts
+function updateHomeCounts() {
+    const recipeCountEl = document.getElementById('recipeCount');
+    const ingredientCountEl = document.getElementById('ingredientCount');
     
-    // Show requested page
+    if (recipeCountEl) recipeCountEl.textContent = recipes.length;
+    if (ingredientCountEl) ingredientCountEl.textContent = ingredients.length;
+}
+
+// Navigation - FIXED: Properly switch pages using class toggle
+function navigateTo(page, pushState = true) {
+    // Close dropdowns
+    closeAccountDropdown();
+    closeMobileMenu();
+    
+    // Scroll to top immediately
+    window.scrollTo(0, 0);
+    
+    // Remove active class from all pages
+    document.querySelectorAll('.page').forEach(p => {
+        p.classList.remove('active');
+    });
+    
+    // Add active class to target page
     const pageElement = document.getElementById(`${page}Page`);
     if (pageElement) {
-        pageElement.style.display = 'block';
+        pageElement.classList.add('active');
         
         // Update URL without reloading
         if (pushState) {
@@ -114,7 +134,9 @@ function navigateTo(page, pushState = true) {
         if (page === 'settings') {
             loadSettingsForm();
         } else if (page === 'ingredients') {
-            loadIngredients();
+            renderIngredientList(ingredients);
+        } else if (page === 'recipes') {
+            renderRecipeList(recipes);
         }
     }
 }
@@ -125,33 +147,80 @@ window.addEventListener('popstate', (event) => {
     navigateTo(page, false);
 });
 
+// Account dropdown
+function toggleAccountDropdown() {
+    const dropdown = document.getElementById('accountDropdown');
+    dropdown.classList.toggle('show');
+}
+
+function closeAccountDropdown() {
+    const dropdown = document.getElementById('accountDropdown');
+    if (dropdown) dropdown.classList.remove('show');
+}
+
+// Mobile menu
+function toggleMobileMenu() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    mobileMenu.classList.toggle('show');
+}
+
+function closeMobileMenu() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (mobileMenu) mobileMenu.classList.remove('show');
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.account-dropdown')) {
+        closeAccountDropdown();
+    }
+});
+
 // Setup event listeners
 function setupEventListeners() {
     // Recipe search
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-        filterRecipes(e.target.value);
-    });
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            filterRecipes(e.target.value);
+        });
+    }
 
     // Summary checkbox
-    document.getElementById('summaryCheckbox').addEventListener('change', () => {
-        if (selectedRecipeId) {
-            showRecipeDetails(selectedRecipeId);
-        }
-    });
+    const summaryCheckbox = document.getElementById('summaryCheckbox');
+    if (summaryCheckbox) {
+        summaryCheckbox.addEventListener('change', () => {
+            if (selectedRecipeId) {
+                showRecipeDetails(selectedRecipeId);
+            }
+        });
+    }
 
     // Settings form
-    document.getElementById('settingsForm').addEventListener('submit', applySettings);
+    const settingsForm = document.getElementById('settingsForm');
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', applySettings);
+    }
     
-    document.getElementById('useAgeCheckbox').addEventListener('change', (e) => {
-        document.getElementById('ageInput').disabled = !e.target.checked;
-    });
+    const useAgeCheckbox = document.getElementById('useAgeCheckbox');
+    if (useAgeCheckbox) {
+        useAgeCheckbox.addEventListener('change', (e) => {
+            document.getElementById('ageInput').disabled = !e.target.checked;
+        });
+    }
 
-    document.getElementById('kidneyRiskSelect').addEventListener('change', updateKidneyRiskInfo);
+    const kidneyRiskSelect = document.getElementById('kidneyRiskSelect');
+    if (kidneyRiskSelect) {
+        kidneyRiskSelect.addEventListener('change', updateKidneyRiskInfo);
+    }
 
     // Ingredient search
-    document.getElementById('ingredientSearchInput').addEventListener('input', (e) => {
-        searchIngredients(e.target.value);
-    });
+    const ingredientSearchInput = document.getElementById('ingredientSearchInput');
+    if (ingredientSearchInput) {
+        ingredientSearchInput.addEventListener('input', (e) => {
+            filterIngredients(e.target.value);
+        });
+    }
 }
 
 // Load all recipes
@@ -162,7 +231,7 @@ async function loadRecipes() {
         
         if (result.success) {
             recipes = result.data;
-            renderRecipeList(recipes);
+            updateHomeCounts();
         }
     } catch (error) {
         console.error('Error loading recipes:', error);
@@ -173,6 +242,8 @@ async function loadRecipes() {
 // Render recipe list with calories and oxalates
 function renderRecipeList(recipesToShow) {
     const listElement = document.getElementById('recipeList');
+    if (!listElement) return;
+    
     listElement.innerHTML = '';
 
     if (recipesToShow.length === 0) {
@@ -185,7 +256,7 @@ function renderRecipeList(recipesToShow) {
         li.className = 'recipe-item';
         li.dataset.recipeId = recipe.id;
         
-        // We'll fetch summary data to show calories and oxalates
+        // Fetch summary data to show calories and oxalates
         fetchRecipeSummary(recipe.id).then(data => {
             if (data) {
                 const calories = data.totals.calories || 0;
@@ -282,7 +353,8 @@ function selectRecipe(recipeId) {
 
 // Show recipe details with % daily values
 async function showRecipeDetails(recipeId) {
-    const summary = document.getElementById('summaryCheckbox').checked;
+    const summaryCheckbox = document.getElementById('summaryCheckbox');
+    const summary = summaryCheckbox ? summaryCheckbox.checked : false;
     
     try {
         const response = await fetch(`/api/recipes/${recipeId}?summary=${summary}`);
@@ -304,6 +376,8 @@ function renderRecipeDetails(data) {
     const section = document.getElementById('recipeDetailsSection');
     const title = document.getElementById('recipeDetailsTitle');
     const content = document.getElementById('recipeDetailsContent');
+
+    if (!section || !title || !content) return;
 
     title.textContent = `Recipe: ${data.name}`;
     
@@ -388,17 +462,28 @@ function renderRecipeDetails(data) {
 
 // Settings page functions
 function loadSettingsForm() {
-    document.getElementById('caloriesInput').value = userSettings.caloriesPerDay;
-    document.getElementById('useAgeCheckbox').checked = userSettings.useAge;
-    document.getElementById('ageInput').value = userSettings.age || '';
-    document.getElementById('ageInput').disabled = !userSettings.useAge;
-    document.getElementById('kidneyRiskSelect').value = userSettings.kidneyStoneRisk;
+    const caloriesInput = document.getElementById('caloriesInput');
+    const useAgeCheckbox = document.getElementById('useAgeCheckbox');
+    const ageInput = document.getElementById('ageInput');
+    const kidneyRiskSelect = document.getElementById('kidneyRiskSelect');
+    
+    if (caloriesInput) caloriesInput.value = userSettings.caloriesPerDay;
+    if (useAgeCheckbox) useAgeCheckbox.checked = userSettings.useAge;
+    if (ageInput) {
+        ageInput.value = userSettings.age || '';
+        ageInput.disabled = !userSettings.useAge;
+    }
+    if (kidneyRiskSelect) kidneyRiskSelect.value = userSettings.kidneyStoneRisk;
+    
     updateKidneyRiskInfo();
 }
 
 function updateKidneyRiskInfo() {
     const select = document.getElementById('kidneyRiskSelect');
     const info = document.getElementById('kidneyRiskInfo');
+    
+    if (!select || !info) return;
+    
     const riskLevel = select.value;
     const data = kidneyStoneRiskData[riskLevel];
     
@@ -432,28 +517,32 @@ async function loadIngredients() {
         
         if (result.success) {
             ingredients = result.data;
-            renderIngredientList(ingredients);
+            updateHomeCounts();
         }
     } catch (error) {
         console.error('Error loading ingredients:', error);
     }
 }
 
-async function searchIngredients(searchTerm) {
-    try {
-        const response = await fetch(`/api/ingredients?search=${encodeURIComponent(searchTerm)}`);
-        const result = await response.json();
-        
-        if (result.success) {
-            renderIngredientList(result.data);
-        }
-    } catch (error) {
-        console.error('Error searching ingredients:', error);
+function filterIngredients(searchTerm) {
+    const term = searchTerm.toLowerCase().trim();
+    
+    if (!term) {
+        renderIngredientList(ingredients);
+        return;
     }
+
+    const filtered = ingredients.filter(ing => 
+        ing.name.toLowerCase().includes(term)
+    );
+    
+    renderIngredientList(filtered);
 }
 
 function renderIngredientList(ingredientsToShow) {
     const listElement = document.getElementById('ingredientList');
+    if (!listElement) return;
+    
     listElement.innerHTML = '';
 
     if (ingredientsToShow.length === 0) {
@@ -466,7 +555,7 @@ function renderIngredientList(ingredientsToShow) {
         li.className = 'ingredient-item';
         li.innerHTML = `
             <span class="ingredient-name">${ingredient.name}</span>
-            <span class="ingredient-compact">${ingredient.compact}</span>
+            <span class="ingredient-compact">${ingredient.compact.display}</span>
         `;
         
         li.addEventListener('click', () => showIngredientDetails(ingredient.id));
@@ -475,9 +564,9 @@ function renderIngredientList(ingredientsToShow) {
     });
 }
 
-async function showIngredientDetails(brandName) {
+async function showIngredientDetails(brandId) {
     try {
-        const response = await fetch(`/api/ingredients/${encodeURIComponent(brandName)}`);
+        const response = await fetch(`/api/ingredients/${brandId}`);
         const result = await response.json();
         
         if (result.success) {
@@ -492,6 +581,8 @@ function renderIngredientDetails(data) {
     const section = document.getElementById('ingredientDetailsSection');
     const title = document.getElementById('ingredientDetailsTitle');
     const content = document.getElementById('ingredientDetailsContent');
+
+    if (!section || !title || !content) return;
 
     title.textContent = data.name;
     
@@ -509,7 +600,7 @@ function renderIngredientDetails(data) {
     html += '<table class="nutrition-table">';
     
     for (const [key, value] of Object.entries(data.data)) {
-        // Skip zero values (but always show compact.display)
+        // Skip zero values
         if ((typeof value === 'number' && value === 0) || (typeof value === 'string' && parseFloat(value) === 0)) {
             continue;
         }
@@ -536,9 +627,18 @@ function showError(message) {
     const content = document.getElementById('recipeDetailsContent');
     if (content) {
         content.innerHTML = `<div class="error-message">${message}</div>`;
-        document.getElementById('recipeDetailsSection').style.display = 'block';
+        const section = document.getElementById('recipeDetailsSection');
+        if (section) section.style.display = 'block';
     }
 }
+
+// Make functions globally available
+window.navigateTo = navigateTo;
+window.toggleAccountDropdown = toggleAccountDropdown;
+window.toggleMobileMenu = toggleMobileMenu;
+window.closeMobileMenu = closeMobileMenu;
+window.applySettings = applySettings;
+window.cancelSettings = cancelSettings;
 
 // Initialize on load
 init();
