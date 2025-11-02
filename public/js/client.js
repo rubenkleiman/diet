@@ -385,7 +385,8 @@ function selectRecipe(recipeId) {
 // Show recipe details with % daily values
 async function showRecipeDetails(recipeId) {
     const summaryCheckbox = document.getElementById('summaryCheckbox');
-    const summary = summaryCheckbox ? summaryCheckbox.checked : false;
+    // Inverted: checked = show details (NOT summary)
+    const summary = summaryCheckbox ? !summaryCheckbox.checked : true;
     
     try {
         const response = await fetch(`/api/recipes/${recipeId}?summary=${summary}`);
@@ -1188,7 +1189,7 @@ async function saveIngredient(event) {
     const serving = parseFloat(document.getElementById('servingSizeInput').value);
     const servingUnit = document.getElementById('servingUnitSelect').value;
     const density = parseFloat(document.getElementById('densityInput').value) || null;
-    const oxalatePerGram = parseFloat(document.getElementById('oxalateInput').value);
+    const oxalatePerGram = parseFloat(document.getElementById('oxalateInput').value) || 0; // Default to 0 if empty
     
     if (!name) {
         showError('ingredientNameError', 'Ingredient name is required');
@@ -1197,11 +1198,6 @@ async function saveIngredient(event) {
     
     if (!serving || serving <= 0) {
         showError('ingredientNameError', 'Valid serving size is required');
-        return;
-    }
-    
-    if (isNaN(oxalatePerGram) || oxalatePerGram < 0) {
-        showError('oxalateError', 'Valid oxalate value is required');
         return;
     }
     

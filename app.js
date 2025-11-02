@@ -352,19 +352,12 @@ app.post('/api/ingredients', async (req, res) => {
             })
         }
         
-        if (oxalatePerGram === undefined || oxalatePerGram === null) {
-            return res.status(400).json({
-                success: false,
-                error: 'Oxalate per gram is required'
-            })
-        }
-        
         const brandId = await services.createIngredient({
             name,
             serving,
             servingUnit,
             density,
-            oxalatePerGram,
+            oxalatePerGram: oxalatePerGram || 0, // Default to 0 if not provided
             data: data || {}
         }, SYSTEM_USER_ID)
         
@@ -403,19 +396,12 @@ app.put('/api/ingredients/:brandId', async (req, res) => {
             })
         }
         
-        if (oxalatePerGram === undefined || oxalatePerGram === null) {
-            return res.status(400).json({
-                success: false,
-                error: 'Oxalate per gram is required'
-            })
-        }
-        
         await services.updateIngredient(brandId, {
             name,
             serving,
             servingUnit,
             density,
-            oxalatePerGram,
+            oxalatePerGram: oxalatePerGram || 0, // Default to 0 if not provided
             data: data || {}
         }, SYSTEM_USER_ID)
         
