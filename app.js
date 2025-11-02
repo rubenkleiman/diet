@@ -303,6 +303,163 @@ app.get('/api/ingredients/:brandId', async (req, res) => {
 })
 
 /**
+ * GET /api/ingredients/:brandId/full
+ * Returns full ingredient data for editing
+ */
+app.get('/api/ingredients/:brandId/full', async (req, res) => {
+    try {
+        const brandId = parseInt(req.params.brandId)
+        if (isNaN(brandId)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid brand ID'
+            })
+        }
+        
+        const ingredient = await services.getIngredientFullDetails(brandId, SYSTEM_USER_ID)
+        
+        if (!ingredient) {
+            return res.status(404).json({
+                success: false,
+                error: 'Ingredient not found'
+            })
+        }
+        
+        res.json({
+            success: true,
+            data: ingredient
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        })
+    }
+})
+
+/**
+ * POST /api/ingredients
+ * Create a new ingredient
+ */
+app.post('/api/ingredients', async (req, res) => {
+    try {
+        const { name, serving, servingUnit, density, oxalatePerGram, data } = req.body
+        
+        if (!name || !serving || !servingUnit) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid request: name, serving, and servingUnit required'
+            })
+        }
+        
+        if (oxalatePerGram === undefined || oxalatePerGram === null) {
+            return res.status(400).json({
+                success: false,
+                error: 'Oxalate per gram is required'
+            })
+        }
+        
+        const brandId = await services.createIngredient({
+            name,
+            serving,
+            servingUnit,
+            density,
+            oxalatePerGram,
+            data: data || {}
+        }, SYSTEM_USER_ID)
+        
+        res.json({
+            success: true,
+            data: { id: brandId }
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        })
+    }
+})
+
+/**
+ * PUT /api/ingredients/:brandId
+ * Update an existing ingredient
+ */
+app.put('/api/ingredients/:brandId', async (req, res) => {
+    try {
+        const brandId = parseInt(req.params.brandId)
+        if (isNaN(brandId)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid brand ID'
+            })
+        }
+        
+        const { name, serving, servingUnit, density, oxalatePerGram, data } = req.body
+        
+        if (!name || !serving || !servingUnit) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid request: name, serving, and servingUnit required'
+            })
+        }
+        
+        if (oxalatePerGram === undefined || oxalatePerGram === null) {
+            return res.status(400).json({
+                success: false,
+                error: 'Oxalate per gram is required'
+            })
+        }
+        
+        await services.updateIngredient(brandId, {
+            name,
+            serving,
+            servingUnit,
+            density,
+            oxalatePerGram,
+            data: data || {}
+        }, SYSTEM_USER_ID)
+        
+        res.json({
+            success: true,
+            data: { id: brandId }
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        })
+    }
+})
+
+/**
+ * DELETE /api/ingredients/:brandId
+ * Delete an ingredient
+ */
+app.delete('/api/ingredients/:brandId', async (req, res) => {
+    try {
+        const brandId = parseInt(req.params.brandId)
+        if (isNaN(brandId)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid brand ID'
+            })
+        }
+        
+        await services.deleteIngredient(brandId, SYSTEM_USER_ID)
+        
+        res.json({
+            success: true,
+            data: { deleted: true }
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        })
+    }
+})
+
+/**
  * GET /api/kidney-stone-risk
  * Returns kidney stone risk levels and oxalate limits
  */

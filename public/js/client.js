@@ -589,10 +589,32 @@ function renderIngredientList(ingredientsToShow) {
             <span class="ingredient-compact">${ingredient.compact.display}</span>
         `;
         
-        li.addEventListener('click', () => showIngredientDetails(ingredient.id));
+        li.addEventListener('click', () => {
+            selectIngredient(ingredient.id);
+            showIngredientDetails(ingredient.id);
+        });
         
         listElement.appendChild(li);
     });
+}
+
+function selectIngredient(ingredientId) {
+    document.querySelectorAll('.ingredient-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+
+    const selectedItem = document.querySelector(`.ingredient-item:nth-child(${ingredients.findIndex(i => i.id === ingredientId) + 1})`);
+    if (selectedItem) {
+        selectedItem.classList.add('selected');
+    }
+
+    selectedIngredientId = ingredientId;
+    
+    // Enable/disable edit and delete buttons
+    const editBtn = document.getElementById('editIngredientBtn');
+    const deleteBtn = document.getElementById('deleteIngredientBtn');
+    if (editBtn) editBtn.disabled = false;
+    if (deleteBtn) deleteBtn.disabled = false;
 }
 
 async function showIngredientDetails(brandId) {
@@ -677,6 +699,13 @@ window.editRecipe = editRecipe;
 window.deleteRecipe = deleteRecipe;
 window.closeRecipeEditor = closeRecipeEditor;
 window.saveRecipe = saveRecipe;
+
+// Ingredient editor functions
+window.createIngredient = createIngredient;
+window.editIngredient = editIngredient;
+window.deleteIngredient = deleteIngredient;
+window.closeIngredientEditor = closeIngredientEditor;
+window.saveIngredient = saveIngredient;
 
 // Initialize on load
 init();
@@ -849,7 +878,8 @@ async function saveRecipe(event) {
             renderRecipeList(recipes);
             closeRecipeEditor();
             
-            alert(editingRecipeId ? 'Recipe updated successfully' : 'Recipe created successfully');
+            const successMessage = editingRecipeId ? 'Recipe updated successfully' : 'Recipe created successfully';
+            alert(successMessage);
         } else {
             showError('ingredientsError', result.error || 'Failed to save recipe');
         }
@@ -1029,3 +1059,210 @@ function clearErrors() {
 window.updateIngredientAmount = updateIngredientAmount;
 window.updateIngredientUnit = updateIngredientUnit;
 window.removeIngredientFromRecipe = removeIngredientFromRecipe;
+
+// ===== INGREDIENT EDITOR FUNCTIONS =====
+
+let editingIngredientId = null;
+
+function createIngredient() {
+    editingIngredientId = null;
+    
+    document.getElementById('ingredientEditPanelTitle').textContent = 'Create New Ingredient';
+    
+    // Clear form
+    document.getElementById('ingredientNameInput').value = '';
+    document.getElementById('servingSizeInput').value = '';
+    document.getElementById('servingUnitSelect').value = 'g';
+    document.getElementById('densityInput').value = '';
+    document.getElementById('oxalateInput').value = '';
+    document.getElementById('caloriesInput').value = '';
+    document.getElementById('sodiumInput').value = '';
+    document.getElementById('proteinInput').value = '';
+    document.getElementById('calciumInput').value = '';
+    document.getElementById('potassiumInput').value = '';
+    document.getElementById('magnesiumInput').value = '';
+    
+    clearErrors();
+    openIngredientEditor();
+}
+
+async function editIngredient() {
+    if (!selectedIngredientId) return;
+    
+    editingIngredientId = selectedIngredientId;
+    
+    try {
+        const response = await fetch(`/api/ingredients/${selectedIngredientId}/full`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const ingredient = result.data;
+            
+            document.getElementById('ingredientEditPanelTitle').textContent = 'Edit Ingredient';
+            document.getElementById('ingredientNameInput').value = ingredient.name;
+            document.getElementById('servingSizeInput').value = ingredient.serving;
+            document.getElementById('servingUnitSelect').value = ingredient.servingUnit;
+            document.getElementById('densityInput').value = ingredient.density || '';
+            document.getElementById('oxalateInput').value = ingredient.oxalatePerGram || '';
+            
+            // Fill nutrition data
+            document.getElementById('caloriesInput').value = ingredient.data.calories || '';
+            document.getElementById('sodiumInput').value = parseFloat(ingredient.data.sodium) || '';
+            document.getElementById('proteinInput').value = parseFloat(ingredient.data.protein) || '';
+            document.getElementById('calciumInput').value = parseFloat(ingredient.data.calcium) || '';
+            document.getElementById('potassiumInput').value = parseFloat(ingredient.data.potassium) || '';
+            document.getElementById('magnesiumInput').value = parseFloat(ingredient.data.magnesium) || '';
+            
+            clearErrors();
+            openIngredientEditor();
+        }
+    } catch (error) {
+        console.error('Error loading ingredient for editing:', error);
+        alert('Failed to load ingredient details');
+    }
+}
+
+async function deleteIngredient() {
+    if (!selectedIngredientId) return;
+    
+    const ingredient = ingredients.find(i => i.id === selectedIngredientId);
+    if (!ingredient) return;
+    
+    if (!confirm(`Delete ingredient "${ingredient.name}"? This cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/ingredients/${selectedIngredientId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Reload ingredients
+            await loadIngredients();
+            renderIngredientList(ingredients);
+            
+            // Clear selection
+            selectedIngredientId = null;
+            document.getElementById('editIngredientBtn').disabled = true;
+            document.getElementById('deleteIngredientBtn').disabled = true;
+            document.getElementById('ingredientDetailsSection').style.display = 'none';
+            
+            alert('Ingredient deleted successfully');
+        } else {
+            alert('Failed to delete ingredient: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error deleting ingredient:', error);
+        alert('Failed to delete ingredient');
+    }
+}
+
+function openIngredientEditor() {
+    const panel = document.getElementById('ingredientEditPanel');
+    if (panel) {
+        panel.classList.add('active');
+    }
+}
+
+function closeIngredientEditor() {
+    const panel = document.getElementById('ingredientEditPanel');
+    if (panel) {
+        panel.classList.remove('active');
+    }
+    
+    editingIngredientId = null;
+    clearErrors();
+}
+
+async function saveIngredient(event) {
+    event.preventDefault();
+    
+    // Validate
+    const name = document.getElementById('ingredientNameInput').value.trim();
+    const serving = parseFloat(document.getElementById('servingSizeInput').value);
+    const servingUnit = document.getElementById('servingUnitSelect').value;
+    const density = parseFloat(document.getElementById('densityInput').value) || null;
+    const oxalatePerGram = parseFloat(document.getElementById('oxalateInput').value);
+    
+    if (!name) {
+        showError('ingredientNameError', 'Ingredient name is required');
+        return;
+    }
+    
+    if (!serving || serving <= 0) {
+        showError('ingredientNameError', 'Valid serving size is required');
+        return;
+    }
+    
+    if (isNaN(oxalatePerGram) || oxalatePerGram < 0) {
+        showError('oxalateError', 'Valid oxalate value is required');
+        return;
+    }
+    
+    clearErrors();
+    
+    // Build nutrition data object
+    const data = {};
+    
+    const addIfPresent = (id, field) => {
+        const value = document.getElementById(id).value;
+        if (value && value.trim() !== '') {
+            data[field] = parseFloat(value);
+        }
+    };
+    
+    addIfPresent('caloriesInput', 'calories');
+    addIfPresent('sodiumInput', 'sodium');
+    addIfPresent('proteinInput', 'protein');
+    addIfPresent('calciumInput', 'calcium');
+    addIfPresent('potassiumInput', 'potassium');
+    addIfPresent('magnesiumInput', 'magnesium');
+    
+    // Prepare payload
+    const payload = {
+        name,
+        serving,
+        servingUnit,
+        density,
+        oxalatePerGram,
+        data
+    };
+    
+    try {
+        const url = editingIngredientId 
+            ? `/api/ingredients/${editingIngredientId}` 
+            : '/api/ingredients';
+        const method = editingIngredientId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Reload ingredients
+            await loadIngredients();
+            renderIngredientList(ingredients);
+            closeIngredientEditor();
+            
+            const successMessage = editingIngredientId ? 'Ingredient updated successfully' : 'Ingredient created successfully';
+            alert(successMessage);
+        } else {
+            showError('ingredientNameError', result.error || 'Failed to save ingredient');
+        }
+    } catch (error) {
+        console.error('Error saving ingredient:', error);
+        showError('ingredientNameError', 'Failed to save ingredient');
+    }
+}

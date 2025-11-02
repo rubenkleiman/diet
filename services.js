@@ -322,6 +322,76 @@ class ServicesClass {
     }
 
     /**
+     * Gets full ingredient details for editing
+     * @param {number} brandId - Brand ID
+     * @param {string} userId - User ID
+     * @returns {Promise<Object|null>} Full ingredient details
+     */
+    async getIngredientFullDetails(brandId, userId) {
+        const ingredient = await this.brandRepository.getById(brandId, userId)
+        if (!ingredient) return null
+        
+        // Get raw data from database
+        const brandData = await database.get(`
+            SELECT 
+                b.id, b.name, b.serving, b.serving_unit, b.density, 
+                b.oxalate_per_gram, b.oxalate_per_gram_unit,
+                bd.calories, bd.sodium, bd.protein, bd.calcium, bd.potassium, bd.magnesium
+            FROM brands b
+            LEFT JOIN brand_data bd ON b.id = bd.brand_id
+            WHERE b.id = ?
+        `, [brandId])
+        
+        if (!brandData) return null
+        
+        return {
+            id: brandData.id,
+            name: brandData.name,
+            serving: brandData.serving,
+            servingUnit: brandData.serving_unit,
+            density: brandData.density,
+            oxalatePerGram: brandData.oxalate_per_gram,
+            data: {
+                calories: brandData.calories,
+                sodium: brandData.sodium,
+                protein: brandData.protein,
+                calcium: brandData.calcium,
+                potassium: brandData.potassium,
+                magnesium: brandData.magnesium
+            }
+        }
+    }
+
+    /**
+     * Create a new ingredient
+     * @param {Object} ingredientData - Ingredient data
+     * @param {string} userId - User ID
+     * @returns {Promise<number>} New ingredient ID
+     */
+    async createIngredient(ingredientData, userId) {
+        return await this.brandRepository.create(ingredientData, userId)
+    }
+
+    /**
+     * Update an existing ingredient
+     * @param {number} brandId - Brand ID
+     * @param {Object} ingredientData - Ingredient data
+     * @param {string} userId - User ID
+     */
+    async updateIngredient(brandId, ingredientData, userId) {
+        await this.brandRepository.update(brandId, ingredientData, userId)
+    }
+
+    /**
+     * Delete an ingredient
+     * @param {number} brandId - Brand ID
+     * @param {string} userId - User ID
+     */
+    async deleteIngredient(brandId, userId) {
+        await this.brandRepository.delete(brandId, userId)
+    }
+
+    /**
      * Gets kidney stone risk levels and limits
      * @returns {Object} Risk data
      */
