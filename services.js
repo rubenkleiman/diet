@@ -331,18 +331,33 @@ class ServicesClass {
         const ingredient = await this.brandRepository.getById(brandId, userId)
         if (!ingredient) return null
         
-        // Get raw data from database
+        // Get raw data from database with ALL fields
         const brandData = await database.get(`
             SELECT 
                 b.id, b.name, b.serving, b.serving_unit, b.density, 
                 b.oxalate_per_gram, b.oxalate_per_gram_unit,
-                bd.calories, bd.sodium, bd.protein, bd.calcium, bd.potassium, bd.magnesium
+                bd.calories, bd.sodium, bd.cholesterol, bd.sugars, bd.protein,
+                bd.dietary_fiber, bd.carbohydrates, bd.calcium, bd.potassium, bd.magnesium,
+                bd.selenium, bd.manganese, bd.zinc, bd.iron, bd.fat, bd.saturated_fat,
+                bd.polysaturated_fat, bd.monosaturated_fat, bd.thiamin, bd.riboflavin,
+                bd.niacin, bd.folic_acid, bd.phosphorus, bd.vitamin_a, bd.vitamin_b6,
+                bd.vitamin_c, bd.vitamin_d, bd.vitamin_e, bd.vitamin_k
             FROM brands b
             LEFT JOIN brand_data bd ON b.id = bd.brand_id
             WHERE b.id = ?
         `, [brandId])
         
         if (!brandData) return null
+        
+        // Parse values - remove " mg" suffix for values with units, keep calories as-is
+        const parseValue = (val) => {
+            if (!val) return null
+            const strVal = val.toString()
+            if (strVal.includes(' mg')) {
+                return parseFloat(strVal.split(' ')[0])
+            }
+            return parseFloat(strVal)
+        }
         
         return {
             id: brandData.id,
@@ -352,12 +367,35 @@ class ServicesClass {
             density: brandData.density,
             oxalatePerGram: brandData.oxalate_per_gram,
             data: {
-                calories: brandData.calories,
-                sodium: brandData.sodium,
-                protein: brandData.protein,
-                calcium: brandData.calcium,
-                potassium: brandData.potassium,
-                magnesium: brandData.magnesium
+                calories: parseValue(brandData.calories),
+                sodium: parseValue(brandData.sodium),
+                cholesterol: parseValue(brandData.cholesterol),
+                sugars: parseValue(brandData.sugars),
+                protein: parseValue(brandData.protein),
+                dietary_fiber: parseValue(brandData.dietary_fiber),
+                carbohydrates: parseValue(brandData.carbohydrates),
+                calcium: parseValue(brandData.calcium),
+                potassium: parseValue(brandData.potassium),
+                magnesium: parseValue(brandData.magnesium),
+                selenium: parseValue(brandData.selenium),
+                manganese: parseValue(brandData.manganese),
+                zinc: parseValue(brandData.zinc),
+                iron: parseValue(brandData.iron),
+                fat: parseValue(brandData.fat),
+                saturated_fat: parseValue(brandData.saturated_fat),
+                polysaturated_fat: parseValue(brandData.polysaturated_fat),
+                monosaturated_fat: parseValue(brandData.monosaturated_fat),
+                thiamin: parseValue(brandData.thiamin),
+                riboflavin: parseValue(brandData.riboflavin),
+                niacin: parseValue(brandData.niacin),
+                folic_acid: parseValue(brandData.folic_acid),
+                phosphorus: parseValue(brandData.phosphorus),
+                vitamin_a: parseValue(brandData.vitamin_a),
+                vitamin_b6: parseValue(brandData.vitamin_b6),
+                vitamin_c: parseValue(brandData.vitamin_c),
+                vitamin_d: parseValue(brandData.vitamin_d),
+                vitamin_e: parseValue(brandData.vitamin_e),
+                vitamin_k: parseValue(brandData.vitamin_k)
             }
         }
     }

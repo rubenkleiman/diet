@@ -15,6 +15,32 @@ CREATE TABLE IF NOT EXISTS users (
 INSERT INTO users(id, display_name) 
 VALUES('a70ff520-1125-4098-90b3-144e22ebe84a', 'Diet System');
 
+-- Ingredient Categories table (ingredients)
+CREATE TABLE IF NOT EXISTS ingredient_categories( 
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- Use AUTO_INCREMENT for MySQL
+    name VARCHAR(255) NOT NULL,
+);
+
+-- Add ingredient categories (not editable for now)
+INSERT INTO ingredient_categories(name)
+VALUES('Dairy');
+INSERT INTO ingredient_categories(name)
+VALUES('Fats');
+INSERT INTO ingredient_categories(name)
+VALUES('Fruits');
+INSERT INTO ingredient_categories(name)
+VALUES('Grains');
+INSERT INTO ingredient_categories(name)
+VALUES('Liquor');
+INSERT INTO ingredient_categories(name)
+VALUES('Meats');
+INSERT INTO ingredient_categories(name)
+VALUES('Starches');
+INSERT INTO ingredient_categories(name)
+VALUES('Sugars');
+INSERT INTO ingredient_categories(name)
+VALUES('Vegetables');
+
 -- Brands table (ingredients)
 CREATE TABLE IF NOT EXISTS brands (
     id INTEGER PRIMARY KEY AUTOINCREMENT,  -- Use AUTO_INCREMENT for MySQL

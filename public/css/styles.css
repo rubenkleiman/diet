@@ -1279,9 +1279,18 @@ body {
 }
 
 /* Nutrition Inputs Grid */
+.nutrition-inputs-scroll {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 1rem;
+    background: #f8f9fa;
+}
+
 .nutrition-inputs {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
-    margin-top: 1rem;
+    margin-top: 0;
 }

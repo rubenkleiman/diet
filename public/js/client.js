@@ -241,6 +241,20 @@ function setupEventListeners() {
             }
         });
     }
+    
+    // Escape key handler for closing edit panels
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const recipePanel = document.getElementById('recipeEditPanel');
+            const ingredientPanel = document.getElementById('ingredientEditPanel');
+            
+            if (recipePanel && recipePanel.classList.contains('active')) {
+                closeRecipeEditor();
+            } else if (ingredientPanel && ingredientPanel.classList.contains('active')) {
+                closeIngredientEditor();
+            }
+        }
+    });
 }
 
 // Load all recipes
@@ -879,8 +893,11 @@ async function saveRecipe(event) {
             renderRecipeList(recipes);
             closeRecipeEditor();
             
-            const successMessage = editingRecipeId ? 'Recipe updated successfully' : 'Recipe created successfully';
-            alert(successMessage);
+            if (editingRecipeId) {
+                alert('Recipe updated successfully');
+            } else {
+                alert('Recipe created successfully');
+            }
         } else {
             showError('ingredientsError', result.error || 'Failed to save recipe');
         }
@@ -1070,7 +1087,7 @@ function createIngredient() {
     
     document.getElementById('ingredientEditPanelTitle').textContent = 'Create New Ingredient';
     
-    // Clear form
+    // Clear ALL form fields
     document.getElementById('ingredientNameInput').value = '';
     document.getElementById('servingSizeInput').value = '';
     document.getElementById('servingUnitSelect').value = 'g';
@@ -1078,10 +1095,33 @@ function createIngredient() {
     document.getElementById('oxalateInput').value = '';
     document.getElementById('caloriesInput').value = '';
     document.getElementById('sodiumInput').value = '';
+    document.getElementById('cholesterolInput').value = '';
+    document.getElementById('sugarsInput').value = '';
     document.getElementById('proteinInput').value = '';
+    document.getElementById('dietaryFiberInput').value = '';
+    document.getElementById('carbohydratesInput').value = '';
     document.getElementById('calciumInput').value = '';
     document.getElementById('potassiumInput').value = '';
     document.getElementById('magnesiumInput').value = '';
+    document.getElementById('seleniumInput').value = '';
+    document.getElementById('manganeseInput').value = '';
+    document.getElementById('zincInput').value = '';
+    document.getElementById('ironInput').value = '';
+    document.getElementById('fatInput').value = '';
+    document.getElementById('saturatedFatInput').value = '';
+    document.getElementById('polysaturatedFatInput').value = '';
+    document.getElementById('monosaturatedFatInput').value = '';
+    document.getElementById('thiaminInput').value = '';
+    document.getElementById('riboflavinInput').value = '';
+    document.getElementById('niacinInput').value = '';
+    document.getElementById('folicAcidInput').value = '';
+    document.getElementById('phosphorusInput').value = '';
+    document.getElementById('vitaminAInput').value = '';
+    document.getElementById('vitaminB6Input').value = '';
+    document.getElementById('vitaminCInput').value = '';
+    document.getElementById('vitaminDInput').value = '';
+    document.getElementById('vitaminEInput').value = '';
+    document.getElementById('vitaminKInput').value = '';
     
     clearErrors();
     openIngredientEditor();
@@ -1091,6 +1131,8 @@ async function editIngredient() {
     if (!selectedIngredientId) return;
     
     editingIngredientId = selectedIngredientId;
+    
+    console.log('Editing ingredient ID:', editingIngredientId); // Debug
     
     try {
         const response = await fetch(`/api/ingredients/${selectedIngredientId}/full`);
@@ -1106,13 +1148,36 @@ async function editIngredient() {
             document.getElementById('densityInput').value = ingredient.density || '';
             document.getElementById('oxalateInput').value = ingredient.oxalatePerGram || '';
             
-            // Fill nutrition data
+            // Fill ALL nutrition data
             document.getElementById('caloriesInput').value = ingredient.data.calories || '';
-            document.getElementById('sodiumInput').value = parseFloat(ingredient.data.sodium) || '';
-            document.getElementById('proteinInput').value = parseFloat(ingredient.data.protein) || '';
-            document.getElementById('calciumInput').value = parseFloat(ingredient.data.calcium) || '';
-            document.getElementById('potassiumInput').value = parseFloat(ingredient.data.potassium) || '';
-            document.getElementById('magnesiumInput').value = parseFloat(ingredient.data.magnesium) || '';
+            document.getElementById('sodiumInput').value = ingredient.data.sodium || '';
+            document.getElementById('cholesterolInput').value = ingredient.data.cholesterol || '';
+            document.getElementById('sugarsInput').value = ingredient.data.sugars || '';
+            document.getElementById('proteinInput').value = ingredient.data.protein || '';
+            document.getElementById('dietaryFiberInput').value = ingredient.data.dietary_fiber || '';
+            document.getElementById('carbohydratesInput').value = ingredient.data.carbohydrates || '';
+            document.getElementById('calciumInput').value = ingredient.data.calcium || '';
+            document.getElementById('potassiumInput').value = ingredient.data.potassium || '';
+            document.getElementById('magnesiumInput').value = ingredient.data.magnesium || '';
+            document.getElementById('seleniumInput').value = ingredient.data.selenium || '';
+            document.getElementById('manganeseInput').value = ingredient.data.manganese || '';
+            document.getElementById('zincInput').value = ingredient.data.zinc || '';
+            document.getElementById('ironInput').value = ingredient.data.iron || '';
+            document.getElementById('fatInput').value = ingredient.data.fat || '';
+            document.getElementById('saturatedFatInput').value = ingredient.data.saturated_fat || '';
+            document.getElementById('polysaturatedFatInput').value = ingredient.data.polysaturated_fat || '';
+            document.getElementById('monosaturatedFatInput').value = ingredient.data.monosaturated_fat || '';
+            document.getElementById('thiaminInput').value = ingredient.data.thiamin || '';
+            document.getElementById('riboflavinInput').value = ingredient.data.riboflavin || '';
+            document.getElementById('niacinInput').value = ingredient.data.niacin || '';
+            document.getElementById('folicAcidInput').value = ingredient.data.folic_acid || '';
+            document.getElementById('phosphorusInput').value = ingredient.data.phosphorus || '';
+            document.getElementById('vitaminAInput').value = ingredient.data.vitamin_a || '';
+            document.getElementById('vitaminB6Input').value = ingredient.data.vitamin_b6 || '';
+            document.getElementById('vitaminCInput').value = ingredient.data.vitamin_c || '';
+            document.getElementById('vitaminDInput').value = ingredient.data.vitamin_d || '';
+            document.getElementById('vitaminEInput').value = ingredient.data.vitamin_e || '';
+            document.getElementById('vitaminKInput').value = ingredient.data.vitamin_k || '';
             
             clearErrors();
             openIngredientEditor();
@@ -1184,12 +1249,14 @@ function closeIngredientEditor() {
 async function saveIngredient(event) {
     event.preventDefault();
     
+    console.log('saveIngredient called, editingIngredientId:', editingIngredientId); // Debug
+    
     // Validate
     const name = document.getElementById('ingredientNameInput').value.trim();
     const serving = parseFloat(document.getElementById('servingSizeInput').value);
     const servingUnit = document.getElementById('servingUnitSelect').value;
     const density = parseFloat(document.getElementById('densityInput').value) || null;
-    const oxalatePerGram = parseFloat(document.getElementById('oxalateInput').value) || 0; // Default to 0 if empty
+    const oxalatePerGram = parseFloat(document.getElementById('oxalateInput').value) || 0;
     
     if (!name) {
         showError('ingredientNameError', 'Ingredient name is required');
@@ -1203,7 +1270,7 @@ async function saveIngredient(event) {
     
     clearErrors();
     
-    // Build nutrition data object
+    // Build nutrition data object with ALL fields
     const data = {};
     
     const addIfPresent = (id, field) => {
@@ -1213,12 +1280,36 @@ async function saveIngredient(event) {
         }
     };
     
+    // Collect ALL nutrition fields
     addIfPresent('caloriesInput', 'calories');
     addIfPresent('sodiumInput', 'sodium');
+    addIfPresent('cholesterolInput', 'cholesterol');
+    addIfPresent('sugarsInput', 'sugars');
     addIfPresent('proteinInput', 'protein');
+    addIfPresent('dietaryFiberInput', 'dietary_fiber');
+    addIfPresent('carbohydratesInput', 'carbohydrates');
     addIfPresent('calciumInput', 'calcium');
     addIfPresent('potassiumInput', 'potassium');
     addIfPresent('magnesiumInput', 'magnesium');
+    addIfPresent('seleniumInput', 'selenium');
+    addIfPresent('manganeseInput', 'manganese');
+    addIfPresent('zincInput', 'zinc');
+    addIfPresent('ironInput', 'iron');
+    addIfPresent('fatInput', 'fat');
+    addIfPresent('saturatedFatInput', 'saturated_fat');
+    addIfPresent('polysaturatedFatInput', 'polysaturated_fat');
+    addIfPresent('monosaturatedFatInput', 'monosaturated_fat');
+    addIfPresent('thiaminInput', 'thiamin');
+    addIfPresent('riboflavinInput', 'riboflavin');
+    addIfPresent('niacinInput', 'niacin');
+    addIfPresent('folicAcidInput', 'folic_acid');
+    addIfPresent('phosphorusInput', 'phosphorus');
+    addIfPresent('vitaminAInput', 'vitamin_a');
+    addIfPresent('vitaminB6Input', 'vitamin_b6');
+    addIfPresent('vitaminCInput', 'vitamin_c');
+    addIfPresent('vitaminDInput', 'vitamin_d');
+    addIfPresent('vitaminEInput', 'vitamin_e');
+    addIfPresent('vitaminKInput', 'vitamin_k');
     
     // Prepare payload
     const payload = {
@@ -1230,11 +1321,15 @@ async function saveIngredient(event) {
         data
     };
     
+    console.log('Payload:', payload); // Debug
+    
     try {
         const url = editingIngredientId 
             ? `/api/ingredients/${editingIngredientId}` 
             : '/api/ingredients';
         const method = editingIngredientId ? 'PUT' : 'POST';
+        
+        console.log('Request:', method, url); // Debug
         
         const response = await fetch(url, {
             method: method,
@@ -1250,10 +1345,15 @@ async function saveIngredient(event) {
             // Reload ingredients
             await loadIngredients();
             renderIngredientList(ingredients);
-            closeIngredientEditor();
             
-            const successMessage = editingIngredientId ? 'Ingredient updated successfully' : 'Ingredient created successfully';
-            alert(successMessage);
+            // Show correct message BEFORE closing (which resets editingIngredientId)
+            if (editingIngredientId) {
+                alert('Ingredient updated successfully');
+            } else {
+                alert('Ingredient created successfully');
+            }
+            
+            closeIngredientEditor();
         } else {
             showError('ingredientNameError', result.error || 'Failed to save ingredient');
         }
