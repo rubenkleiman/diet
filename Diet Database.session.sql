@@ -32,8 +32,8 @@ from recipes r
     inner join recipe_items i on r.id = i.recipe_id
 order by r.id,
     i.item_order;
-select *
-from daily_requirements;
+select * from daily_requirements order by name;
+update daily_requirements set recommended = '1500 mg' where id = 6;
 select *
 from menus;
 select m.name

@@ -723,12 +723,12 @@ function nextNutrientPage() {
 
 // Settings page functions
 function loadSettingsForm() {
-    const caloriesInput = document.getElementById('caloriesInput');
+    const caloriesPerDayInput = document.getElementById('caloriesPerDayInput');
     const useAgeCheckbox = document.getElementById('useAgeCheckbox');
     const ageInput = document.getElementById('ageInput');
     const kidneyRiskSelect = document.getElementById('kidneyRiskSelect');
     
-    if (caloriesInput) caloriesInput.value = userSettings.caloriesPerDay;
+    if (caloriesPerDayInput) caloriesPerDayInput.value = userSettings.caloriesPerDay;
     if (useAgeCheckbox) useAgeCheckbox.checked = userSettings.useAge;
     if (ageInput) {
         ageInput.value = userSettings.age || '';
@@ -756,7 +756,7 @@ function updateKidneyRiskInfo() {
 function applySettings(e) {
     e.preventDefault();
     
-    userSettings.caloriesPerDay = parseInt(document.getElementById('caloriesInput').value);
+    userSettings.caloriesPerDay = parseInt(document.getElementById('caloriesPerDayInput').value);
     userSettings.useAge = document.getElementById('useAgeCheckbox').checked;
     userSettings.age = userSettings.useAge ? parseInt(document.getElementById('ageInput').value) : null;
     userSettings.kidneyStoneRisk = document.getElementById('kidneyRiskSelect').value;
