@@ -50,7 +50,7 @@ set oxalate_per_gram = 0.028,
 where id = 1;
 select *
 from brand_data
-where brand_id = 24;
+where brand_id = 28;
 SELECT id,
     brand_id,
     calories

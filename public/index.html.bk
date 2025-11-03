@@ -9,14 +9,14 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <h1 class="nav-brand" onclick="window._client.navigateTo('home')">Diet Guidelines</h1>
+            <h1 class="nav-brand" onclick="navigateTo('home')">Diet Guidelines</h1>
             <ul class="nav-menu">
-                <li><a href="#" onclick="window._client.navigateTo('home'); return false;">Home</a></li>
-                <li><a href="#" onclick="window._client.navigateTo('recipes'); return false;">Recipes</a></li>
-                <li><a href="#" onclick="window._client.navigateTo('ingredients'); return false;">Ingredients</a></li>
-                <li><a href="#" onclick="window._client.navigateTo('menus'); return false;">Menus</a></li>
+                <li><a href="#" onclick="navigateTo('home'); return false;">Home</a></li>
+                <li><a href="#" onclick="navigateTo('recipes'); return false;">Recipes</a></li>
+                <li><a href="#" onclick="navigateTo('ingredients'); return false;">Ingredients</a></li>
+                <li><a href="#" onclick="navigateTo('menus'); return false;">Menus</a></li>
                 <li class="account-dropdown">
-                    <button class="account-btn" onclick="window._client.toggleAccountDropdown()" aria-label="Account menu">
+                    <button class="account-btn" onclick="toggleAccountDropdown()" aria-label="Account menu">
                         <svg class="account-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
@@ -24,13 +24,13 @@
                         <span class="dropdown-arrow">▼</span>
                     </button>
                     <div class="dropdown-menu" id="accountDropdown">
-                        <a href="#" onclick="window._client.navigateTo('profile'); return false;">User Profile</a>
-                        <a href="#" onclick="window._client.navigateTo('settings'); return false;">Settings</a>
+                        <a href="#" onclick="navigateTo('profile'); return false;">User Profile</a>
+                        <a href="#" onclick="navigateTo('settings'); return false;">Settings</a>
                     </div>
                 </li>
             </ul>
             <!-- Mobile hamburger menu -->
-            <button class="hamburger" onclick="window._client.toggleMobileMenu()" aria-label="Menu">
+            <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -38,12 +38,12 @@
         </div>
         <!-- Mobile menu -->
         <div class="mobile-menu" id="mobileMenu">
-            <a href="#" onclick="window._client.navigateTo('home'); window._client.closeMobileMenu(); return false;">Home</a>
-            <a href="#" onclick="window._client.navigateTo('recipes'); window._client.closeMobileMenu(); return false;">Recipes</a>
-            <a href="#" onclick="window._client.navigateTo('ingredients'); window._client.closeMobileMenu(); return false;">Ingredients</a>
-            <a href="#" onclick="window._client.navigateTo('menus'); window._client.closeMobileMenu(); return false;">Menus</a>
-            <a href="#" onclick="window._client.navigateTo('profile'); window._client.closeMobileMenu(); return false;">User Profile</a>
-            <a href="#" onclick="window._client.navigateTo('settings'); window._client.closeMobileMenu(); return false;">Settings</a>
+            <a href="#" onclick="navigateTo('home'); closeMobileMenu(); return false;">Home</a>
+            <a href="#" onclick="navigateTo('recipes'); closeMobileMenu(); return false;">Recipes</a>
+            <a href="#" onclick="navigateTo('ingredients'); closeMobileMenu(); return false;">Ingredients</a>
+            <a href="#" onclick="navigateTo('menus'); closeMobileMenu(); return false;">Menus</a>
+            <a href="#" onclick="navigateTo('profile'); closeMobileMenu(); return false;">User Profile</a>
+            <a href="#" onclick="navigateTo('settings'); closeMobileMenu(); return false;">Settings</a>
         </div>
     </nav>
 
@@ -60,21 +60,21 @@
             </section>
 
             <section class="feature-cards">
-                <div class="feature-card" onclick="window._client.navigateTo('recipes')">
+                <div class="feature-card" onclick="navigateTo('recipes')">
                     <div class="card-icon">📋</div>
                     <h2>Recipes</h2>
                     <p>Browse and analyze <span id="recipeCount">0</span> recipes with detailed nutritional breakdowns</p>
                     <span class="card-link">View Recipes →</span>
                 </div>
 
-                <div class="feature-card" onclick="window._client.navigateTo('ingredients')">
+                <div class="feature-card" onclick="navigateTo('ingredients')">
                     <div class="card-icon">🥗</div>
                     <h2>Ingredients</h2>
                     <p>Explore <span id="ingredientCount">0</span> ingredients with comprehensive nutrition data</p>
                     <span class="card-link">View Ingredients →</span>
                 </div>
 
-                <div class="feature-card" onclick="window._client.navigateTo('menus')">
+                <div class="feature-card" onclick="navigateTo('menus')">
                     <div class="card-icon">📅</div>
                     <h2>Menus</h2>
                     <p>Plan your meals with customized menu collections (Coming Soon)</p>
@@ -105,13 +105,13 @@
                 
                 <!-- Action Buttons -->
                 <div class="action-buttons">
-                    <button class="btn btn-primary" onclick="window._client.createRecipe()">
+                    <button class="btn btn-primary" onclick="createRecipe()">
                         <span class="btn-icon">+</span> Create Recipe
                     </button>
-                    <button class="btn btn-secondary" id="editRecipeBtn" onclick="window._client.editRecipe()" disabled>
+                    <button class="btn btn-secondary" id="editRecipeBtn" onclick="editRecipe()" disabled>
                         <span class="btn-icon">✏️</span> Edit Recipe
                     </button>
-                    <button class="btn btn-danger" id="deleteRecipeBtn" onclick="window._client.deleteRecipe()" disabled>
+                    <button class="btn btn-danger" id="deleteRecipeBtn" onclick="deleteRecipe()" disabled>
                         <span class="btn-icon">🗑️</span> Delete
                     </button>
                 </div>
@@ -150,11 +150,11 @@
             <div class="edit-panel" id="recipeEditPanel">
                 <div class="edit-panel-header">
                     <h2 id="editPanelTitle">Create New Recipe</h2>
-                    <button class="close-btn" onclick="window._client.closeRecipeEditor()">&times;</button>
+                    <button class="close-btn" onclick="closeRecipeEditor()">&times;</button>
                 </div>
                 
                 <div class="edit-panel-body">
-                    <form id="recipeEditForm" onsubmit="window._client.saveRecipe(event)">
+                    <form id="recipeEditForm" onsubmit="saveRecipe(event)">
                         <div class="form-group">
                             <label for="recipeNameInput">Recipe Name *</label>
                             <input 
@@ -196,7 +196,7 @@
                         </div>
 
                         <div class="edit-panel-footer">
-                            <button type="button" class="btn btn-secondary" onclick="window._client.closeRecipeEditor()">Cancel</button>
+                            <button type="button" class="btn btn-secondary" onclick="closeRecipeEditor()">Cancel</button>
                             <button type="submit" class="btn btn-primary">Save Recipe</button>
                         </div>
                     </form>
@@ -252,7 +252,7 @@
                     </div>
 
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="window._client.cancelSettings()">Cancel</button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelSettings()">Cancel</button>
                         <button type="submit" class="btn btn-primary">Apply</button>
                     </div>
                 </form>
@@ -291,13 +291,13 @@
                 
                 <!-- Action Buttons -->
                 <div class="action-buttons">
-                    <button class="btn btn-primary" onclick="window._client.createIngredient()">
+                    <button class="btn btn-primary" onclick="createIngredient()">
                         <span class="btn-icon">+</span> Create Ingredient
                     </button>
-                    <button class="btn btn-secondary" id="editIngredientBtn" onclick="window._client.editIngredient()" disabled>
+                    <button class="btn btn-secondary" id="editIngredientBtn" onclick="editIngredient()" disabled>
                         <span class="btn-icon">✏️</span> Edit Ingredient
                     </button>
-                    <button class="btn btn-danger" id="deleteIngredientBtn" onclick="window._client.deleteIngredient()" disabled>
+                    <button class="btn btn-danger" id="deleteIngredientBtn" onclick="deleteIngredient()" disabled>
                         <span class="btn-icon">🗑️</span> Delete
                     </button>
                 </div>
@@ -329,11 +329,11 @@
             <div class="edit-panel" id="ingredientEditPanel">
                 <div class="edit-panel-header">
                     <h2 id="ingredientEditPanelTitle">Create New Ingredient</h2>
-                    <button class="close-btn" onclick="window._client.closeIngredientEditor()">&times;</button>
+                    <button class="close-btn" onclick="closeIngredientEditor()">&times;</button>
                 </div>
                 
                 <div class="edit-panel-body">
-                    <form id="ingredientEditForm" onsubmit="window._client.saveIngredient(event)">
+                    <form id="ingredientEditForm" onsubmit="saveIngredient(event)">
                         <div class="form-group">
                             <label for="ingredientNameInput">Ingredient Name *</label>
                             <input 
@@ -518,7 +518,7 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="vitaminAInput">Vitamin A (mcg = IU x 0.025)</label>
+                                    <label for="vitaminAInput">Vitamin A (IU)</label>
                                     <input type="number" id="vitaminAInput" class="form-control" step="0.1" min="0">
                                 </div>
 
@@ -533,7 +533,7 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="vitaminDInput">Vitamin D (mcg = IU x 0.025)</label>
+                                    <label for="vitaminDInput">Vitamin D (IU)</label>
                                     <input type="number" id="vitaminDInput" class="form-control" step="0.1" min="0">
                                 </div>
 
@@ -550,7 +550,7 @@
                         </div>
 
                         <div class="edit-panel-footer">
-                            <button type="button" class="btn btn-secondary" onclick="window._client.closeIngredientEditor()">Cancel</button>
+                            <button type="button" class="btn btn-secondary" onclick="closeIngredientEditor()">Cancel</button>
                             <button type="submit" class="btn btn-primary">Save Ingredient</button>
                         </div>
                     </form>
@@ -566,7 +566,7 @@
                     <div class="coming-soon-icon">🚧</div>
                     <h3>Coming Soon</h3>
                     <p>Menu planning and meal collections will be available in a future update.</p>
-                    <button class="btn btn-primary" onclick="window._client.navigateTo('home')">Back to Home</button>
+                    <button class="btn btn-primary" onclick="navigateTo('home')">Back to Home</button>
                 </div>
             </section>
         </div>
