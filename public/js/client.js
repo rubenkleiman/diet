@@ -429,6 +429,11 @@ function renderRecipeDetails(data) {
     
     let html = '<div class="details-content">';
     
+    // Ingredient Contributions (only if details view and ingredients available)
+    if (data.ingredients && data.ingredients.length > 0) {
+        html += renderIngredientContributions(data);
+    }
+    
     // Nutritional Totals with % daily values
     html += '<div class="details-section">';
     html += '<h3>Nutritional Totals</h3>';
@@ -480,7 +485,7 @@ function renderRecipeDetails(data) {
     }
     html += '</div>';
 
-    // Ingredient Details (if not summary)
+    // Ingredient Details (if not summary) - keep the old detailed view
     if (data.ingredients) {
         html += '<div class="details-section">';
         html += '<h3>Ingredient Details</h3>';
@@ -504,6 +509,216 @@ function renderRecipeDetails(data) {
     html += '</div>';
     content.innerHTML = html;
     section.style.display = 'block';
+}
+
+// State for contribution table
+let showAllNutrients = false;
+let currentNutrientPage = 0;
+const NUTRIENTS_PER_PAGE = 5;
+
+// Render ingredient contributions table
+function renderIngredientContributions(data) {
+    let html = '<div class="details-section contribution-section">';
+    html += '<div class="contribution-header">';
+    html += '<h3>Ingredient Contributions</h3>';
+    html += '<button class="btn btn-secondary btn-small" onclick="toggleNutrientView()">';
+    html += showAllNutrients ? 'Show Key Nutrients' : 'Show All Nutrients';
+    html += '</button>';
+    html += '</div>';
+    
+    // Calculate contributions
+    const contributions = calculateContributions(data);
+    
+    if (showAllNutrients) {
+        html += renderAllNutrientsTable(contributions, data);
+    } else {
+        html += renderKeyNutrientsTable(contributions, data);
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+// Calculate percentage contributions for each ingredient
+function calculateContributions(data) {
+    const contributions = {};
+    
+    data.ingredients.forEach(ingredient => {
+        contributions[ingredient.name] = {
+            amount: ingredient.amount,
+            nutrients: {}
+        };
+        
+        // Calculate percentage for each nutrient
+        for (const [nutrient, value] of Object.entries(ingredient.nutritionScaled)) {
+            const total = data.totals[nutrient] || 0;
+            const percent = total > 0 ? (value / total * 100) : 0;
+            contributions[ingredient.name].nutrients[nutrient] = {
+                value: value,
+                percent: percent
+            };
+        }
+    });
+    
+    return contributions;
+}
+
+// Render key nutrients table (calories, sodium, oxalates)
+function renderKeyNutrientsTable(contributions, data) {
+    let html = '<table class="contribution-table">';
+    html += '<thead><tr>';
+    html += '<th>Ingredient</th>';
+    html += '<th>Amount</th>';
+    html += '<th>Calories</th>';
+    html += '<th>Sodium</th>';
+    html += '<th>Oxalates</th>';
+    html += '</tr></thead>';
+    html += '<tbody>';
+    
+    // Ingredients in original order
+    data.ingredients.forEach(ingredient => {
+        const contrib = contributions[ingredient.name];
+        html += '<tr>';
+        html += `<td class="ing-name">${ingredient.name}</td>`;
+        html += `<td class="ing-amount">${ingredient.amount.toFixed(1)}g</td>`;
+        
+        // Calories
+        const cal = contrib.nutrients.calories || {value: 0, percent: 0};
+        html += `<td>${cal.value.toFixed(0)} (${cal.percent.toFixed(0)}%)</td>`;
+        
+        // Sodium
+        const sodium = contrib.nutrients.sodium || {value: 0, percent: 0};
+        html += `<td>${sodium.value.toFixed(1)}mg (${sodium.percent.toFixed(0)}%)</td>`;
+        
+        // Oxalates
+        const ox = contrib.nutrients.oxalates || {value: 0, percent: 0};
+        html += `<td>${ox.value.toFixed(2)}mg (${ox.percent.toFixed(0)}%)</td>`;
+        
+        html += '</tr>';
+    });
+    
+    // Totals row
+    html += '<tr class="totals-row">';
+    html += '<td colspan="2"><strong>Total:</strong></td>';
+    html += `<td><strong>${(data.totals.calories || 0).toFixed(0)}</strong></td>`;
+    html += `<td><strong>${(data.totals.sodium || 0).toFixed(1)}mg</strong></td>`;
+    html += `<td><strong>${data.oxalateMg.toFixed(2)}mg</strong></td>`;
+    html += '</tr>';
+    
+    html += '</tbody></table>';
+    return html;
+}
+
+// Render all nutrients table with pagination
+function renderAllNutrientsTable(contributions, data) {
+    // Get all nutrient names (excluding those with all zeros)
+    const allNutrients = new Set();
+    Object.values(contributions).forEach(contrib => {
+        Object.keys(contrib.nutrients).forEach(nutrient => {
+            allNutrients.add(nutrient);
+        });
+    });
+    
+    // Filter out nutrients where all contributions are zero
+    const activeNutrients = Array.from(allNutrients).filter(nutrient => {
+        return Object.values(contributions).some(contrib => {
+            const val = contrib.nutrients[nutrient];
+            return val && val.value > 0;
+        });
+    });
+    
+    // Pagination
+    const startIdx = currentNutrientPage * NUTRIENTS_PER_PAGE;
+    const endIdx = Math.min(startIdx + NUTRIENTS_PER_PAGE, activeNutrients.length);
+    const pageNutrients = activeNutrients.slice(startIdx, endIdx);
+    const totalPages = Math.ceil(activeNutrients.length / NUTRIENTS_PER_PAGE);
+    
+    let html = '';
+    
+    // Pagination controls
+    if (totalPages > 1) {
+        html += '<div class="pagination-controls">';
+        html += `<button class="btn btn-secondary btn-small" onclick="prevNutrientPage()" ${currentNutrientPage === 0 ? 'disabled' : ''}>← Prev</button>`;
+        html += `<span class="page-info">Page ${currentNutrientPage + 1} of ${totalPages}</span>`;
+        html += `<button class="btn btn-secondary btn-small" onclick="nextNutrientPage()" ${currentNutrientPage >= totalPages - 1 ? 'disabled' : ''}>Next →</button>`;
+        html += '</div>';
+    }
+    
+    html += '<div class="table-scroll">';
+    html += '<table class="contribution-table">';
+    html += '<thead><tr>';
+    html += '<th>Ingredient</th>';
+    html += '<th>Amount</th>';
+    
+    pageNutrients.forEach(nutrient => {
+        html += `<th>${nutrient.replace(/_/g, ' ')}</th>`;
+    });
+    
+    html += '</tr></thead>';
+    html += '<tbody>';
+    
+    // Ingredients in original order
+    data.ingredients.forEach(ingredient => {
+        const contrib = contributions[ingredient.name];
+        html += '<tr>';
+        html += `<td class="ing-name">${ingredient.name}</td>`;
+        html += `<td class="ing-amount">${ingredient.amount.toFixed(1)}g</td>`;
+        
+        pageNutrients.forEach(nutrient => {
+            const n = contrib.nutrients[nutrient] || {value: 0, percent: 0};
+            if (nutrient === 'calories') {
+                html += `<td>${n.value.toFixed(0)} (${n.percent.toFixed(0)}%)</td>`;
+            } else {
+                html += `<td>${n.value.toFixed(1)} (${n.percent.toFixed(0)}%)</td>`;
+            }
+        });
+        
+        html += '</tr>';
+    });
+    
+    // Totals row
+    html += '<tr class="totals-row">';
+    html += '<td colspan="2"><strong>Total:</strong></td>';
+    
+    pageNutrients.forEach(nutrient => {
+        const total = data.totals[nutrient] || 0;
+        if (nutrient === 'calories') {
+            html += `<td><strong>${total.toFixed(0)}</strong></td>`;
+        } else {
+            html += `<td><strong>${total.toFixed(1)}</strong></td>`;
+        }
+    });
+    
+    html += '</tr>';
+    html += '</tbody></table>';
+    html += '</div>';
+    
+    return html;
+}
+
+// Navigation functions
+function toggleNutrientView() {
+    showAllNutrients = !showAllNutrients;
+    currentNutrientPage = 0; // Reset page when toggling
+    if (selectedRecipeId) {
+        showRecipeDetails(selectedRecipeId);
+    }
+}
+
+function prevNutrientPage() {
+    if (currentNutrientPage > 0) {
+        currentNutrientPage--;
+        if (selectedRecipeId) {
+            showRecipeDetails(selectedRecipeId);
+        }
+    }
+}
+
+function nextNutrientPage() {
+    currentNutrientPage++;
+    if (selectedRecipeId) {
+        showRecipeDetails(selectedRecipeId);
+    }
 }
 
 // Settings page functions
@@ -667,17 +882,22 @@ function renderIngredientDetails(data) {
     html += '<h3>Nutritional Information (per serving)</h3>';
     html += '<table class="nutrition-table">';
     
+    // Show ALL data fields including calories
     for (const [key, value] of Object.entries(data.data)) {
-        // Skip zero values
-        if ((typeof value === 'number' && value === 0) || (typeof value === 'string' && parseFloat(value) === 0)) {
-            continue;
-        }
+        // Skip null/undefined but NOT zero values
+        if (value === null || value === undefined) continue;
         
         let displayValue = value;
+        // Format based on field name
         if (key === 'calories') {
-            displayValue = value;
+            displayValue = value; // No unit for calories
+        } else if (typeof value === 'string') {
+            displayValue = value; // Already formatted
+        } else {
+            displayValue = `${value} mg`; // Add unit for numeric values
         }
-        html += `<tr><td class="nutrient-name">${key}</td><td class="nutrient-value">${displayValue}</td></tr>`;
+        
+        html += `<tr><td class="nutrient-name">${key.replace(/_/g, ' ')}</td><td class="nutrient-value">${displayValue}</td></tr>`;
     }
     
     html += `<tr><td class="nutrient-name">oxalate (per gram)</td><td class="nutrient-value">${data.oxalatePerGram.toFixed(3)} mg/g</td></tr>`;
@@ -721,6 +941,11 @@ window.editIngredient = editIngredient;
 window.deleteIngredient = deleteIngredient;
 window.closeIngredientEditor = closeIngredientEditor;
 window.saveIngredient = saveIngredient;
+
+// Contribution table functions
+window.toggleNutrientView = toggleNutrientView;
+window.prevNutrientPage = prevNutrientPage;
+window.nextNutrientPage = nextNutrientPage;
 
 // Initialize on load
 init();
@@ -891,13 +1116,23 @@ async function saveRecipe(event) {
             // Reload recipes
             await loadRecipes();
             renderRecipeList(recipes);
-            closeRecipeEditor();
             
             if (editingRecipeId) {
                 alert('Recipe updated successfully');
+                // Re-select and display the updated recipe
+                selectRecipe(editingRecipeId);
+                await showRecipeDetails(editingRecipeId);
             } else {
                 alert('Recipe created successfully');
+                // Find and display the newly created recipe
+                const newRecipe = recipes.find(r => r.name === recipeName);
+                if (newRecipe) {
+                    selectRecipe(newRecipe.id);
+                    await showRecipeDetails(newRecipe.id);
+                }
             }
+            
+            closeRecipeEditor();
         } else {
             showError('ingredientsError', result.error || 'Failed to save recipe');
         }
@@ -1251,6 +1486,11 @@ async function saveIngredient(event) {
     
     console.log('saveIngredient called, editingIngredientId:', editingIngredientId); // Debug
     
+    // Check calories IMMEDIATELY at the start
+    const caloriesElement = document.getElementById('caloriesInput');
+    console.log('IMMEDIATE CHECK - Calories element:', caloriesElement);
+    console.log('IMMEDIATE CHECK - Calories value:', caloriesElement ? caloriesElement.value : 'ELEMENT NOT FOUND');
+    
     // Validate
     const name = document.getElementById('ingredientNameInput').value.trim();
     const serving = parseFloat(document.getElementById('servingSizeInput').value);
@@ -1274,11 +1514,26 @@ async function saveIngredient(event) {
     const data = {};
     
     const addIfPresent = (id, field) => {
-        const value = document.getElementById(id).value;
-        if (value && value.trim() !== '') {
-            data[field] = parseFloat(value);
+        const element = document.getElementById(id);
+        if (!element) {
+            console.log(`Element ${id} not found`); // Debug
+            return;
+        }
+        
+        const value = element.value;
+        console.log(`${id} value:`, value, 'type:', typeof value); // Debug
+        
+        if (value !== null && value !== undefined && value !== '') {
+            const numValue = parseFloat(value);
+            console.log(`${id} parsed to:`, numValue); // Debug
+            if (!isNaN(numValue)) {
+                data[field] = numValue;
+                console.log(`${field} set to:`, data[field]); // Debug
+            }
         }
     };
+    
+    console.log('=== Collecting nutrition data ==='); // Debug
     
     // Collect ALL nutrition fields
     addIfPresent('caloriesInput', 'calories');
@@ -1311,6 +1566,8 @@ async function saveIngredient(event) {
     addIfPresent('vitaminEInput', 'vitamin_e');
     addIfPresent('vitaminKInput', 'vitamin_k');
     
+    console.log('=== Final data object ===', data); // Debug
+    
     // Prepare payload
     const payload = {
         name,
@@ -1321,7 +1578,7 @@ async function saveIngredient(event) {
         data
     };
     
-    console.log('Payload:', payload); // Debug
+    console.log('=== Final payload ===', JSON.stringify(payload, null, 2)); // Debug
     
     try {
         const url = editingIngredientId 
@@ -1349,8 +1606,17 @@ async function saveIngredient(event) {
             // Show correct message BEFORE closing (which resets editingIngredientId)
             if (editingIngredientId) {
                 alert('Ingredient updated successfully');
+                // Re-select and display the updated ingredient
+                await showIngredientDetails(editingIngredientId);
+                selectIngredient(editingIngredientId);
             } else {
                 alert('Ingredient created successfully');
+                // Find and display the newly created ingredient
+                const newIngredient = ingredients.find(i => i.name === name);
+                if (newIngredient) {
+                    await showIngredientDetails(newIngredient.id);
+                    selectIngredient(newIngredient.id);
+                }
             }
             
             closeIngredientEditor();

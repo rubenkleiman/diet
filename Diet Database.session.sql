@@ -1,3 +1,4 @@
+PRAGMA table_info(brand_data);
 -- record counts
 select (
         select count(*)
@@ -49,13 +50,36 @@ set oxalate_per_gram = 0.028,
 where id = 1;
 select *
 from brand_data
-where brand_id = 21;
-
-insert into brand_data(brand_id, user_id, carbohydrates, fat, sodium, dietary_fiber, protein)
-values(21, 'a70ff520-1125-4098-90b3-144e22ebe84a', "29 g", "1 g", "320 mg", "1 g", "5 g");
+where brand_id = 24;
+SELECT id,
+    brand_id,
+    calories
+FROM brand_data
+WHERE brand_id = 22;
+insert into brand_data(
+        brand_id,
+        user_id,
+        carbohydrates,
+        fat,
+        sodium,
+        dietary_fiber,
+        protein
+    )
+values(
+        21,
+        'a70ff520-1125-4098-90b3-144e22ebe84a',
+        "29 g",
+        "1 g",
+        "320 mg",
+        "1 g",
+        "5 g"
+    );
 update brand_data
 set carbohydrates = "29 g",
-fat = "1 g", sodium = "320 mg", dietary_fiber = "1 g", protein = "5 g"
+    fat = "1 g",
+    sodium = "320 mg",
+    dietary_fiber = "1 g",
+    protein = "5 g"
 where brand_id = 21;
 INSERT INTO brands (
         user_id,

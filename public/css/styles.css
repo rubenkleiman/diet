@@ -967,6 +967,96 @@ body {
     }
 }
 
+/* Contribution Table Styles */
+.contribution-section {
+    background: #f0f8ff !important;
+    border-left-color: #2980b9 !important;
+}
+
+.contribution-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.contribution-header h3 {
+    margin-bottom: 0;
+}
+
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.contribution-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.contribution-table thead {
+    background: var(--primary-color);
+    color: white;
+}
+
+.contribution-table th,
+.contribution-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.contribution-table th {
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.contribution-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.contribution-table .ing-name {
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+.contribution-table .ing-amount {
+    font-family: 'Courier New', monospace;
+    color: var(--secondary-color);
+}
+
+.contribution-table .totals-row {
+    background: #e3f2fd;
+    font-weight: 600;
+    border-top: 2px solid var(--primary-color);
+}
+
+.contribution-table .totals-row td {
+    border-bottom: none;
+}
+
+.table-scroll {
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.page-info {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
 /* Action Buttons */
 .action-buttons {
     display: flex;
