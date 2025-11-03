@@ -467,12 +467,12 @@ app.get('/api/kidney-stone-risk', (req, res) => {
  * GET /api/daily-requirements
  * Returns daily nutritional requirements
  */
-app.get('/api/daily-requirements', (req, res) => {
+app.get('/api/daily-requirements', async (req, res) => {
     try {
         res.json({
-            success: true,
-            data: services.getDailyRequirements()
-        })
+                success: true,
+                data: await services.getDailyRequirements()
+            })
     } catch (error) {
         res.status(500).json({
             success: false,

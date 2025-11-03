@@ -34,6 +34,7 @@ class Client {
         vitamin_e: { unit: "mg" },
         vitamin_k: { unit: "mcg" },
     };
+    
     constructor() {
         // State management
         this.recipes = [];
