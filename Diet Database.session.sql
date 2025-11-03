@@ -43,14 +43,14 @@ from menus m
 -- BRANDS
 select *
 from brands
-where id = 3;
+where id = 32;
 update brands
 set oxalate_per_gram = 0.028,
     oxalate_per_gram_unit = "mg/g"
 where id = 1;
 select *
 from brand_data
-where brand_id = 28;
+where brand_id = 32;
 SELECT id,
     brand_id,
     calories
