@@ -38,7 +38,9 @@ from recipes r
     inner join recipe_items i on r.id = i.recipe_id
 order by r.id,
     i.item_order;
-select * from daily_requirements order by name;
+select * from daily_requirements where name like '%folic%' order by name;
+insert into daily_requirements(name, recommended, dash_recommendation,minimum,
+    maximum, note,source) values('folic_acid','400 mcg',null,null,null,null,'NIH');
 update daily_requirements set maximum = '50 mg' where id = 27;
 select *
 from menus;
