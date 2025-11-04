@@ -1,6 +1,17 @@
 {
+  "name": "diet-guidelines",
   "type": "module",
+  "version": "1.0.0",
+  "description": "Diet Guidelines Application",
+  "main": "app.js",
   "scripts": {
+    "start": "node app.js",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "nodemon app.js",
+    "dev:client": "webpack serve --config webpack.dev.js",
+    "build": "webpack --config webpack.prod.js",
+    "build:analyze": "webpack --config webpack.prod.js --env analyze",
+    "clean": "rm -rf dist",
     "db:init": "node lib/db/init.js",
     "db:reset": "node lib/db/init.js --reset",
     "db:test": "node lib/db/test.js",
@@ -9,9 +20,29 @@
     "db:backup:list": "node lib/db/Backup.js --list",
     "db:restore": "node lib/db/Backup.js --restore"
   },
-  "dependencies": {
-    "sqlite3": "^5.1.7",
+  "devDependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
+    "babel-loader": "^9.1.3",
+    "clean-webpack-plugin": "^4.0.0",
+    "concurrently": "^8.2.2",
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.8.1",
+    "css-minimizer-webpack-plugin": "^5.0.1",
+    "express": "^5.1.0",
+    "html-webpack-plugin": "^5.5.3",
+    "nodemon": "^3.0.1",
     "sqlite": "^5.1.1",
-    "express": "^5.1.0"
+    "sqlite3": "^5.1.7",
+    "style-loader": "^3.3.3",
+    "terser-webpack-plugin": "^5.3.9",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.2.2",
+    "webpack-merge": "^5.10.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6"
   }
 }
