@@ -52,7 +52,8 @@ app.get('/api/kidney-stone-risk', async (req, res) => {
 
 app.get('/api/daily-requirements', async (req, res) => {
   try {
-    const data = await services.getDailyRequirements();
+    const userId = 'a70ff520-1125-4098-90b3-144e22ebe84a'; // TODO send from client
+    const data = await services.getDailyRequirements(userId);
     res.json({ success: true, data });
   } catch (error) {
     console.error('Error in /api/daily-requirements:', error);

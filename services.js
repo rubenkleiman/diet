@@ -37,10 +37,10 @@ class ServicesClass {
     /**
      * Load daily requirements from database
      */
-    async loadDailyRequirements() {
+    async loadDailyRequirements(userId) {
         if (this.dailyRequirements) return
 
-        const requirements = await database.all('SELECT * FROM daily_requirements')
+        const requirements = await database.all(`SELECT * FROM daily_requirements where user_id = '${userId}'`);
         this.dailyRequirements = {}
         
         for (const req of requirements) {
@@ -441,8 +441,8 @@ class ServicesClass {
      * Gets daily requirements
      * @returns {Promise<Object>} Daily requirements data
      */
-    async getDailyRequirements() {
-        await this.loadDailyRequirements()
+    async getDailyRequirements(userId) {
+        await this.loadDailyRequirements(userId)
         return this.dailyRequirements
     }
 

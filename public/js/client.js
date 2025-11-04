@@ -4,6 +4,7 @@ class Client {
 
     // Maps ingredient name to its properties
     static INGREDIENT_PROPS = {
+        oxalates: { unit: "mg" },
         calories: { unit: "none" },
         sodium: { unit: "mg" },
         cholesterol: { unit: "mg" },
@@ -34,7 +35,7 @@ class Client {
         vitamin_e: { unit: "mg" },
         vitamin_k: { unit: "mcg" },
     };
-    
+
     constructor() {
         // State management
         this.recipes = [];
@@ -482,12 +483,13 @@ class Client {
         // Nutritional Totals with % daily values
         html += '<div class="details-section">';
         html += '<h3>Nutritional Totals</h3>';
+        html += '<div><i>Nutrient Amount (% of Daily Requirement)</i></div>';
         html += '<table class="nutrition-table">';
 
         for (const [key, value] of Object.entries(data.totals)) {
             if (value === 0 && key !== 'oxalates') continue;
 
-            const formattedValue = typeof value === 'number' ? value.toFixed(2) : value;
+            let formattedValue = typeof value === 'number' ? value.toFixed(2) : value;
             let percentDaily = '';
 
             if (key === 'calories') {
@@ -506,6 +508,12 @@ class Client {
                 if (dailyValue) {
                     const percent = ((value / dailyValue) * 100).toFixed(1);
                     percentDaily = ` (${percent}%)`;
+                }
+            }
+            if (key != 'calories') {
+                const unit = Client.INGREDIENT_PROPS[key]?.unit;
+                if (unit) {
+                    formattedValue = `${formattedValue} ${unit}`;
                 }
             }
 
@@ -557,7 +565,7 @@ class Client {
     renderIngredientContributions(data) {
         let html = '<div class="details-section contribution-section">';
         html += '<div class="contribution-header">';
-        html += '<h3>Ingredient Contributions</h3>';
+        html += '<h3>Ingredient Contribution</h3>';
         html += '<button class="btn btn-secondary btn-small" onclick="window._client.toggleNutrientView()">';
         html += this.showAllNutrients ? 'Show Key Nutrients' : 'Show All Nutrients';
         html += '</button>';
@@ -630,9 +638,20 @@ class Client {
 
         html += '<tr class="totals-row">';
         html += '<td colspan="2"><strong>Total:</strong></td>';
-        html += `<td><strong>${(data.totals.calories || 0).toFixed(0)}</strong></td>`;
-        html += `<td><strong>${(data.totals.sodium || 0).toFixed(1)}mg</strong></td>`;
-        html += `<td><strong>${data.oxalateMg.toFixed(2)}mg</strong></td>`;
+        let totalCalories = Math.round(data.totals.calories || 0);
+        const calReq = parseFloat(this.dailyRequirements['calories']?.recommended);
+        if (!isNaN(calReq)) {
+            totalCalories = (isNaN(calReq) ? totalCalories : `${totalCalories} (${Math.round((totalCalories / calReq) * 100)}%)`);
+        }
+        let totalSodium = Math.round(data.totals.sodium || 0);
+        const sodReq = parseFloat(this.dailyRequirements['sodium']?.recommended);
+        totalSodium = (isNaN(sodReq) ? `${totalSodium} mg` : `${totalSodium} (${Math.round((totalSodium / sodReq) * 100)}%)`);
+        const oxMax = parseFloat(this.dailyRequirements['oxalates']?.maximum);
+        let totalOxalates = Math.round(data.oxalateMg || 0);
+        totalOxalates = (isNaN(oxMax) ? `${totalOxalates} mg` : `${totalOxalates} mg (${Math.round((totalOxalates / oxMax) * 100)}%)`);
+        html += `<td><strong>${totalCalories}</strong></td>`;
+        html += `<td><strong>${totalSodium}</strong></td>`;
+        html += `<td><strong>${totalOxalates}</strong></td>`;
         html += '</tr>';
 
         html += '</tbody></table>';
@@ -1473,7 +1492,7 @@ class Client {
                     if (!unit) {
                         this.showErrorMessage('ingredientNameError', `No standard unit found for ${field}`)
                     }
-                    data[field] = (unit == "none" ? numValue :`${numValue} ${unit}`);
+                    data[field] = (unit == "none" ? numValue : `${numValue} ${unit}`);
                 }
             }
         };

@@ -1,3 +1,7 @@
+-- pragma foreign_keys=on;
+-- ALTER TABLE daily_requirements ADD COLUMN user_id varchar(36) REFERENCES users(id);
+-- update daily_requirements set user_id = 'a70ff520-1125-4098-90b3-144e22ebe84a';
+-- select * from daily_requirements;
 PRAGMA table_info(brand_data);
 -- record counts
 select (
@@ -20,6 +24,8 @@ select (
         select count(*)
         from daily_requirements
     ) daily_requirements;
+
+
 select *
 from users;
 select *
@@ -33,7 +39,7 @@ from recipes r
 order by r.id,
     i.item_order;
 select * from daily_requirements order by name;
-update daily_requirements set recommended = '1500 mg' where id = 6;
+update daily_requirements set maximum = '50 mg' where id = 27;
 select *
 from menus;
 select m.name

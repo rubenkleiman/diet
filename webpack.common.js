@@ -51,6 +51,8 @@ export default {
           loader: 'babel-loader',
           options: {
             presets: ['@babel/preset-env'],
+            sourceMaps: true,
+            retainLines: true,
           },
         },
       },

@@ -4,7 +4,7 @@ import common from './webpack.common.js';
 export default merge(common, {
   mode: 'development',
   
-  devtool: 'inline-source-map',
+  devtool: 'eval-source-map',
   
   devServer: {
     static: {
@@ -28,13 +28,19 @@ export default merge(common, {
         warnings: false,
       },
     },
+    devMiddleware: {
+      writeToDisk: false,
+    },
   },
 
   output: {
     filename: 'js/[name].js',
+    devtoolModuleFilenameTemplate: 'webpack://[namespace]/[resource-path]?[loaders]',
   },
 
   optimization: {
     runtimeChunk: 'single',
+    moduleIds: 'named',
+    chunkIds: 'named',
   },
 });
