@@ -81,6 +81,10 @@ export default {
     extensions: ['.js', '.json'],
     alias: {
       '@': path.resolve(__dirname, 'public/js'),
+      '@core': path.resolve(__dirname, 'public/js/core'),
+      '@managers': path.resolve(__dirname, 'public/js/managers'),
+      '@renderers': path.resolve(__dirname, 'public/js/renderers'),
+      '@utils': path.resolve(__dirname, 'public/js/utils'),
     },
   },
 

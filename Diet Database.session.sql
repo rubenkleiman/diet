@@ -1,6 +1,6 @@
--- pragma foreign_keys=on;
--- ALTER TABLE daily_requirements ADD COLUMN user_id varchar(36) REFERENCES users(id);
--- update daily_requirements set user_id = 'a70ff520-1125-4098-90b3-144e22ebe84a';
+pragma foreign_keys=on;
+insert into users(id, username, password,display_name) values('a70ff520-1125-4098-90b3-144e22ebe84a','rk','rk','Ruben');
+select * from users;
 -- select * from daily_requirements;
 PRAGMA table_info(brand_data);
 -- record counts

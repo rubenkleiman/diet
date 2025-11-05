@@ -1,15 +1,10 @@
-// Diet Guidelines Client - Phase 2: Manager Integration
-// New managers handle business logic, Client class focuses on UI
+// Diet Guidelines Client - Phase 1: Foundation
+// New modules imported but not yet integrated - everything still works as before
 
-// Import core modules
+// Import new core modules (not used yet, but available)
 import { State } from '@core/State.js';
 import { Router } from '@core/Router.js';
 import { APIClient as API } from '@core/APIClient.js';
-
-// Import managers
-import { RecipeManager } from '@managers/RecipeManager.js';
-import { IngredientManager } from '@managers/IngredientManager.js';
-import { SettingsManager } from '@managers/SettingsManager.js';
 
 class Client {
 
@@ -48,12 +43,7 @@ class Client {
     };
 
     constructor() {
-        // Initialize managers
-        this.recipeManager = new RecipeManager();
-        this.ingredientManager = new IngredientManager();
-        this.settingsManager = new SettingsManager();
-
-        // Legacy properties - kept for compatibility, but synced with State
+        // State management
         this.recipes = [];
         this.ingredients = [];
         this.selectedRecipeId = null;
@@ -80,98 +70,89 @@ class Client {
         this.showAllNutrients = false;
         this.currentNutrientPage = 0;
         this.NUTRIENTS_PER_PAGE = 5;
-
-        // Setup state synchronization
-        this.setupStateSync();
-    }
-
-    // Sync legacy properties with State
-    setupStateSync() {
-        // Sync recipes
-        State.subscribe('recipes', (newValue) => {
-            this.recipes = newValue;
-            this.updateHomeCounts();
-        });
-
-        // Sync ingredients
-        State.subscribe('ingredients', (newValue) => {
-            this.ingredients = newValue;
-            this.updateHomeCounts();
-        });
-
-        // Sync selected recipe
-        State.subscribe('selectedRecipeId', (newValue) => {
-            this.selectedRecipeId = newValue;
-        });
-
-        // Sync selected ingredient
-        State.subscribe('selectedIngredientId', (newValue) => {
-            this.selectedIngredientId = newValue;
-        });
-
-        // Sync config
-        State.subscribe('config', (newValue) => {
-            this.config = newValue;
-        });
-
-        // Sync kidney stone risk data
-        State.subscribe('kidneyStoneRiskData', (newValue) => {
-            this.kidneyStoneRiskData = newValue;
-        });
-
-        // Sync daily requirements
-        State.subscribe('dailyRequirements', (newValue) => {
-            this.dailyRequirements = newValue;
-        });
-
-        // Sync user settings
-        State.subscribe('userSettings', (newValue) => {
-            this.userSettings = newValue;
-        });
-
-        // Sync recipe editor state
-        State.subscribe('editingRecipeId', (newValue) => {
-            this.editingRecipeId = newValue;
-        });
-
-        State.subscribe('selectedIngredientsForRecipe', (newValue) => {
-            this.selectedIngredientsForRecipe = newValue;
-        });
-
-        // Sync ingredient editor state
-        State.subscribe('editingIngredientId', (newValue) => {
-            this.editingIngredientId = newValue;
-        });
-
-        // Sync nutrient view state
-        State.subscribe('showAllNutrients', (newValue) => {
-            this.showAllNutrients = newValue;
-        });
-
-        State.subscribe('currentNutrientPage', (newValue) => {
-            this.currentNutrientPage = newValue;
-        });
     }
 
     // Initialize app
     async init() {
-        // Use new managers for loading
-        this.settingsManager.loadUserSettings();
-        await this.settingsManager.loadConfig();
-        await this.settingsManager.loadKidneyStoneRiskData();
-        await this.settingsManager.loadDailyRequirements();
-        await this.recipeManager.loadRecipes();
-        await this.ingredientManager.loadIngredients();
-
-        // Apply UI config
-        this.settingsManager.applyUIConfig();
-
+        this.loadUserSettings();
+        await this.loadConfig();
+        await this.loadKidneyStoneRiskData();
+        await this.loadDailyRequirements();
+        await this.loadRecipes();
+        await this.loadIngredients();
         this.setupEventListeners();
+
+        // Update home page counts
         this.updateHomeCounts();
 
         // Handle initial page from URL or default to home
         const page = window.location.hash.slice(1) || 'home';
         this.navigateTo(page, false);
+    }
+
+    // Load user settings from localStorage
+    loadUserSettings() {
+        const saved = localStorage.getItem('userSettings');
+        if (saved) {
+            this.userSettings = JSON.parse(saved);
+        }
+    }
+
+    // Save user settings to localStorage
+    saveUserSettings() {
+        localStorage.setItem('userSettings', JSON.stringify(this.userSettings));
+    }
+
+    // Load configuration
+    async loadConfig() {
+        try {
+            const response = await fetch('/api/config');
+            const result = await response.json();
+            if (result.success) {
+                this.config = result.data;
+                this.applyConfig();
+            }
+        } catch (error) {
+            console.error('Error loading config:', error);
+        }
+    }
+
+    // Load kidney stone risk data
+    async loadKidneyStoneRiskData() {
+        try {
+            const response = await fetch('/api/kidney-stone-risk');
+            const result = await response.json();
+            if (result.success) {
+                this.kidneyStoneRiskData = result.data;
+            }
+        } catch (error) {
+            console.error('Error loading kidney stone risk data:', error);
+        }
+    }
+
+    // Load daily requirements
+    async loadDailyRequirements() {
+        try {
+            const response = await fetch('/api/daily-requirements');
+            const result = await response.json();
+            if (result.success) {
+                this.dailyRequirements = result.data;
+            }
+        } catch (error) {
+            console.error('Error loading daily requirements:', error);
+        }
+    }
+
+    // Apply configuration to UI
+    applyConfig() {
+        if (this.config.ui?.recipeListMaxHeight) {
+            const container = document.getElementById('recipeListContainer');
+            if (container) container.style.maxHeight = this.config.ui.recipeListMaxHeight;
+        }
+        if (this.config.ui?.recipeDetailsMaxHeight) {
+            const content = document.getElementById('recipeDetailsContent');
+            if (content) content.style.maxHeight = this.config.ui.recipeDetailsMaxHeight;
+        }
     }
 
     // Update home page counts
@@ -329,6 +310,22 @@ class Client {
         });
     }
 
+    // Load all recipes
+    async loadRecipes() {
+        try {
+            const response = await fetch('/api/recipes');
+            const result = await response.json();
+
+            if (result.success) {
+                this.recipes = result.data;
+                this.updateHomeCounts();
+            }
+        } catch (error) {
+            console.error('Error loading recipes:', error);
+            this.showError('Failed to load recipes');
+        }
+    }
+
     // Render recipe list with calories and oxalates
     renderRecipeList(recipesToShow) {
         const listElement = document.getElementById('recipeList');
@@ -361,7 +358,7 @@ class Client {
                     const calories = data.totals.calories || 0;
                     const caloriesPercent = ((calories / this.userSettings.caloriesPerDay) * 100).toFixed(0);
                     const oxalates = data.oxalateMg || 0;
-                    const oxalateRisk = this.recipeManager.calculateOxalateRisk(oxalates);
+                    const oxalateRisk = this.calculateOxalateRisk(oxalates);
 
                     li.innerHTML = `
                         <span class="recipe-name">${recipe.name}</span>
@@ -383,16 +380,52 @@ class Client {
     // Fetch recipe summary for list display
     async fetchRecipeSummary(recipeId) {
         try {
-            return await this.recipeManager.getRecipe(recipeId, true);
+            const response = await fetch(`/api/recipes/${recipeId}?summary=true`);
+            const result = await response.json();
+            return result.success ? result.data : null;
         } catch (error) {
             console.error('Error fetching recipe summary:', error);
             return null;
         }
     }
 
+    // Calculate oxalate risk
+    calculateOxalateRisk(oxalateMg) {
+        const maxOxalates = this.kidneyStoneRiskData[this.userSettings.kidneyStoneRisk]?.maxOxalatesPerDay || 200;
+        const percent = (oxalateMg / maxOxalates) * 100;
+
+        if (percent < 50) {
+            return { status: 'safe', percent, color: '#27ae60', message: '' };
+        } else if (percent < 100) {
+            return {
+                status: 'warning',
+                percent,
+                color: '#b8860b',
+                message: `Approaching your daily oxalate limit (${maxOxalates}mg)`
+            };
+        } else {
+            return {
+                status: 'danger',
+                percent,
+                color: '#e74c3c',
+                message: `Exceeds your daily oxalate limit (${maxOxalates}mg). This recipe contains ${oxalateMg.toFixed(1)}mg oxalates, which is ${(percent - 100).toFixed(0)}% over your ${this.userSettings.kidneyStoneRisk.toLowerCase()} risk limit.`
+            };
+        }
+    }
+
     // Filter recipes based on search
     filterRecipes(searchTerm) {
-        const filtered = this.recipeManager.filterRecipes(searchTerm);
+        const term = searchTerm.toLowerCase().trim();
+
+        if (!term) {
+            this.renderRecipeList(this.recipes);
+            return;
+        }
+
+        const filtered = this.recipes.filter(recipe =>
+            recipe.name.toLowerCase().includes(term)
+        );
+
         this.renderRecipeList(filtered);
     }
 
@@ -407,7 +440,7 @@ class Client {
             selectedItem.classList.add('selected');
         }
 
-        this.recipeManager.selectRecipe(recipeId);
+        this.selectedRecipeId = recipeId;
 
         // Enable/disable edit and delete buttons
         const editBtn = document.getElementById('editRecipeBtn');
@@ -422,8 +455,14 @@ class Client {
         const summary = summaryCheckbox ? !summaryCheckbox.checked : true;
 
         try {
-            const data = await this.recipeManager.getRecipe(recipeId, summary);
-            this.renderRecipeDetails(data);
+            const response = await fetch(`/api/recipes/${recipeId}?summary=${summary}`);
+            const result = await response.json();
+
+            if (result.success) {
+                this.renderRecipeDetails(result.data);
+            } else {
+                this.showError(result.error);
+            }
         } catch (error) {
             console.error('Error loading recipe details:', error);
             this.showError('Failed to load recipe details');
@@ -490,7 +529,7 @@ class Client {
         html += '</div>';
 
         // Dietary Assessment with oxalate warning
-        const oxalateRisk = this.recipeManager.calculateOxalateRisk(data.oxalateMg);
+        const oxalateRisk = this.calculateOxalateRisk(data.oxalateMg);
 
         html += '<div class="details-section">';
         html += '<h3>Dietary Assessment</h3>';
@@ -538,7 +577,7 @@ class Client {
         html += '</button>';
         html += '</div>';
 
-        const contributions = this.recipeManager.calculateContributions(data);
+        const contributions = this.calculateContributions(data);
 
         if (this.showAllNutrients) {
             html += this.renderAllNutrientsTable(contributions, data);
@@ -548,6 +587,29 @@ class Client {
 
         html += '</div>';
         return html;
+    }
+
+    // Calculate percentage contributions for each ingredient
+    calculateContributions(data) {
+        const contributions = {};
+
+        data.ingredients.forEach(ingredient => {
+            contributions[ingredient.name] = {
+                amount: ingredient.amount,
+                nutrients: {}
+            };
+
+            for (const [nutrient, value] of Object.entries(ingredient.nutritionScaled)) {
+                const total = data.totals[nutrient] || 0;
+                const percent = total > 0 ? (value / total * 100) : 0;
+                contributions[ingredient.name].nutrients[nutrient] = {
+                    value: value,
+                    percent: percent
+                };
+            }
+        });
+
+        return contributions;
     }
 
     // Render key nutrients table
@@ -685,21 +747,24 @@ class Client {
 
     // Navigation functions
     toggleNutrientView() {
-        this.recipeManager.toggleNutrientView();
+        this.showAllNutrients = !this.showAllNutrients;
+        this.currentNutrientPage = 0;
         if (this.selectedRecipeId) {
             this.showRecipeDetails(this.selectedRecipeId);
         }
     }
 
     prevNutrientPage() {
-        this.recipeManager.prevNutrientPage();
-        if (this.selectedRecipeId) {
-            this.showRecipeDetails(this.selectedRecipeId);
+        if (this.currentNutrientPage > 0) {
+            this.currentNutrientPage--;
+            if (this.selectedRecipeId) {
+                this.showRecipeDetails(this.selectedRecipeId);
+            }
         }
     }
 
     nextNutrientPage() {
-        this.recipeManager.nextNutrientPage();
+        this.currentNutrientPage++;
         if (this.selectedRecipeId) {
             this.showRecipeDetails(this.selectedRecipeId);
         }
@@ -730,7 +795,7 @@ class Client {
         if (!select || !info) return;
 
         const riskLevel = select.value;
-        const data = this.settingsManager.getKidneyRiskInfo(riskLevel);
+        const data = this.kidneyStoneRiskData[riskLevel];
 
         if (data) {
             info.textContent = `Maximum ${data.maxOxalatesPerDay}mg oxalates per day - ${data.description}`;
@@ -740,15 +805,13 @@ class Client {
     applySettings(e) {
         e.preventDefault();
 
-        const updates = {
-            caloriesPerDay: parseInt(document.getElementById('caloriesPerDayInput').value),
-            useAge: document.getElementById('useAgeCheckbox').checked,
-            age: document.getElementById('useAgeCheckbox').checked ? parseInt(document.getElementById('ageInput').value) : null,
-            kidneyStoneRisk: document.getElementById('kidneyRiskSelect').value
-        };
+        this.userSettings.caloriesPerDay = parseInt(document.getElementById('caloriesPerDayInput').value);
+        this.userSettings.useAge = document.getElementById('useAgeCheckbox').checked;
+        this.userSettings.age = this.userSettings.useAge ? parseInt(document.getElementById('ageInput').value) : null;
+        this.userSettings.kidneyStoneRisk = document.getElementById('kidneyRiskSelect').value;
 
-        this.settingsManager.updateSettings(updates);
-        this.recipeManager.loadRecipes();
+        this.saveUserSettings();
+        this.loadRecipes();
         this.navigateTo('home');
     }
 
@@ -757,8 +820,32 @@ class Client {
     }
 
     // Ingredients page functions
+    async loadIngredients() {
+        try {
+            const response = await fetch('/api/ingredients');
+            const result = await response.json();
+
+            if (result.success) {
+                this.ingredients = result.data;
+                this.updateHomeCounts();
+            }
+        } catch (error) {
+            console.error('Error loading ingredients:', error);
+        }
+    }
+
     filterIngredients(searchTerm) {
-        const filtered = this.ingredientManager.filterIngredients(searchTerm);
+        const term = searchTerm.toLowerCase().trim();
+
+        if (!term) {
+            this.renderIngredientList(this.ingredients);
+            return;
+        }
+
+        const filtered = this.ingredients.filter(ing =>
+            ing.name.toLowerCase().includes(term)
+        );
+
         this.renderIngredientList(filtered);
     }
 
@@ -800,7 +887,7 @@ class Client {
             selectedItem.classList.add('selected');
         }
 
-        this.ingredientManager.selectIngredient(ingredientId);
+        this.selectedIngredientId = ingredientId;
 
         const editBtn = document.getElementById('editIngredientBtn');
         const deleteBtn = document.getElementById('deleteIngredientBtn');
@@ -810,8 +897,12 @@ class Client {
 
     async showIngredientDetails(brandId) {
         try {
-            const data = await this.ingredientManager.getIngredient(brandId);
-            this.renderIngredientDetails(data);
+            const response = await fetch(`/api/ingredients/${brandId}`);
+            const result = await response.json();
+
+            if (result.success) {
+                this.renderIngredientDetails(result.data);
+            }
         } catch (error) {
             console.error('Error loading ingredient details:', error);
         }
@@ -877,7 +968,8 @@ class Client {
     // ===== RECIPE EDITOR FUNCTIONS =====
 
     createRecipe() {
-        this.recipeManager.startEdit(null);
+        this.editingRecipeId = null;
+        this.selectedIngredientsForRecipe = [];
 
         document.getElementById('editPanelTitle').textContent = 'Create New Recipe';
         document.getElementById('recipeNameInput').value = '';
@@ -890,26 +982,29 @@ class Client {
     async editRecipe() {
         if (!this.selectedRecipeId) return;
 
-        this.recipeManager.startEdit(this.selectedRecipeId);
+        this.editingRecipeId = this.selectedRecipeId;
 
         try {
-            const recipe = await this.recipeManager.getRecipeFull(this.selectedRecipeId);
+            const response = await fetch(`/api/recipes/${this.selectedRecipeId}/full`);
+            const result = await response.json();
 
-            document.getElementById('editPanelTitle').textContent = 'Edit Recipe';
-            document.getElementById('recipeNameInput').value = recipe.name;
-            document.getElementById('ingredientSearchBox').value = '';
+            if (result.success) {
+                const recipe = result.data;
 
-            const ingredients = recipe.ingredients.map(ing => ({
-                brandId: ing.brandId,
-                name: ing.brandName,
-                amount: ing.amount,
-                unit: ing.unit
-            }));
+                document.getElementById('editPanelTitle').textContent = 'Edit Recipe';
+                document.getElementById('recipeNameInput').value = recipe.name;
+                document.getElementById('ingredientSearchBox').value = '';
 
-            State.set('selectedIngredientsForRecipe', ingredients);
+                this.selectedIngredientsForRecipe = recipe.ingredients.map(ing => ({
+                    brandId: ing.brandId,
+                    name: ing.brandName,
+                    amount: ing.amount,
+                    unit: ing.unit
+                }));
 
-            this.renderSelectedIngredients();
-            this.openRecipeEditor();
+                this.renderSelectedIngredients();
+                this.openRecipeEditor();
+            }
         } catch (error) {
             console.error('Error loading recipe for editing:', error);
             alert('Failed to load recipe details');
@@ -927,15 +1022,28 @@ class Client {
         }
 
         try {
-            await this.recipeManager.deleteRecipe(this.selectedRecipeId);
-            this.renderRecipeList(this.recipes);
+            const response = await fetch(`/api/recipes/${this.selectedRecipeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-            this.recipeManager.deselectRecipe();
-            document.getElementById('editRecipeBtn').disabled = true;
-            document.getElementById('deleteRecipeBtn').disabled = true;
-            document.getElementById('recipeDetailsSection').style.display = 'none';
+            const result = await response.json();
 
-            alert('Recipe deleted successfully');
+            if (result.success) {
+                await this.loadRecipes();
+                this.renderRecipeList(this.recipes);
+
+                this.selectedRecipeId = null;
+                document.getElementById('editRecipeBtn').disabled = true;
+                document.getElementById('deleteRecipeBtn').disabled = true;
+                document.getElementById('recipeDetailsSection').style.display = 'none';
+
+                alert('Recipe deleted successfully');
+            } else {
+                alert('Failed to delete recipe: ' + result.error);
+            }
         } catch (error) {
             console.error('Error deleting recipe:', error);
             alert('Failed to delete recipe');
@@ -955,7 +1063,8 @@ class Client {
             panel.classList.remove('active');
         }
 
-        this.recipeManager.cancelEdit();
+        this.editingRecipeId = null;
+        this.selectedIngredientsForRecipe = [];
         document.getElementById('recipeNameInput').value = '';
         document.getElementById('ingredientSearchBox').value = '';
         this.hideIngredientSearchResults();
@@ -995,26 +1104,45 @@ class Client {
         };
 
         try {
-            if (this.editingRecipeId) {
-                await this.recipeManager.updateRecipe(this.editingRecipeId, payload);
-                alert('Recipe updated successfully');
-                this.recipeManager.selectRecipe(this.editingRecipeId);
-                await this.showRecipeDetails(this.editingRecipeId);
-            } else {
-                await this.recipeManager.createRecipe(payload);
-                alert('Recipe created successfully');
-                const newRecipe = this.recipes.find(r => r.name === recipeName);
-                if (newRecipe) {
-                    this.recipeManager.selectRecipe(newRecipe.id);
-                    await this.showRecipeDetails(newRecipe.id);
-                }
-            }
+            const url = this.editingRecipeId
+                ? `/api/recipes/${this.editingRecipeId}`
+                : '/api/recipes';
+            const method = this.editingRecipeId ? 'PUT' : 'POST';
 
-            this.renderRecipeList(this.recipes);
-            this.closeRecipeEditor();
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                await this.loadRecipes();
+                this.renderRecipeList(this.recipes);
+
+                if (this.editingRecipeId) {
+                    alert('Recipe updated successfully');
+                    this.selectRecipe(this.editingRecipeId);
+                    await this.showRecipeDetails(this.editingRecipeId);
+                } else {
+                    alert('Recipe created successfully');
+                    const newRecipe = this.recipes.find(r => r.name === recipeName);
+                    if (newRecipe) {
+                        this.selectRecipe(newRecipe.id);
+                        await this.showRecipeDetails(newRecipe.id);
+                    }
+                }
+
+                this.closeRecipeEditor();
+            } else {
+                this.showErrorMessage('ingredientsError', result.error || 'Failed to save recipe');
+            }
         } catch (error) {
             console.error('Error saving recipe:', error);
-            this.showErrorMessage('ingredientsError', error.message || 'Failed to save recipe');
+            this.showErrorMessage('ingredientsError', 'Failed to save recipe');
         }
     }
 
@@ -1034,8 +1162,12 @@ class Client {
 
     async performIngredientSearch(searchTerm) {
         try {
-            const results = await this.ingredientManager.searchIngredients(searchTerm);
-            this.displayIngredientSearchResults(results);
+            const response = await fetch(`/api/ingredients?search=${encodeURIComponent(searchTerm)}`);
+            const result = await response.json();
+
+            if (result.success) {
+                this.displayIngredientSearchResults(result.data);
+            }
         } catch (error) {
             console.error('Error searching ingredients:', error);
         }
@@ -1086,26 +1218,34 @@ class Client {
     }
 
     addIngredientToRecipe(ingredient) {
-        const added = this.recipeManager.addIngredientToRecipe(ingredient);
-        
-        if (added) {
-            this.renderSelectedIngredients();
-            this.hideIngredientSearchResults();
-            document.getElementById('ingredientSearchBox').value = '';
+        if (this.selectedIngredientsForRecipe.some(ing => ing.brandId === ingredient.id)) {
+            return;
         }
+
+        this.selectedIngredientsForRecipe.push({
+            brandId: ingredient.id,
+            name: ingredient.name,
+            amount: 100,
+            unit: 'g'
+        });
+
+        this.renderSelectedIngredients();
+        this.hideIngredientSearchResults();
+
+        document.getElementById('ingredientSearchBox').value = '';
     }
 
     removeIngredientFromRecipe(index) {
-        this.recipeManager.removeIngredientFromRecipe(index);
+        this.selectedIngredientsForRecipe.splice(index, 1);
         this.renderSelectedIngredients();
     }
 
     updateIngredientAmount(index, amount) {
-        this.recipeManager.updateIngredientAmount(index, amount);
+        this.selectedIngredientsForRecipe[index].amount = amount;
     }
 
     updateIngredientUnit(index, unit) {
-        this.recipeManager.updateIngredientUnit(index, unit);
+        this.selectedIngredientsForRecipe[index].unit = unit;
     }
 
     renderSelectedIngredients() {
@@ -1172,7 +1312,7 @@ class Client {
     // ===== INGREDIENT EDITOR FUNCTIONS =====
 
     createIngredient() {
-        this.ingredientManager.startEdit(null);
+        this.editingIngredientId = null;
 
         document.getElementById('ingredientEditPanelTitle').textContent = 'Create New Ingredient';
 
@@ -1203,59 +1343,64 @@ class Client {
     async editIngredient() {
         if (!this.selectedIngredientId) return;
 
-        this.ingredientManager.startEdit(this.selectedIngredientId);
+        this.editingIngredientId = this.selectedIngredientId;
 
         try {
-            const ingredient = await this.ingredientManager.getIngredientFull(this.selectedIngredientId);
+            const response = await fetch(`/api/ingredients/${this.selectedIngredientId}/full`);
+            const result = await response.json();
 
-            document.getElementById('ingredientEditPanelTitle').textContent = 'Edit Ingredient';
-            document.getElementById('ingredientNameInput').value = ingredient.name;
-            document.getElementById('servingSizeInput').value = ingredient.serving;
-            document.getElementById('servingUnitSelect').value = ingredient.servingUnit;
-            document.getElementById('densityInput').value = ingredient.density || '';
-            document.getElementById('oxalateInput').value = ingredient.oxalatePerGram || '';
+            if (result.success) {
+                const ingredient = result.data;
 
-            const fieldMapping = {
-                caloriesInput: 'calories',
-                sodiumInput: 'sodium',
-                cholesterolInput: 'cholesterol',
-                sugarsInput: 'sugars',
-                proteinInput: 'protein',
-                dietaryFiberInput: 'dietary_fiber',
-                carbohydratesInput: 'carbohydrates',
-                calciumInput: 'calcium',
-                potassiumInput: 'potassium',
-                magnesiumInput: 'magnesium',
-                seleniumInput: 'selenium',
-                manganeseInput: 'manganese',
-                zincInput: 'zinc',
-                ironInput: 'iron',
-                fatInput: 'fat',
-                saturatedFatInput: 'saturated_fat',
-                polysaturatedFatInput: 'polysaturated_fat',
-                monosaturatedFatInput: 'monosaturated_fat',
-                thiaminInput: 'thiamin',
-                riboflavinInput: 'riboflavin',
-                niacinInput: 'niacin',
-                folicAcidInput: 'folic_acid',
-                phosphorusInput: 'phosphorus',
-                vitaminAInput: 'vitamin_a',
-                vitaminB6Input: 'vitamin_b6',
-                vitaminCInput: 'vitamin_c',
-                vitaminDInput: 'vitamin_d',
-                vitaminEInput: 'vitamin_e',
-                vitaminKInput: 'vitamin_k'
-            };
+                document.getElementById('ingredientEditPanelTitle').textContent = 'Edit Ingredient';
+                document.getElementById('ingredientNameInput').value = ingredient.name;
+                document.getElementById('servingSizeInput').value = ingredient.serving;
+                document.getElementById('servingUnitSelect').value = ingredient.servingUnit;
+                document.getElementById('densityInput').value = ingredient.density || '';
+                document.getElementById('oxalateInput').value = ingredient.oxalatePerGram || '';
 
-            for (const [inputId, dataKey] of Object.entries(fieldMapping)) {
-                const el = document.getElementById(inputId);
-                if (el) {
-                    el.value = ingredient.data[dataKey] || '';
+                const fieldMapping = {
+                    caloriesInput: 'calories',
+                    sodiumInput: 'sodium',
+                    cholesterolInput: 'cholesterol',
+                    sugarsInput: 'sugars',
+                    proteinInput: 'protein',
+                    dietaryFiberInput: 'dietary_fiber',
+                    carbohydratesInput: 'carbohydrates',
+                    calciumInput: 'calcium',
+                    potassiumInput: 'potassium',
+                    magnesiumInput: 'magnesium',
+                    seleniumInput: 'selenium',
+                    manganeseInput: 'manganese',
+                    zincInput: 'zinc',
+                    ironInput: 'iron',
+                    fatInput: 'fat',
+                    saturatedFatInput: 'saturated_fat',
+                    polysaturatedFatInput: 'polysaturated_fat',
+                    monosaturatedFatInput: 'monosaturated_fat',
+                    thiaminInput: 'thiamin',
+                    riboflavinInput: 'riboflavin',
+                    niacinInput: 'niacin',
+                    folicAcidInput: 'folic_acid',
+                    phosphorusInput: 'phosphorus',
+                    vitaminAInput: 'vitamin_a',
+                    vitaminB6Input: 'vitamin_b6',
+                    vitaminCInput: 'vitamin_c',
+                    vitaminDInput: 'vitamin_d',
+                    vitaminEInput: 'vitamin_e',
+                    vitaminKInput: 'vitamin_k'
+                };
+
+                for (const [inputId, dataKey] of Object.entries(fieldMapping)) {
+                    const el = document.getElementById(inputId);
+                    if (el) {
+                        el.value = ingredient.data[dataKey] || '';
+                    }
                 }
-            }
 
-            this.clearErrors();
-            this.openIngredientEditor();
+                this.clearErrors();
+                this.openIngredientEditor();
+            }
         } catch (error) {
             console.error('Error loading ingredient for editing:', error);
             alert('Failed to load ingredient details');
@@ -1273,15 +1418,28 @@ class Client {
         }
 
         try {
-            await this.ingredientManager.deleteIngredient(this.selectedIngredientId);
-            this.renderIngredientList(this.ingredients);
+            const response = await fetch(`/api/ingredients/${this.selectedIngredientId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-            this.ingredientManager.deselectIngredient();
-            document.getElementById('editIngredientBtn').disabled = true;
-            document.getElementById('deleteIngredientBtn').disabled = true;
-            document.getElementById('ingredientDetailsSection').style.display = 'none';
+            const result = await response.json();
 
-            alert('Ingredient deleted successfully');
+            if (result.success) {
+                await this.loadIngredients();
+                this.renderIngredientList(this.ingredients);
+
+                this.selectedIngredientId = null;
+                document.getElementById('editIngredientBtn').disabled = true;
+                document.getElementById('deleteIngredientBtn').disabled = true;
+                document.getElementById('ingredientDetailsSection').style.display = 'none';
+
+                alert('Ingredient deleted successfully');
+            } else {
+                alert('Failed to delete ingredient: ' + result.error);
+            }
         } catch (error) {
             console.error('Error deleting ingredient:', error);
             alert('Failed to delete ingredient');
@@ -1301,7 +1459,7 @@ class Client {
             panel.classList.remove('active');
         }
 
-        this.ingredientManager.cancelEdit();
+        this.editingIngredientId = null;
         this.clearErrors();
     }
 
@@ -1385,26 +1543,45 @@ class Client {
         };
 
         try {
-            if (this.editingIngredientId) {
-                await this.ingredientManager.updateIngredient(this.editingIngredientId, payload);
-                alert('Ingredient updated successfully');
-                await this.showIngredientDetails(this.editingIngredientId);
-                this.ingredientManager.selectIngredient(this.editingIngredientId);
-            } else {
-                await this.ingredientManager.createIngredient(payload);
-                alert('Ingredient created successfully');
-                const newIngredient = this.ingredients.find(i => i.name === name);
-                if (newIngredient) {
-                    await this.showIngredientDetails(newIngredient.id);
-                    this.ingredientManager.selectIngredient(newIngredient.id);
-                }
-            }
+            const url = this.editingIngredientId
+                ? `/api/ingredients/${this.editingIngredientId}`
+                : '/api/ingredients';
+            const method = this.editingIngredientId ? 'PUT' : 'POST';
 
-            this.renderIngredientList(this.ingredients);
-            this.closeIngredientEditor();
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                await this.loadIngredients();
+                this.renderIngredientList(this.ingredients);
+
+                if (this.editingIngredientId) {
+                    alert('Ingredient updated successfully');
+                    await this.showIngredientDetails(this.editingIngredientId);
+                    this.selectIngredient(this.editingIngredientId);
+                } else {
+                    alert('Ingredient created successfully');
+                    const newIngredient = this.ingredients.find(i => i.name === name);
+                    if (newIngredient) {
+                        await this.showIngredientDetails(newIngredient.id);
+                        this.selectIngredient(newIngredient.id);
+                    }
+                }
+
+                this.closeIngredientEditor();
+            } else {
+                this.showErrorMessage('ingredientNameError', result.error || 'Failed to save ingredient');
+            }
         } catch (error) {
             console.error('Error saving ingredient:', error);
-            this.showErrorMessage('ingredientNameError', error.message || 'Failed to save ingredient');
+            this.showErrorMessage('ingredientNameError', 'Failed to save ingredient');
         }
     }
 }
