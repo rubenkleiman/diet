@@ -1,5 +1,5 @@
-// Diet Guidelines Client - Phase 2: Manager Integration
-// New managers handle business logic, Client class focuses on UI
+// Diet Guidelines Client - Phase 3: Renderers & Utilities Integration
+// UI rendering extracted to dedicated modules, event delegation introduced
 
 // Import core modules
 import { State } from '@core/State.js';
@@ -10,6 +10,15 @@ import { APIClient as API } from '@core/APIClient.js';
 import { RecipeManager } from '@managers/RecipeManager.js';
 import { IngredientManager } from '@managers/IngredientManager.js';
 import { SettingsManager } from '@managers/SettingsManager.js';
+
+// Import renderers
+import { RecipeRenderer } from '@renderers/RecipeRenderer.js';
+import { IngredientRenderer } from '@renderers/IngredientRenderer.js';
+import { FormRenderer } from '@renderers/FormRenderer.js';
+
+// Import utilities
+import { validateRecipe, validateIngredient } from '@utils/validation.js';
+import { setButtonsDisabled, toggleDropdown, closeDropdown, toggleMobileMenu, closeMobileMenu, setupEventDelegation, hideElement } from '@utils/dom.js';
 
 class Client {
 
@@ -53,7 +62,7 @@ class Client {
         this.ingredientManager = new IngredientManager();
         this.settingsManager = new SettingsManager();
 
-        // Legacy properties - kept for compatibility, but synced with State
+        // Legacy properties - kept for compatibility
         this.recipes = [];
         this.ingredients = [];
         this.selectedRecipeId = null;
@@ -68,15 +77,13 @@ class Client {
             kidneyStoneRisk: 'Normal'
         };
 
-        // Recipe editor state
+        // Editor state
         this.editingRecipeId = null;
         this.selectedIngredientsForRecipe = [];
         this.ingredientSearchTimeout = null;
-
-        // Ingredient editor state
         this.editingIngredientId = null;
 
-        // Contribution table state
+        // Nutrient view state
         this.showAllNutrients = false;
         this.currentNutrientPage = 0;
         this.NUTRIENTS_PER_PAGE = 5;
@@ -87,63 +94,56 @@ class Client {
 
     // Sync legacy properties with State
     setupStateSync() {
-        // Sync recipes
         State.subscribe('recipes', (newValue) => {
             this.recipes = newValue;
             this.updateHomeCounts();
         });
 
-        // Sync ingredients
         State.subscribe('ingredients', (newValue) => {
             this.ingredients = newValue;
             this.updateHomeCounts();
         });
 
-        // Sync selected recipe
         State.subscribe('selectedRecipeId', (newValue) => {
             this.selectedRecipeId = newValue;
         });
 
-        // Sync selected ingredient
         State.subscribe('selectedIngredientId', (newValue) => {
             this.selectedIngredientId = newValue;
         });
 
-        // Sync config
         State.subscribe('config', (newValue) => {
             this.config = newValue;
         });
 
-        // Sync kidney stone risk data
         State.subscribe('kidneyStoneRiskData', (newValue) => {
             this.kidneyStoneRiskData = newValue;
         });
 
-        // Sync daily requirements
         State.subscribe('dailyRequirements', (newValue) => {
             this.dailyRequirements = newValue;
         });
 
-        // Sync user settings
         State.subscribe('userSettings', (newValue) => {
             this.userSettings = newValue;
         });
 
-        // Sync recipe editor state
         State.subscribe('editingRecipeId', (newValue) => {
             this.editingRecipeId = newValue;
         });
 
         State.subscribe('selectedIngredientsForRecipe', (newValue) => {
             this.selectedIngredientsForRecipe = newValue;
+            FormRenderer.renderSelectedIngredients(newValue, {
+                amount: (index, value) => this.recipeManager.updateIngredientAmount(index, value),
+                unit: (index, value) => this.recipeManager.updateIngredientUnit(index, value)
+            });
         });
 
-        // Sync ingredient editor state
         State.subscribe('editingIngredientId', (newValue) => {
             this.editingIngredientId = newValue;
         });
 
-        // Sync nutrient view state
         State.subscribe('showAllNutrients', (newValue) => {
             this.showAllNutrients = newValue;
         });
@@ -155,7 +155,6 @@ class Client {
 
     // Initialize app
     async init() {
-        // Use new managers for loading
         this.settingsManager.loadUserSettings();
         await this.settingsManager.loadConfig();
         await this.settingsManager.loadKidneyStoneRiskData();
@@ -163,13 +162,11 @@ class Client {
         await this.recipeManager.loadRecipes();
         await this.ingredientManager.loadIngredients();
 
-        // Apply UI config
         this.settingsManager.applyUIConfig();
-
         this.setupEventListeners();
+        this.setupEventDelegation();
         this.updateHomeCounts();
 
-        // Handle initial page from URL or default to home
         const page = window.location.hash.slice(1) || 'home';
         this.navigateTo(page, false);
     }
@@ -185,29 +182,23 @@ class Client {
 
     // Navigation
     navigateTo(page, pushState = true) {
-        // Close dropdowns
-        this.closeAccountDropdown();
-        this.closeMobileMenu();
+        closeDropdown('accountDropdown');
+        closeMobileMenu();
 
-        // Scroll to top immediately
         window.scrollTo(0, 0);
 
-        // Remove active class from all pages
         document.querySelectorAll('.page').forEach(p => {
             p.classList.remove('active');
         });
 
-        // Add active class to target page
         const pageElement = document.getElementById(`${page}Page`);
         if (pageElement) {
             pageElement.classList.add('active');
 
-            // Update URL without reloading
             if (pushState) {
                 history.pushState({ page }, '', `#${page}`);
             }
 
-            // Page-specific initialization
             if (page === 'settings') {
                 this.loadSettingsForm();
             } else if (page === 'ingredients') {
@@ -220,42 +211,38 @@ class Client {
 
     // Account dropdown
     toggleAccountDropdown() {
-        const dropdown = document.getElementById('accountDropdown');
-        dropdown.classList.toggle('show');
+        toggleDropdown('accountDropdown');
     }
 
     closeAccountDropdown() {
-        const dropdown = document.getElementById('accountDropdown');
-        if (dropdown) dropdown.classList.remove('show');
+        closeDropdown('accountDropdown');
     }
 
     // Mobile menu
     toggleMobileMenu() {
-        const mobileMenu = document.getElementById('mobileMenu');
-        mobileMenu.classList.toggle('show');
+        toggleMobileMenu();
     }
 
     closeMobileMenu() {
-        const mobileMenu = document.getElementById('mobileMenu');
-        if (mobileMenu) mobileMenu.classList.remove('show');
+        closeMobileMenu();
     }
 
-    // Setup event listeners
+    // Setup event listeners (non-delegated)
     setupEventListeners() {
-        // Handle browser back/forward
         window.addEventListener('popstate', (event) => {
             const page = event.state?.page || 'home';
             this.navigateTo(page, false);
         });
 
-        // Close dropdowns when clicking outside
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.account-dropdown')) {
                 this.closeAccountDropdown();
             }
+            if (!e.target.closest('.ingredient-search')) {
+                FormRenderer.hideSearchResults();
+            }
         });
 
-        // Recipe search
         const searchInput = document.getElementById('searchInput');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
@@ -263,7 +250,6 @@ class Client {
             });
         }
 
-        // Summary checkbox
         const summaryCheckbox = document.getElementById('summaryCheckbox');
         if (summaryCheckbox) {
             summaryCheckbox.addEventListener('change', () => {
@@ -273,7 +259,6 @@ class Client {
             });
         }
 
-        // Settings form
         const settingsForm = document.getElementById('settingsForm');
         if (settingsForm) {
             settingsForm.addEventListener('submit', (e) => this.applySettings(e));
@@ -291,7 +276,6 @@ class Client {
             kidneyRiskSelect.addEventListener('change', () => this.updateKidneyRiskInfo());
         }
 
-        // Ingredient search
         const ingredientSearchInput = document.getElementById('ingredientSearchInput');
         if (ingredientSearchInput) {
             ingredientSearchInput.addEventListener('input', (e) => {
@@ -299,22 +283,13 @@ class Client {
             });
         }
 
-        // Recipe editor ingredient search
         const ingredientSearchBox = document.getElementById('ingredientSearchBox');
         if (ingredientSearchBox) {
             ingredientSearchBox.addEventListener('input', (e) => {
                 this.handleIngredientSearch(e.target.value);
             });
-
-            // Close search results when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.ingredient-search')) {
-                    this.hideIngredientSearchResults();
-                }
-            });
         }
 
-        // Escape key handler for closing edit panels
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 const recipePanel = document.getElementById('recipeEditPanel');
@@ -329,58 +304,65 @@ class Client {
         });
     }
 
-    // Render recipe list with calories and oxalates
-    renderRecipeList(recipesToShow) {
-        const listElement = document.getElementById('recipeList');
-        if (!listElement) return;
-
-        listElement.innerHTML = '';
-
-        if (recipesToShow.length === 0) {
-            listElement.innerHTML = '<li class="no-results">No recipes found</li>';
-            return;
+    // Setup event delegation for dynamically created content
+    setupEventDelegation() {
+        // Recipe details section
+        const recipeDetails = document.getElementById('recipeDetailsContent');
+        if (recipeDetails) {
+            setupEventDelegation(recipeDetails, {
+                'toggle-nutrient-view': () => this.toggleNutrientView(),
+                'prev-nutrient-page': () => this.prevNutrientPage(),
+                'next-nutrient-page': () => this.nextNutrientPage()
+            });
         }
 
-        recipesToShow.forEach(recipe => {
-            const li = document.createElement('li');
-            li.className = 'recipe-item';
-            li.dataset.recipeId = recipe.id;
-            li.textContent = recipe.name;
-
-            // Add click handler
-            li.addEventListener('click', () => {
-                this.selectRecipe(recipe.id);
-                this.showRecipeDetails(recipe.id);
+        // Ingredient rows in recipe editor - only handle remove button
+        const ingredientRows = document.getElementById('ingredientRows');
+        if (ingredientRows) {
+            setupEventDelegation(ingredientRows, {
+                'remove-ingredient': (target) => {
+                    const index = parseInt(target.dataset.index);
+                    this.recipeManager.removeIngredientFromRecipe(index);
+                }
             });
+        }
 
-            listElement.appendChild(li);
+        // Ingredient search results
+        const searchResults = document.getElementById('ingredientSearchResults');
+        if (searchResults) {
+            setupEventDelegation(searchResults, {
+                'add-ingredient-to-recipe': (target) => {
+                    this.addIngredientToRecipe({
+                        id: target.dataset.ingredientId,
+                        name: target.dataset.ingredientName
+                    });
+                }
+            });
+        }
+    }
 
-            // Fetch summary data to show calories and oxalates (async)
+    // Render recipe list
+    renderRecipeList(recipesToShow) {
+        RecipeRenderer.renderList(recipesToShow, (recipeId) => {
+            this.selectRecipe(recipeId);
+            this.showRecipeDetails(recipeId);
+        });
+
+        // Load summaries asynchronously
+        recipesToShow.forEach(recipe => {
             this.fetchRecipeSummary(recipe.id).then(data => {
                 if (data) {
-                    const calories = data.totals.calories || 0;
-                    const caloriesPercent = ((calories / this.userSettings.caloriesPerDay) * 100).toFixed(0);
-                    const oxalates = data.oxalateMg || 0;
-                    const oxalateRisk = this.recipeManager.calculateOxalateRisk(oxalates);
-
-                    li.innerHTML = `
-                        <span class="recipe-name">${recipe.name}</span>
-                        <span class="recipe-meta">
-                            <span class="recipe-calories">${calories.toFixed(0)} cal (${caloriesPercent}%)</span>
-                            <span class="recipe-oxalates" style="color: ${oxalateRisk.color}">${oxalates.toFixed(1)}mg ox</span>
-                        </span>
-                    `;
-
-                    // Re-select if this is the selected recipe
-                    if (recipe.id === this.selectedRecipeId) {
-                        li.classList.add('selected');
-                    }
+                    RecipeRenderer.updateRecipeItemWithSummary(
+                        recipe.id,
+                        data,
+                        (ox) => this.recipeManager.calculateOxalateRisk(ox)
+                    );
                 }
             });
         });
     }
 
-    // Fetch recipe summary for list display
+    // Fetch recipe summary
     async fetchRecipeSummary(recipeId) {
         try {
             return await this.recipeManager.getRecipe(recipeId, true);
@@ -390,300 +372,43 @@ class Client {
         }
     }
 
-    // Filter recipes based on search
+    // Filter recipes
     filterRecipes(searchTerm) {
         const filtered = this.recipeManager.filterRecipes(searchTerm);
         this.renderRecipeList(filtered);
     }
 
-    // Select a recipe
+    // Select recipe
     selectRecipe(recipeId) {
-        document.querySelectorAll('.recipe-item').forEach(item => {
-            item.classList.remove('selected');
-        });
-
-        const selectedItem = document.querySelector(`[data-recipe-id="${recipeId}"]`);
-        if (selectedItem) {
-            selectedItem.classList.add('selected');
-        }
-
+        RecipeRenderer.markAsSelected(recipeId);
         this.recipeManager.selectRecipe(recipeId);
-
-        // Enable/disable edit and delete buttons
-        const editBtn = document.getElementById('editRecipeBtn');
-        const deleteBtn = document.getElementById('deleteRecipeBtn');
-        if (editBtn) editBtn.disabled = false;
-        if (deleteBtn) deleteBtn.disabled = false;
+        setButtonsDisabled(['editRecipeBtn', 'deleteRecipeBtn'], false);
     }
 
-    // Show recipe details with % daily values
+    // Show recipe details
     async showRecipeDetails(recipeId) {
         const summaryCheckbox = document.getElementById('summaryCheckbox');
         const summary = summaryCheckbox ? !summaryCheckbox.checked : true;
 
         try {
             const data = await this.recipeManager.getRecipe(recipeId, summary);
-            this.renderRecipeDetails(data);
+            RecipeRenderer.renderDetails(data, {
+                dailyRequirements: this.dailyRequirements,
+                userSettings: this.userSettings,
+                showAllNutrients: this.showAllNutrients,
+                currentNutrientPage: this.currentNutrientPage,
+                calculateOxalateRisk: (ox) => this.recipeManager.calculateOxalateRisk(ox),
+                calculateContributions: (d) => this.recipeManager.calculateContributions(d),
+                INGREDIENT_PROPS: Client.INGREDIENT_PROPS,
+                NUTRIENTS_PER_PAGE: this.NUTRIENTS_PER_PAGE
+            });
         } catch (error) {
             console.error('Error loading recipe details:', error);
-            this.showError('Failed to load recipe details');
+            RecipeRenderer.showError('Failed to load recipe details');
         }
     }
 
-    // Render recipe details with % daily values
-    renderRecipeDetails(data) {
-        const section = document.getElementById('recipeDetailsSection');
-        const title = document.getElementById('recipeDetailsTitle');
-        const content = document.getElementById('recipeDetailsContent');
-
-        if (!section || !title || !content) return;
-
-        title.textContent = `Recipe: ${data.name}`;
-
-        let html = '<div class="details-content">';
-
-        // Ingredient Contributions
-        if (data.ingredients && data.ingredients.length > 0) {
-            html += this.renderIngredientContributions(data);
-        }
-
-        // Nutritional Totals with % daily values
-        html += '<div class="details-section">';
-        html += '<h3>Nutritional Totals</h3>';
-        html += '<div><i>Nutrient Amount (% of Daily Requirement)</i></div>';
-        html += '<table class="nutrition-table">';
-
-        for (const [key, value] of Object.entries(data.totals)) {
-            if (value === 0 && key !== 'oxalates') continue;
-
-            let formattedValue = typeof value === 'number' ? value.toFixed(2) : value;
-            let percentDaily = '';
-
-            if (key === 'calories') {
-                const percent = ((value / this.userSettings.caloriesPerDay) * 100).toFixed(1);
-                percentDaily = ` (${percent}%)`;
-            } else if (this.dailyRequirements[key]) {
-                const req = this.dailyRequirements[key];
-                let dailyValue = null;
-
-                if (req.recommended) {
-                    dailyValue = parseFloat(req.recommended);
-                } else if (req.maximum) {
-                    dailyValue = parseFloat(req.maximum);
-                }
-
-                if (dailyValue) {
-                    const percent = ((value / dailyValue) * 100).toFixed(1);
-                    percentDaily = ` (${percent}%)`;
-                }
-            }
-            if (key != 'calories') {
-                const unit = Client.INGREDIENT_PROPS[key]?.unit;
-                if (unit) {
-                    formattedValue = `${formattedValue} ${unit}`;
-                }
-            }
-
-            html += `<tr><td class="nutrient-name">${key}</td><td class="nutrient-value">${formattedValue}${percentDaily}</td></tr>`;
-        }
-        html += '</table>';
-        html += '</div>';
-
-        // Dietary Assessment with oxalate warning
-        const oxalateRisk = this.recipeManager.calculateOxalateRisk(data.oxalateMg);
-
-        html += '<div class="details-section">';
-        html += '<h3>Dietary Assessment</h3>';
-        html += `<p><strong>DASH Adherence:</strong> ${data.dashAdherence}</p>`;
-        html += `<p><strong>Reasons:</strong> ${data.dashReasons}</p>`;
-        html += `<p><strong>Oxalate Level:</strong> <span style="color: ${oxalateRisk.color}; font-weight: bold;">${data.oxalateLevel}</span> (${data.oxalateMg.toFixed(2)} mg)</p>`;
-
-        if (oxalateRisk.message) {
-            html += `<div class="oxalate-warning" style="border-left-color: ${oxalateRisk.color};">${oxalateRisk.message}</div>`;
-        }
-        html += '</div>';
-
-        // Ingredient Details
-        if (data.ingredients) {
-            html += '<div class="details-section">';
-            html += '<h3>Ingredient Details</h3>';
-            for (const ingredient of data.ingredients) {
-                html += `<div class="ingredient-detail">`;
-                html += `<h4>${ingredient.name} (${ingredient.amount.toFixed(1)}g)</h4>`;
-                html += '<table class="nutrition-table">';
-                for (const [key, value] of Object.entries(ingredient.nutritionScaled)) {
-                    if (value === 0 && key !== 'oxalates') continue;
-
-                    const formattedValue = typeof value === 'number' ? value.toFixed(2) : value;
-                    html += `<tr><td class="nutrient-name">${key}</td><td class="nutrient-value">${formattedValue}</td></tr>`;
-                }
-                html += '</table>';
-                html += '</div>';
-            }
-            html += '</div>';
-        }
-
-        html += '</div>';
-        content.innerHTML = html;
-        section.style.display = 'block';
-    }
-
-    // Render ingredient contributions table
-    renderIngredientContributions(data) {
-        let html = '<div class="details-section contribution-section">';
-        html += '<div class="contribution-header">';
-        html += '<h3>Ingredient Contribution</h3>';
-        html += '<button class="btn btn-secondary btn-small" onclick="window._client.toggleNutrientView()">';
-        html += this.showAllNutrients ? 'Show Key Nutrients' : 'Show All Nutrients';
-        html += '</button>';
-        html += '</div>';
-
-        const contributions = this.recipeManager.calculateContributions(data);
-
-        if (this.showAllNutrients) {
-            html += this.renderAllNutrientsTable(contributions, data);
-        } else {
-            html += this.renderKeyNutrientsTable(contributions, data);
-        }
-
-        html += '</div>';
-        return html;
-    }
-
-    // Render key nutrients table
-    renderKeyNutrientsTable(contributions, data) {
-        let html = '<table class="contribution-table">';
-        html += '<thead><tr>';
-        html += '<th>Ingredient</th>';
-        html += '<th>Amount</th>';
-        html += '<th>Calories</th>';
-        html += '<th>Sodium</th>';
-        html += '<th>Oxalates</th>';
-        html += '</tr></thead>';
-        html += '<tbody>';
-
-        data.ingredients.forEach(ingredient => {
-            const contrib = contributions[ingredient.name];
-            html += '<tr>';
-            html += `<td class="ing-name">${ingredient.name}</td>`;
-            html += `<td class="ing-amount">${ingredient.amount.toFixed(1)}g</td>`;
-
-            const cal = contrib.nutrients.calories || { value: 0, percent: 0 };
-            html += `<td>${cal.value.toFixed(0)} (${cal.percent.toFixed(0)}%)</td>`;
-
-            const sodium = contrib.nutrients.sodium || { value: 0, percent: 0 };
-            html += `<td>${sodium.value.toFixed(1)}mg (${sodium.percent.toFixed(0)}%)</td>`;
-
-            const ox = contrib.nutrients.oxalates || { value: 0, percent: 0 };
-            html += `<td>${ox.value.toFixed(2)}mg (${ox.percent.toFixed(0)}%)</td>`;
-
-            html += '</tr>';
-        });
-
-        html += '<tr class="totals-row">';
-        html += '<td colspan="2"><strong>Total:</strong></td>';
-        let totalCalories = Math.round(data.totals.calories || 0);
-        const calReq = parseFloat(this.dailyRequirements['calories']?.recommended);
-        if (!isNaN(calReq)) {
-            totalCalories = (isNaN(calReq) ? totalCalories : `${totalCalories} (${Math.round((totalCalories / calReq) * 100)}%)`);
-        }
-        let totalSodium = Math.round(data.totals.sodium || 0);
-        const sodReq = parseFloat(this.dailyRequirements['sodium']?.recommended);
-        totalSodium = (isNaN(sodReq) ? `${totalSodium} mg` : `${totalSodium} (${Math.round((totalSodium / sodReq) * 100)}%)`);
-        const oxMax = parseFloat(this.dailyRequirements['oxalates']?.maximum);
-        let totalOxalates = Math.round(data.oxalateMg || 0);
-        totalOxalates = (isNaN(oxMax) ? `${totalOxalates} mg` : `${totalOxalates} mg (${Math.round((totalOxalates / oxMax) * 100)}%)`);
-        html += `<td><strong>${totalCalories}</strong></td>`;
-        html += `<td><strong>${totalSodium}</strong></td>`;
-        html += `<td><strong>${totalOxalates}</strong></td>`;
-        html += '</tr>';
-
-        html += '</tbody></table>';
-        return html;
-    }
-
-    // Render all nutrients table with pagination
-    renderAllNutrientsTable(contributions, data) {
-        const allNutrients = new Set();
-        Object.values(contributions).forEach(contrib => {
-            Object.keys(contrib.nutrients).forEach(nutrient => {
-                allNutrients.add(nutrient);
-            });
-        });
-
-        const activeNutrients = Array.from(allNutrients).filter(nutrient => {
-            return Object.values(contributions).some(contrib => {
-                const val = contrib.nutrients[nutrient];
-                return val && val.value > 0;
-            });
-        });
-
-        const startIdx = this.currentNutrientPage * this.NUTRIENTS_PER_PAGE;
-        const endIdx = Math.min(startIdx + this.NUTRIENTS_PER_PAGE, activeNutrients.length);
-        const pageNutrients = activeNutrients.slice(startIdx, endIdx);
-        const totalPages = Math.ceil(activeNutrients.length / this.NUTRIENTS_PER_PAGE);
-
-        let html = '';
-
-        if (totalPages > 1) {
-            html += '<div class="pagination-controls">';
-            html += `<button class="btn btn-secondary btn-small" onclick="window._client.prevNutrientPage()" ${this.currentNutrientPage === 0 ? 'disabled' : ''}>← Prev</button>`;
-            html += `<span class="page-info">Page ${this.currentNutrientPage + 1} of ${totalPages}</span>`;
-            html += `<button class="btn btn-secondary btn-small" onclick="window._client.nextNutrientPage()" ${this.currentNutrientPage >= totalPages - 1 ? 'disabled' : ''}>Next →</button>`;
-            html += '</div>';
-        }
-
-        html += '<div class="table-scroll">';
-        html += '<table class="contribution-table">';
-        html += '<thead><tr>';
-        html += '<th>Ingredient</th>';
-        html += '<th>Amount</th>';
-
-        pageNutrients.forEach(nutrient => {
-            html += `<th>${nutrient.replace(/_/g, ' ')}</th>`;
-        });
-
-        html += '</tr></thead>';
-        html += '<tbody>';
-
-        data.ingredients.forEach(ingredient => {
-            const contrib = contributions[ingredient.name];
-            html += '<tr>';
-            html += `<td class="ing-name">${ingredient.name}</td>`;
-            html += `<td class="ing-amount">${ingredient.amount.toFixed(1)}g</td>`;
-
-            pageNutrients.forEach(nutrient => {
-                const n = contrib.nutrients[nutrient] || { value: 0, percent: 0 };
-                if (nutrient === 'calories') {
-                    html += `<td>${n.value.toFixed(0)} (${n.percent.toFixed(0)}%)</td>`;
-                } else {
-                    html += `<td>${n.value.toFixed(1)} (${n.percent.toFixed(0)}%)</td>`;
-                }
-            });
-
-            html += '</tr>';
-        });
-
-        html += '<tr class="totals-row">';
-        html += '<td colspan="2"><strong>Total:</strong></td>';
-
-        pageNutrients.forEach(nutrient => {
-            const total = data.totals[nutrient] || 0;
-            if (nutrient === 'calories') {
-                html += `<td><strong>${total.toFixed(0)}</strong></td>`;
-            } else {
-                html += `<td><strong>${total.toFixed(1)}</strong></td>`;
-            }
-        });
-
-        html += '</tr>';
-        html += '</tbody></table>';
-        html += '</div>';
-
-        return html;
-    }
-
-    // Navigation functions
+    // Nutrient view navigation
     toggleNutrientView() {
         this.recipeManager.toggleNutrientView();
         if (this.selectedRecipeId) {
@@ -705,7 +430,7 @@ class Client {
         }
     }
 
-    // Settings page functions
+    // Settings
     loadSettingsForm() {
         const caloriesPerDayInput = document.getElementById('caloriesPerDayInput');
         const useAgeCheckbox = document.getElementById('useAgeCheckbox');
@@ -756,135 +481,41 @@ class Client {
         this.navigateTo('home');
     }
 
-    // Ingredients page functions
+    // Ingredients
     filterIngredients(searchTerm) {
         const filtered = this.ingredientManager.filterIngredients(searchTerm);
         this.renderIngredientList(filtered);
     }
 
     renderIngredientList(ingredientsToShow) {
-        const listElement = document.getElementById('ingredientList');
-        if (!listElement) return;
-
-        listElement.innerHTML = '';
-
-        if (ingredientsToShow.length === 0) {
-            listElement.innerHTML = '<li class="no-results">No ingredients found</li>';
-            return;
-        }
-
-        ingredientsToShow.forEach(ingredient => {
-            const li = document.createElement('li');
-            li.className = 'ingredient-item';
-            li.innerHTML = `
-                <span class="ingredient-name">${ingredient.name}</span>
-                <span class="ingredient-compact">${ingredient.compact.display}</span>
-            `;
-
-            li.addEventListener('click', () => {
-                this.selectIngredient(ingredient.id);
-                this.showIngredientDetails(ingredient.id);
-            });
-
-            listElement.appendChild(li);
+        IngredientRenderer.renderList(ingredientsToShow, (ingredientId) => {
+            this.selectIngredient(ingredientId);
+            this.showIngredientDetails(ingredientId);
         });
     }
 
     selectIngredient(ingredientId) {
-        document.querySelectorAll('.ingredient-item').forEach(item => {
-            item.classList.remove('selected');
-        });
-
-        const selectedItem = document.querySelector(`.ingredient-item:nth-child(${this.ingredients.findIndex(i => i.id === ingredientId) + 1})`);
-        if (selectedItem) {
-            selectedItem.classList.add('selected');
-        }
-
+        IngredientRenderer.markAsSelected(ingredientId, this.ingredients);
         this.ingredientManager.selectIngredient(ingredientId);
-
-        const editBtn = document.getElementById('editIngredientBtn');
-        const deleteBtn = document.getElementById('deleteIngredientBtn');
-        if (editBtn) editBtn.disabled = false;
-        if (deleteBtn) deleteBtn.disabled = false;
+        setButtonsDisabled(['editIngredientBtn', 'deleteIngredientBtn'], false);
     }
 
     async showIngredientDetails(brandId) {
         try {
             const data = await this.ingredientManager.getIngredient(brandId);
-            this.renderIngredientDetails(data);
+            IngredientRenderer.renderDetails(data);
         } catch (error) {
             console.error('Error loading ingredient details:', error);
         }
     }
 
-    renderIngredientDetails(data) {
-        const section = document.getElementById('ingredientDetailsSection');
-        const title = document.getElementById('ingredientDetailsTitle');
-        const content = document.getElementById('ingredientDetailsContent');
-
-        if (!section || !title || !content) return;
-
-        title.textContent = data.name;
-
-        let html = '<div class="details-content">';
-
-        html += '<div class="details-section">';
-        html += `<p><strong>Serving Size:</strong> ${data.serving} (${data.gramsPerServing.toFixed(1)}g)</p>`;
-        if (data.density) {
-            html += `<p><strong>Density:</strong> ${data.density} g/ml</p>`;
-        }
-        html += '</div>';
-
-        html += '<div class="details-section">';
-        html += '<h3>Nutritional Information (per serving)</h3>';
-        html += '<table class="nutrition-table">';
-
-        for (const [key, value] of Object.entries(data.data)) {
-            if (value === null || value === undefined) continue;
-
-            let displayValue = value;
-            if (key === 'calories') {
-                displayValue = value;
-            } else if (typeof value === 'string') {
-                displayValue = value;
-            } else {
-                displayValue = `${value} mg`;
-            }
-
-            html += `<tr><td class="nutrient-name">${key.replace(/_/g, ' ')}</td><td class="nutrient-value">${displayValue}</td></tr>`;
-        }
-
-        html += `<tr><td class="nutrient-name">oxalate (per gram)</td><td class="nutrient-value">${data.oxalatePerGram.toFixed(3)} mg/g</td></tr>`;
-        html += `<tr><td class="nutrient-name">oxalate (per serving)</td><td class="nutrient-value">${data.oxalatePerServing.toFixed(2)} mg</td></tr>`;
-        html += '</table>';
-        html += '</div>';
-
-        html += '</div>';
-        content.innerHTML = html;
-        section.style.display = 'block';
-    }
-
-    // Error display
-    showError(message) {
-        const content = document.getElementById('recipeDetailsContent');
-        if (content) {
-            content.innerHTML = `<div class="error-message">${message}</div>`;
-            const section = document.getElementById('recipeDetailsSection');
-            if (section) section.style.display = 'block';
-        }
-    }
-
-    // ===== RECIPE EDITOR FUNCTIONS =====
-
+    // Recipe editor
     createRecipe() {
         this.recipeManager.startEdit(null);
-
-        document.getElementById('editPanelTitle').textContent = 'Create New Recipe';
-        document.getElementById('recipeNameInput').value = '';
-        document.getElementById('ingredientSearchBox').value = '';
-
-        this.renderSelectedIngredients();
-        this.openRecipeEditor();
+        FormRenderer.setRecipeEditorTitle('Create New Recipe');
+        FormRenderer.clearRecipeForm();
+        FormRenderer.renderSelectedIngredients([]);
+        FormRenderer.openRecipeEditor();
     }
 
     async editRecipe() {
@@ -895,7 +526,7 @@ class Client {
         try {
             const recipe = await this.recipeManager.getRecipeFull(this.selectedRecipeId);
 
-            document.getElementById('editPanelTitle').textContent = 'Edit Recipe';
+            FormRenderer.setRecipeEditorTitle('Edit Recipe');
             document.getElementById('recipeNameInput').value = recipe.name;
             document.getElementById('ingredientSearchBox').value = '';
 
@@ -907,9 +538,7 @@ class Client {
             }));
 
             State.set('selectedIngredientsForRecipe', ingredients);
-
-            this.renderSelectedIngredients();
-            this.openRecipeEditor();
+            FormRenderer.openRecipeEditor();
         } catch (error) {
             console.error('Error loading recipe for editing:', error);
             alert('Failed to load recipe details');
@@ -931,9 +560,8 @@ class Client {
             this.renderRecipeList(this.recipes);
 
             this.recipeManager.deselectRecipe();
-            document.getElementById('editRecipeBtn').disabled = true;
-            document.getElementById('deleteRecipeBtn').disabled = true;
-            document.getElementById('recipeDetailsSection').style.display = 'none';
+            setButtonsDisabled(['editRecipeBtn', 'deleteRecipeBtn'], true);
+            hideElement('recipeDetailsSection');
 
             alert('Recipe deleted successfully');
         } catch (error) {
@@ -942,48 +570,28 @@ class Client {
         }
     }
 
-    openRecipeEditor() {
-        const panel = document.getElementById('recipeEditPanel');
-        if (panel) {
-            panel.classList.add('active');
-        }
-    }
-
     closeRecipeEditor() {
-        const panel = document.getElementById('recipeEditPanel');
-        if (panel) {
-            panel.classList.remove('active');
-        }
-
+        FormRenderer.closeRecipeEditor();
         this.recipeManager.cancelEdit();
-        document.getElementById('recipeNameInput').value = '';
-        document.getElementById('ingredientSearchBox').value = '';
-        this.hideIngredientSearchResults();
-        this.clearErrors();
+        FormRenderer.clearRecipeForm();
+        FormRenderer.hideSearchResults();
+        FormRenderer.clearErrors();
     }
 
     async saveRecipe(event) {
         event.preventDefault();
 
         const recipeName = document.getElementById('recipeNameInput').value.trim();
-        if (!recipeName) {
-            this.showErrorMessage('recipeNameError', 'Recipe name is required');
+        const validation = validateRecipe(recipeName, this.selectedIngredientsForRecipe);
+
+        if (!validation.valid) {
+            validation.errors.forEach(error => {
+                FormRenderer.showError(error.field, error.message);
+            });
             return;
         }
 
-        if (this.selectedIngredientsForRecipe.length === 0) {
-            this.showErrorMessage('ingredientsError', 'At least one ingredient is required');
-            return;
-        }
-
-        for (const ing of this.selectedIngredientsForRecipe) {
-            if (!ing.amount || ing.amount <= 0) {
-                this.showErrorMessage('ingredientsError', 'All ingredients must have valid amounts');
-                return;
-            }
-        }
-
-        this.clearErrors();
+        FormRenderer.clearErrors();
 
         const payload = {
             name: recipeName,
@@ -1014,7 +622,7 @@ class Client {
             this.closeRecipeEditor();
         } catch (error) {
             console.error('Error saving recipe:', error);
-            this.showErrorMessage('ingredientsError', error.message || 'Failed to save recipe');
+            FormRenderer.showError('ingredientsError', error.message || 'Failed to save recipe');
         }
     }
 
@@ -1023,7 +631,7 @@ class Client {
         clearTimeout(this.ingredientSearchTimeout);
 
         if (!searchTerm || searchTerm.trim().length < 2) {
-            this.hideIngredientSearchResults();
+            FormRenderer.hideSearchResults();
             return;
         }
 
@@ -1035,169 +643,32 @@ class Client {
     async performIngredientSearch(searchTerm) {
         try {
             const results = await this.ingredientManager.searchIngredients(searchTerm);
-            this.displayIngredientSearchResults(results);
+            FormRenderer.renderSearchResults(
+                results,
+                this.selectedIngredientsForRecipe,
+                (ingredient) => this.addIngredientToRecipe(ingredient)
+            );
         } catch (error) {
             console.error('Error searching ingredients:', error);
         }
     }
 
-    displayIngredientSearchResults(results) {
-        const resultsContainer = document.getElementById('ingredientSearchResults');
-        if (!resultsContainer) return;
-
-        if (results.length === 0) {
-            resultsContainer.innerHTML = '<div class="search-result-item">No ingredients found</div>';
-            resultsContainer.classList.add('show');
-            return;
-        }
-
-        resultsContainer.innerHTML = '';
-
-        results.forEach(ingredient => {
-            const alreadyAdded = this.selectedIngredientsForRecipe.some(ing => ing.brandId === ingredient.id);
-
-            const item = document.createElement('div');
-            item.className = 'search-result-item';
-            if (alreadyAdded) item.classList.add('selected');
-            item.textContent = ingredient.name;
-
-            if (!alreadyAdded) {
-                item.style.cursor = 'pointer';
-                item.addEventListener('click', () => {
-                    this.addIngredientToRecipe(ingredient);
-                });
-            } else {
-                item.style.opacity = '0.5';
-                item.style.cursor = 'not-allowed';
-                item.title = 'Already added';
-            }
-
-            resultsContainer.appendChild(item);
-        });
-
-        resultsContainer.classList.add('show');
-    }
-
-    hideIngredientSearchResults() {
-        const resultsContainer = document.getElementById('ingredientSearchResults');
-        if (resultsContainer) {
-            resultsContainer.classList.remove('show');
-        }
-    }
-
     addIngredientToRecipe(ingredient) {
         const added = this.recipeManager.addIngredientToRecipe(ingredient);
-        
+
         if (added) {
-            this.renderSelectedIngredients();
-            this.hideIngredientSearchResults();
+            FormRenderer.hideSearchResults();
             document.getElementById('ingredientSearchBox').value = '';
         }
     }
 
-    removeIngredientFromRecipe(index) {
-        this.recipeManager.removeIngredientFromRecipe(index);
-        this.renderSelectedIngredients();
-    }
-
-    updateIngredientAmount(index, amount) {
-        this.recipeManager.updateIngredientAmount(index, amount);
-    }
-
-    updateIngredientUnit(index, unit) {
-        this.recipeManager.updateIngredientUnit(index, unit);
-    }
-
-    renderSelectedIngredients() {
-        const container = document.getElementById('ingredientRows');
-        if (!container) return;
-
-        if (this.selectedIngredientsForRecipe.length === 0) {
-            container.innerHTML = '<div class="no-ingredients-message">No ingredients added yet</div>';
-            return;
-        }
-
-        container.innerHTML = '';
-
-        this.selectedIngredientsForRecipe.forEach((ingredient, index) => {
-            const row = document.createElement('div');
-            row.className = 'ingredient-row';
-
-            row.innerHTML = `
-                <span class="ingredient-name" title="${ingredient.name}">${ingredient.name}</span>
-                <input 
-                    type="number" 
-                    class="amount-input" 
-                    value="${ingredient.amount}" 
-                    min="0.01" 
-                    step="0.01"
-                    onchange="window._client.updateIngredientAmount(${index}, this.value)"
-                >
-                <select 
-                    class="unit-select"
-                    onchange="window._client.updateIngredientUnit(${index}, this.value)"
-                >
-                    <option value="g" ${ingredient.unit === 'g' ? 'selected' : ''}>g</option>
-                    <option value="ml" ${ingredient.unit === 'ml' ? 'selected' : ''}>ml</option>
-                    <option value="mg" ${ingredient.unit === 'mg' ? 'selected' : ''}>mg</option>
-                    <option value="mcg" ${ingredient.unit === 'mcg' ? 'selected' : ''}>mcg</option>
-                </select>
-                <button 
-                    type="button"
-                    class="remove-btn" 
-                    onclick="window._client.removeIngredientFromRecipe(${index})"
-                    title="Remove ingredient"
-                >&times;</button>
-            `;
-
-            container.appendChild(row);
-        });
-    }
-
-    showErrorMessage(elementId, message) {
-        const errorEl = document.getElementById(elementId);
-        if (errorEl) {
-            errorEl.textContent = message;
-            errorEl.classList.add('show');
-        }
-    }
-
-    clearErrors() {
-        document.querySelectorAll('.error-text').forEach(el => {
-            el.textContent = '';
-            el.classList.remove('show');
-        });
-    }
-
-    // ===== INGREDIENT EDITOR FUNCTIONS =====
-
+    // Ingredient editor
     createIngredient() {
         this.ingredientManager.startEdit(null);
-
-        document.getElementById('ingredientEditPanelTitle').textContent = 'Create New Ingredient';
-
-        const fieldIds = [
-            'ingredientNameInput', 'servingSizeInput', 'densityInput', 'oxalateInput',
-            'caloriesInput', 'sodiumInput', 'cholesterolInput', 'sugarsInput',
-            'proteinInput', 'dietaryFiberInput', 'carbohydratesInput', 'calciumInput',
-            'potassiumInput', 'magnesiumInput', 'seleniumInput', 'manganeseInput',
-            'zincInput', 'ironInput', 'fatInput', 'saturatedFatInput',
-            'polysaturatedFatInput', 'monosaturatedFatInput', 'thiaminInput',
-            'riboflavinInput', 'niacinInput', 'folicAcidInput', 'phosphorusInput',
-            'vitaminAInput', 'vitaminB6Input', 'vitaminCInput', 'vitaminDInput',
-            'vitaminEInput', 'vitaminKInput'
-        ];
-
-        fieldIds.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
-        });
-
-        const servingUnitSelect = document.getElementById('servingUnitSelect');
-        if (servingUnitSelect) servingUnitSelect.value = 'g';
-
-        this.clearErrors();
-        this.openIngredientEditor();
+        FormRenderer.setIngredientEditorTitle('Create New Ingredient');
+        FormRenderer.clearIngredientForm();
+        FormRenderer.clearErrors();
+        FormRenderer.openIngredientEditor();
     }
 
     async editIngredient() {
@@ -1207,55 +678,10 @@ class Client {
 
         try {
             const ingredient = await this.ingredientManager.getIngredientFull(this.selectedIngredientId);
-
-            document.getElementById('ingredientEditPanelTitle').textContent = 'Edit Ingredient';
-            document.getElementById('ingredientNameInput').value = ingredient.name;
-            document.getElementById('servingSizeInput').value = ingredient.serving;
-            document.getElementById('servingUnitSelect').value = ingredient.servingUnit;
-            document.getElementById('densityInput').value = ingredient.density || '';
-            document.getElementById('oxalateInput').value = ingredient.oxalatePerGram || '';
-
-            const fieldMapping = {
-                caloriesInput: 'calories',
-                sodiumInput: 'sodium',
-                cholesterolInput: 'cholesterol',
-                sugarsInput: 'sugars',
-                proteinInput: 'protein',
-                dietaryFiberInput: 'dietary_fiber',
-                carbohydratesInput: 'carbohydrates',
-                calciumInput: 'calcium',
-                potassiumInput: 'potassium',
-                magnesiumInput: 'magnesium',
-                seleniumInput: 'selenium',
-                manganeseInput: 'manganese',
-                zincInput: 'zinc',
-                ironInput: 'iron',
-                fatInput: 'fat',
-                saturatedFatInput: 'saturated_fat',
-                polysaturatedFatInput: 'polysaturated_fat',
-                monosaturatedFatInput: 'monosaturated_fat',
-                thiaminInput: 'thiamin',
-                riboflavinInput: 'riboflavin',
-                niacinInput: 'niacin',
-                folicAcidInput: 'folic_acid',
-                phosphorusInput: 'phosphorus',
-                vitaminAInput: 'vitamin_a',
-                vitaminB6Input: 'vitamin_b6',
-                vitaminCInput: 'vitamin_c',
-                vitaminDInput: 'vitamin_d',
-                vitaminEInput: 'vitamin_e',
-                vitaminKInput: 'vitamin_k'
-            };
-
-            for (const [inputId, dataKey] of Object.entries(fieldMapping)) {
-                const el = document.getElementById(inputId);
-                if (el) {
-                    el.value = ingredient.data[dataKey] || '';
-                }
-            }
-
-            this.clearErrors();
-            this.openIngredientEditor();
+            FormRenderer.setIngredientEditorTitle('Edit Ingredient');
+            FormRenderer.populateIngredientForm(ingredient);
+            FormRenderer.clearErrors();
+            FormRenderer.openIngredientEditor();
         } catch (error) {
             console.error('Error loading ingredient for editing:', error);
             alert('Failed to load ingredient details');
@@ -1277,9 +703,8 @@ class Client {
             this.renderIngredientList(this.ingredients);
 
             this.ingredientManager.deselectIngredient();
-            document.getElementById('editIngredientBtn').disabled = true;
-            document.getElementById('deleteIngredientBtn').disabled = true;
-            document.getElementById('ingredientDetailsSection').style.display = 'none';
+            setButtonsDisabled(['editIngredientBtn', 'deleteIngredientBtn'], true);
+            hideElement('ingredientDetailsSection');
 
             alert('Ingredient deleted successfully');
         } catch (error) {
@@ -1288,21 +713,10 @@ class Client {
         }
     }
 
-    openIngredientEditor() {
-        const panel = document.getElementById('ingredientEditPanel');
-        if (panel) {
-            panel.classList.add('active');
-        }
-    }
-
     closeIngredientEditor() {
-        const panel = document.getElementById('ingredientEditPanel');
-        if (panel) {
-            panel.classList.remove('active');
-        }
-
+        FormRenderer.closeIngredientEditor();
         this.ingredientManager.cancelEdit();
-        this.clearErrors();
+        FormRenderer.clearErrors();
     }
 
     async saveIngredient(event) {
@@ -1314,17 +728,16 @@ class Client {
         const density = parseFloat(document.getElementById('densityInput').value) || null;
         const oxalatePerGram = parseFloat(document.getElementById('oxalateInput').value) || 0;
 
-        if (!name) {
-            this.showErrorMessage('ingredientNameError', 'Ingredient name is required');
+        const validation = validateIngredient(name, serving);
+
+        if (!validation.valid) {
+            validation.errors.forEach(error => {
+                FormRenderer.showError(error.field, error.message);
+            });
             return;
         }
 
-        if (!serving || serving <= 0) {
-            this.showErrorMessage('ingredientNameError', 'Valid serving size is required');
-            return;
-        }
-
-        this.clearErrors();
+        FormRenderer.clearErrors();
 
         const data = {};
 
@@ -1338,9 +751,9 @@ class Client {
                 if (!isNaN(numValue)) {
                     const unit = Client.INGREDIENT_PROPS[field]?.unit;
                     if (!unit) {
-                        this.showErrorMessage('ingredientNameError', `No standard unit found for ${field}`);
+                        FormRenderer.showError('ingredientNameError', `No standard unit found for ${field}`);
                     }
-                    data[field] = (unit == "none" ? numValue : `${numValue} ${unit}`);
+                    data[field] = (unit === "none" ? numValue : `${numValue} ${unit}`);
                 }
             }
         };
@@ -1404,7 +817,7 @@ class Client {
             this.closeIngredientEditor();
         } catch (error) {
             console.error('Error saving ingredient:', error);
-            this.showErrorMessage('ingredientNameError', error.message || 'Failed to save ingredient');
+            FormRenderer.showError('ingredientNameError', error.message || 'Failed to save ingredient');
         }
     }
 }
