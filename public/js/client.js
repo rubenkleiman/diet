@@ -195,6 +195,17 @@ class Client {
         if (pageElement) {
             pageElement.classList.add('active');
 
+            // Update ARIA attributes
+            const accountBtn = document.querySelector('[data-action="toggle-account-dropdown"]');
+            if (accountBtn) {
+                accountBtn.setAttribute('aria-expanded', 'false');
+            }
+
+            const mobileBtn = document.querySelector('[data-action="toggle-mobile-menu"]');
+            if (mobileBtn) {
+                mobileBtn.setAttribute('aria-expanded', 'false');
+            }
+
             if (pushState) {
                 history.pushState({ page }, '', `#${page}`);
             }
@@ -211,7 +222,13 @@ class Client {
 
     // Account dropdown
     toggleAccountDropdown() {
-        toggleDropdown('accountDropdown');
+        const btn = document.querySelector('[data-action="toggle-account-dropdown"]');
+        const dropdown = document.getElementById('accountDropdown');
+        
+        if (dropdown && btn) {
+            const isExpanded = dropdown.classList.toggle('show');
+            btn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+        }
     }
 
     closeAccountDropdown() {
@@ -234,12 +251,43 @@ class Client {
             this.navigateTo(page, false);
         });
 
+        // Global click handler for data-action elements
         document.addEventListener('click', (e) => {
+            const actionElement = e.target.closest('[data-action]');
+            
+            if (actionElement) {
+                e.preventDefault();
+                this.handleAction(actionElement);
+            }
+
+            // Close dropdowns when clicking outside
             if (!e.target.closest('.account-dropdown')) {
                 this.closeAccountDropdown();
             }
             if (!e.target.closest('.ingredient-search')) {
                 FormRenderer.hideSearchResults();
+            }
+        });
+
+        // Keyboard navigation for feature cards
+        document.addEventListener('keydown', (e) => {
+            const actionElement = e.target.closest('[data-action]');
+            
+            if (actionElement && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                this.handleAction(actionElement);
+            }
+
+            // Escape key for closing panels
+            if (e.key === 'Escape') {
+                const recipePanel = document.getElementById('recipeEditPanel');
+                const ingredientPanel = document.getElementById('ingredientEditPanel');
+
+                if (recipePanel && recipePanel.classList.contains('active')) {
+                    this.closeRecipeEditor();
+                } else if (ingredientPanel && ingredientPanel.classList.contains('active')) {
+                    this.closeIngredientEditor();
+                }
             }
         });
 
@@ -262,6 +310,16 @@ class Client {
         const settingsForm = document.getElementById('settingsForm');
         if (settingsForm) {
             settingsForm.addEventListener('submit', (e) => this.applySettings(e));
+        }
+
+        const recipeEditForm = document.getElementById('recipeEditForm');
+        if (recipeEditForm) {
+            recipeEditForm.addEventListener('submit', (e) => this.saveRecipe(e));
+        }
+
+        const ingredientEditForm = document.getElementById('ingredientEditForm');
+        if (ingredientEditForm) {
+            ingredientEditForm.addEventListener('submit', (e) => this.saveIngredient(e));
         }
 
         const useAgeCheckbox = document.getElementById('useAgeCheckbox');
@@ -289,19 +347,53 @@ class Client {
                 this.handleIngredientSearch(e.target.value);
             });
         }
+    }
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const recipePanel = document.getElementById('recipeEditPanel');
-                const ingredientPanel = document.getElementById('ingredientEditPanel');
+    // Handle data-action clicks
+    handleAction(element) {
+        const action = element.dataset.action;
+        const page = element.dataset.page;
 
-                if (recipePanel && recipePanel.classList.contains('active')) {
-                    this.closeRecipeEditor();
-                } else if (ingredientPanel && ingredientPanel.classList.contains('active')) {
-                    this.closeIngredientEditor();
-                }
-            }
-        });
+        switch (action) {
+            case 'navigate':
+                if (page) this.navigateTo(page);
+                break;
+            case 'toggle-account-dropdown':
+                this.toggleAccountDropdown();
+                break;
+            case 'toggle-mobile-menu':
+                this.toggleMobileMenu();
+                break;
+            case 'create-recipe':
+                this.createRecipe();
+                break;
+            case 'edit-recipe':
+                this.editRecipe();
+                break;
+            case 'delete-recipe':
+                this.deleteRecipe();
+                break;
+            case 'close-recipe-editor':
+                this.closeRecipeEditor();
+                break;
+            case 'create-ingredient':
+                this.createIngredient();
+                break;
+            case 'edit-ingredient':
+                this.editIngredient();
+                break;
+            case 'delete-ingredient':
+                this.deleteIngredient();
+                break;
+            case 'close-ingredient-editor':
+                this.closeIngredientEditor();
+                break;
+            case 'cancel-settings':
+                this.cancelSettings();
+                break;
+            default:
+                console.warn('Unknown action:', action);
+        }
     }
 
     // Setup event delegation for dynamically created content

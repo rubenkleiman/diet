@@ -1,0 +1,224 @@
+/* Accessibility Enhancements - Phase 4 */
+
+/* Screen reader only content */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Focus visible styles for better keyboard navigation */
+*:focus-visible {
+    outline: 3px solid var(--secondary-color);
+    outline-offset: 2px;
+}
+
+/* Remove default focus for mouse users */
+*:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Enhanced focus for interactive elements */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible {
+    outline: 3px solid var(--secondary-color);
+    outline-offset: 2px;
+}
+
+/* Feature cards keyboard navigation */
+.feature-card[role="button"]:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+}
+
+.feature-card[role="button"]:active {
+    transform: translateY(-2px);
+}
+
+/* Skip to main content link (optional addition) */
+.skip-to-main {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary-color);
+    color: white;
+    padding: 8px 16px;
+    text-decoration: none;
+    z-index: 10000;
+}
+
+.skip-to-main:focus {
+    top: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --primary-color: #000000;
+        --secondary-color: #0000FF;
+        --text-color: #000000;
+        --background-color: #FFFFFF;
+        --border-color: #000000;
+    }
+    
+    button,
+    .btn {
+        border: 2px solid currentColor;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .feature-card:hover {
+        transform: none;
+    }
+}
+
+/* Better touch targets for mobile */
+@media (pointer: coarse) {
+    button,
+    a,
+    input[type="checkbox"],
+    input[type="radio"],
+    select,
+    [role="button"] {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    .btn-small {
+        min-height: 36px;
+        padding: 0.5rem 1rem;
+    }
+}
+
+/* Error messages with icons for better visibility */
+.error-text.show::before {
+    content: "⚠️ ";
+    margin-right: 4px;
+}
+
+/* Success messages */
+.success-message {
+    padding: 1rem;
+    background-color: #d4edda;
+    color: #155724;
+    border-left: 4px solid var(--success-color);
+    border-radius: 4px;
+    margin: 1rem 0;
+}
+
+.success-message::before {
+    content: "✓ ";
+    font-weight: bold;
+}
+
+/* Loading indicator */
+.loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-top-color: var(--secondary-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Better disabled state */
+button:disabled,
+input:disabled,
+select:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Keyboard navigation for lists */
+.recipe-item:focus-visible,
+.ingredient-item:focus-visible {
+    outline: 3px solid var(--secondary-color);
+    outline-offset: -3px;
+}
+
+/* Better form validation states */
+input:invalid:not(:placeholder-shown) {
+    border-color: var(--accent-color);
+}
+
+input:valid:not(:placeholder-shown) {
+    border-color: var(--success-color);
+}
+
+/* Improved navigation items */
+.nav-menu a:focus-visible,
+.mobile-menu a:focus-visible {
+    outline: 3px solid white;
+    outline-offset: -3px;
+}
+
+/* Better dropdown visibility */
+.dropdown-menu[aria-hidden="false"] {
+    display: flex;
+}
+
+.dropdown-menu[aria-hidden="true"] {
+    display: none;
+}
+
+/* Dialog/Modal accessibility */
+.edit-panel[aria-modal="true"] {
+    /* Trap focus within modal */
+}
+
+.edit-panel[aria-modal="true"]::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Print styles improvements */
+@media print {
+    .skip-to-main,
+    .navbar,
+    .search-box,
+    .controls,
+    .action-buttons,
+    .edit-panel,
+    [aria-hidden="true"] {
+        display: none !important;
+    }
+    
+    .page {
+        page-break-inside: avoid;
+    }
+}

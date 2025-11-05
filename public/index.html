@@ -1,81 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diet Guidelines</title>
     <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/accessibility.css">
 </head>
+
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <h1 class="nav-brand" onclick="window._client.navigateTo('home')">Diet Guidelines</h1>
+            <h1 class="nav-brand" data-action="navigate" data-page="home">Diet Guidelines</h1>
             <ul class="nav-menu">
-                <li><a href="#" onclick="window._client.navigateTo('home'); return false;">Home</a></li>
-                <li><a href="#" onclick="window._client.navigateTo('recipes'); return false;">Recipes</a></li>
-                <li><a href="#" onclick="window._client.navigateTo('ingredients'); return false;">Ingredients</a></li>
-                <li><a href="#" onclick="window._client.navigateTo('menus'); return false;">Menus</a></li>
+                <li><a href="#" data-action="navigate" data-page="home">Home</a></li>
+                <li><a href="#" data-action="navigate" data-page="recipes">Recipes</a></li>
+                <li><a href="#" data-action="navigate" data-page="ingredients">Ingredients</a></li>
+                <li><a href="#" data-action="navigate" data-page="menus">Menus</a></li>
                 <li class="account-dropdown">
-                    <button class="account-btn" onclick="window._client.toggleAccountDropdown()" aria-label="Account menu">
-                        <svg class="account-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button class="account-btn" data-action="toggle-account-dropdown" aria-label="Account menu"
+                        aria-expanded="false">
+                        <svg class="account-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            aria-hidden="true">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
                         <span class="dropdown-arrow">▼</span>
                     </button>
-                    <div class="dropdown-menu" id="accountDropdown">
-                        <a href="#" onclick="window._client.navigateTo('profile'); return false;">User Profile</a>
-                        <a href="#" onclick="window._client.navigateTo('settings'); return false;">Settings</a>
+                    <div class="dropdown-menu" id="accountDropdown" role="menu">
+                        <a href="#" data-action="navigate" data-page="profile" role="menuitem">User Profile</a>
+                        <a href="#" data-action="navigate" data-page="settings" role="menuitem">Settings</a>
                     </div>
                 </li>
             </ul>
             <!-- Mobile hamburger menu -->
-            <button class="hamburger" onclick="window._client.toggleMobileMenu()" aria-label="Menu">
+            <button class="hamburger" data-action="toggle-mobile-menu" aria-label="Toggle menu" aria-expanded="false">
                 <span></span>
                 <span></span>
                 <span></span>
             </button>
         </div>
         <!-- Mobile menu -->
-        <div class="mobile-menu" id="mobileMenu">
-            <a href="#" onclick="window._client.navigateTo('home'); window._client.closeMobileMenu(); return false;">Home</a>
-            <a href="#" onclick="window._client.navigateTo('recipes'); window._client.closeMobileMenu(); return false;">Recipes</a>
-            <a href="#" onclick="window._client.navigateTo('ingredients'); window._client.closeMobileMenu(); return false;">Ingredients</a>
-            <a href="#" onclick="window._client.navigateTo('menus'); window._client.closeMobileMenu(); return false;">Menus</a>
-            <a href="#" onclick="window._client.navigateTo('profile'); window._client.closeMobileMenu(); return false;">User Profile</a>
-            <a href="#" onclick="window._client.navigateTo('settings'); window._client.closeMobileMenu(); return false;">Settings</a>
+        <div class="mobile-menu" id="mobileMenu" role="navigation">
+            <a href="#" data-action="navigate" data-page="home">Home</a>
+            <a href="#" data-action="navigate" data-page="recipes">Recipes</a>
+            <a href="#" data-action="navigate" data-page="ingredients">Ingredients</a>
+            <a href="#" data-action="navigate" data-page="menus">Menus</a>
+            <a href="#" data-action="navigate" data-page="profile">User Profile</a>
+            <a href="#" data-action="navigate" data-page="settings">Settings</a>
         </div>
     </nav>
 
     <div class="container">
-        <!-- HOME PAGE (NEW LANDING) -->
+        <!-- HOME PAGE -->
         <div id="homePage" class="page active">
             <section class="hero-section">
                 <h1>Welcome to Diet Guidelines</h1>
                 <p class="hero-description">
-                    A comprehensive nutrition tracking application designed to help you make informed dietary choices. 
-                    Track recipes, analyze nutritional content, monitor DASH diet adherence, and manage oxalate intake 
+                    A comprehensive nutrition tracking application designed to help you make informed dietary choices.
+                    Track recipes, analyze nutritional content, monitor DASH diet adherence, and manage oxalate intake
                     for kidney stone prevention.
                 </p>
             </section>
 
             <section class="feature-cards">
-                <div class="feature-card" onclick="window._client.navigateTo('recipes')">
-                    <div class="card-icon">📋</div>
+                <div class="feature-card" data-action="navigate" data-page="recipes" role="button" tabindex="0">
+                    <div class="card-icon" aria-hidden="true">📋</div>
                     <h2>Recipes</h2>
-                    <p>Browse and analyze <span id="recipeCount">0</span> recipes with detailed nutritional breakdowns</p>
+                    <p>Browse and analyze <span id="recipeCount">0</span> recipes with detailed nutritional breakdowns
+                    </p>
                     <span class="card-link">View Recipes →</span>
                 </div>
 
-                <div class="feature-card" onclick="window._client.navigateTo('ingredients')">
-                    <div class="card-icon">🥗</div>
+                <div class="feature-card" data-action="navigate" data-page="ingredients" role="button" tabindex="0">
+                    <div class="card-icon" aria-hidden="true">🥗</div>
                     <h2>Ingredients</h2>
                     <p>Explore <span id="ingredientCount">0</span> ingredients with comprehensive nutrition data</p>
                     <span class="card-link">View Ingredients →</span>
                 </div>
 
-                <div class="feature-card" onclick="window._client.navigateTo('menus')">
-                    <div class="card-icon">📅</div>
+                <div class="feature-card" data-action="navigate" data-page="menus" role="button" tabindex="0">
+                    <div class="card-icon" aria-hidden="true">📅</div>
                     <h2>Menus</h2>
                     <p>Plan your meals with customized menu collections (Coming Soon)</p>
                     <span class="card-link">View Menus →</span>
@@ -85,11 +91,13 @@
             <section class="info-section">
                 <div class="info-card">
                     <h3>DASH Diet Adherence</h3>
-                    <p>Each recipe is rated for DASH (Dietary Approaches to Stop Hypertension) compliance, helping you maintain a heart-healthy diet.</p>
+                    <p>Each recipe is rated for DASH (Dietary Approaches to Stop Hypertension) compliance, helping you
+                        maintain a heart-healthy diet.</p>
                 </div>
                 <div class="info-card">
                     <h3>Oxalate Tracking</h3>
-                    <p>Monitor oxalate content in recipes to help prevent kidney stones. Set your risk level and get personalized warnings.</p>
+                    <p>Monitor oxalate content in recipes to help prevent kidney stones. Set your risk level and get
+                        personalized warnings.</p>
                 </div>
                 <div class="info-card">
                     <h3>Nutritional Analysis</h3>
@@ -98,34 +106,30 @@
             </section>
         </div>
 
-        <!-- RECIPES PAGE (FORMER HOME PAGE) -->
+        <!-- RECIPES PAGE -->
         <div id="recipesPage" class="page page-with-sidebar">
             <section class="recipe-list-section">
                 <h2>Recipes</h2>
-                
+
                 <!-- Action Buttons -->
                 <div class="action-buttons">
-                    <button class="btn btn-primary" onclick="window._client.createRecipe()">
-                        <span class="btn-icon">+</span> Create Recipe
+                    <button class="btn btn-primary" data-action="create-recipe">
+                        <span class="btn-icon" aria-hidden="true">+</span> Create Recipe
                     </button>
-                    <button class="btn btn-secondary" id="editRecipeBtn" onclick="window._client.editRecipe()" disabled>
-                        <span class="btn-icon">✏️</span> Edit Recipe
+                    <button class="btn btn-secondary" id="editRecipeBtn" data-action="edit-recipe" disabled>
+                        <span class="btn-icon" aria-hidden="true">✏️</span> Edit Recipe
                     </button>
-                    <button class="btn btn-danger" id="deleteRecipeBtn" onclick="window._client.deleteRecipe()" disabled>
-                        <span class="btn-icon">🗑️</span> Delete
+                    <button class="btn btn-danger" id="deleteRecipeBtn" data-action="delete-recipe" disabled>
+                        <span class="btn-icon" aria-hidden="true">🗑️</span> Delete
                     </button>
                 </div>
 
                 <div class="search-box">
-                    <input 
-                        type="text" 
-                        id="searchInput" 
-                        placeholder="Search recipes..."
-                        aria-label="Search recipes"
-                    >
+                    <label for="searchInput" class="sr-only">Search recipes</label>
+                    <input type="text" id="searchInput" placeholder="Search recipes..." aria-label="Search recipes">
                 </div>
 
-                <div class="list-container" id="recipeListContainer">
+                <div class="list-container" id="recipeListContainer" role="list">
                     <ul id="recipeList" class="recipe-list">
                         <!-- Recipes will be loaded here -->
                     </ul>
@@ -139,7 +143,8 @@
                 </div>
             </section>
 
-            <section class="recipe-details-section" id="recipeDetailsSection" style="display: none;">
+            <section class="recipe-details-section" id="recipeDetailsSection" style="display: none;" role="region"
+                aria-label="Recipe details">
                 <h2 id="recipeDetailsTitle">Recipe: </h2>
                 <div class="details-container" id="recipeDetailsContent">
                     <!-- Recipe details will be loaded here -->
@@ -147,39 +152,32 @@
             </section>
 
             <!-- Recipe Edit Panel -->
-            <div class="edit-panel" id="recipeEditPanel">
+            <div class="edit-panel" id="recipeEditPanel" role="dialog" aria-labelledby="editPanelTitle"
+                aria-modal="true">
                 <div class="edit-panel-header">
                     <h2 id="editPanelTitle">Create New Recipe</h2>
-                    <button class="close-btn" onclick="window._client.closeRecipeEditor()">&times;</button>
+                    <button class="close-btn" data-action="close-recipe-editor" aria-label="Close">&times;</button>
                 </div>
-                
+
                 <div class="edit-panel-body">
-                    <form id="recipeEditForm" onsubmit="window._client.saveRecipe(event)">
+                    <form id="recipeEditForm" data-form="recipe-edit">
                         <div class="form-group">
                             <label for="recipeNameInput">Recipe Name *</label>
-                            <input 
-                                type="text" 
-                                id="recipeNameInput" 
-                                class="form-control"
-                                placeholder="Enter recipe name"
-                                required
-                            >
-                            <span class="error-text" id="recipeNameError"></span>
+                            <input type="text" id="recipeNameInput" class="form-control" placeholder="Enter recipe name"
+                                required aria-required="true">
+                            <span class="error-text" id="recipeNameError" role="alert"></span>
                         </div>
 
                         <div class="form-group ingredients-editor">
                             <label>Ingredients *</label>
-                            
+
                             <!-- Ingredient Search -->
                             <div class="ingredient-search">
-                                <input 
-                                    type="text" 
-                                    id="ingredientSearchBox"
-                                    class="form-control"
-                                    placeholder="Search ingredients to add..."
-                                    autocomplete="off"
-                                >
-                                <div class="search-results" id="ingredientSearchResults">
+                                <label for="ingredientSearchBox" class="sr-only">Search ingredients to add</label>
+                                <input type="text" id="ingredientSearchBox" class="form-control"
+                                    placeholder="Search ingredients to add..." autocomplete="off"
+                                    aria-autocomplete="list" aria-controls="ingredientSearchResults">
+                                <div class="search-results" id="ingredientSearchResults" role="listbox">
                                     <!-- Search results appear here -->
                                 </div>
                             </div>
@@ -192,11 +190,12 @@
                                     <div class="no-ingredients-message">No ingredients added yet</div>
                                 </div>
                             </div>
-                            <span class="error-text" id="ingredientsError"></span>
+                            <span class="error-text" id="ingredientsError" role="alert"></span>
                         </div>
 
                         <div class="edit-panel-footer">
-                            <button type="button" class="btn btn-secondary" onclick="window._client.closeRecipeEditor()">Cancel</button>
+                            <button type="button" class="btn btn-secondary"
+                                data-action="close-recipe-editor">Cancel</button>
                             <button type="submit" class="btn btn-primary">Save Recipe</button>
                         </div>
                     </form>
@@ -211,15 +210,9 @@
                 <form id="settingsForm" class="settings-form">
                     <div class="form-group">
                         <label for="caloriesPerDayInput">Calories Per Day</label>
-                        <input 
-                            type="number" 
-                            id="caloriesPerDayInput" 
-                            min="300" 
-                            max="5000" 
-                            value="2000"
-                            required
-                        >
-                        <small>Range: 300-5000 calories</small>
+                        <input type="number" id="caloriesPerDayInput" min="300" max="5000" value="2000" required
+                            aria-required="true" aria-describedby="caloriesHelp">
+                        <small id="caloriesHelp">Range: 300-5000 calories</small>
                     </div>
 
                     <div class="form-group">
@@ -231,19 +224,13 @@
 
                     <div class="form-group">
                         <label for="ageInput">Age</label>
-                        <input 
-                            type="number" 
-                            id="ageInput" 
-                            min="6" 
-                            max="100" 
-                            disabled
-                        >
-                        <small>Range: 6-100 years</small>
+                        <input type="number" id="ageInput" min="6" max="100" disabled aria-describedby="ageHelp">
+                        <small id="ageHelp">Range: 6-100 years</small>
                     </div>
 
                     <div class="form-group">
                         <label for="kidneyRiskSelect">Kidney Stone Risk</label>
-                        <select id="kidneyRiskSelect">
+                        <select id="kidneyRiskSelect" aria-describedby="kidneyRiskInfo">
                             <option value="Normal">Normal</option>
                             <option value="High">High</option>
                             <option value="Extremely High">Extremely High</option>
@@ -252,7 +239,7 @@
                     </div>
 
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="window._client.cancelSettings()">Cancel</button>
+                        <button type="button" class="btn btn-secondary" data-action="cancel-settings">Cancel</button>
                         <button type="submit" class="btn btn-primary">Apply</button>
                     </div>
                 </form>
@@ -264,7 +251,7 @@
             <section class="profile-section">
                 <h2>User Profile</h2>
                 <div class="profile-content">
-                    <div class="profile-avatar">
+                    <div class="profile-avatar" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
@@ -273,7 +260,7 @@
                     <div class="profile-info">
                         <div class="profile-field">
                             <label>Display Name</label>
-                            <p id="profileDisplayName">Admin</p>
+                            <p id="profileDisplayName">Diet System</p>
                         </div>
                         <div class="profile-field">
                             <label>User ID</label>
@@ -288,36 +275,34 @@
         <div id="ingredientsPage" class="page page-single-column">
             <section class="ingredients-section">
                 <h2>Ingredients</h2>
-                
+
                 <!-- Action Buttons -->
                 <div class="action-buttons">
-                    <button class="btn btn-primary" onclick="window._client.createIngredient()">
-                        <span class="btn-icon">+</span> Create Ingredient
+                    <button class="btn btn-primary" data-action="create-ingredient">
+                        <span class="btn-icon" aria-hidden="true">+</span> Create Ingredient
                     </button>
-                    <button class="btn btn-secondary" id="editIngredientBtn" onclick="window._client.editIngredient()" disabled>
-                        <span class="btn-icon">✏️</span> Edit Ingredient
+                    <button class="btn btn-secondary" id="editIngredientBtn" data-action="edit-ingredient" disabled>
+                        <span class="btn-icon" aria-hidden="true">✏️</span> Edit Ingredient
                     </button>
-                    <button class="btn btn-danger" id="deleteIngredientBtn" onclick="window._client.deleteIngredient()" disabled>
-                        <span class="btn-icon">🗑️</span> Delete
+                    <button class="btn btn-danger" id="deleteIngredientBtn" data-action="delete-ingredient" disabled>
+                        <span class="btn-icon" aria-hidden="true">🗑️</span> Delete
                     </button>
-                </div>
-                
-                <div class="search-box">
-                    <input 
-                        type="text" 
-                        id="ingredientSearchInput" 
-                        placeholder="Search ingredients..."
-                        aria-label="Search ingredients"
-                    >
                 </div>
 
-                <div class="list-container" id="ingredientListContainer">
+                <div class="search-box">
+                    <label for="ingredientSearchInput" class="sr-only">Search ingredients</label>
+                    <input type="text" id="ingredientSearchInput" placeholder="Search ingredients..."
+                        aria-label="Search ingredients">
+                </div>
+
+                <div class="list-container" id="ingredientListContainer" role="list">
                     <ul id="ingredientList" class="ingredient-list">
                         <!-- Ingredients will be loaded here -->
                     </ul>
                 </div>
 
-                <div id="ingredientDetailsSection" class="ingredient-details-section" style="display: none;">
+                <div id="ingredientDetailsSection" class="ingredient-details-section" style="display: none;"
+                    role="region" aria-label="Ingredient details">
                     <h3 id="ingredientDetailsTitle"></h3>
                     <div class="details-container" id="ingredientDetailsContent">
                         <!-- Ingredient details will be loaded here -->
@@ -326,73 +311,52 @@
             </section>
 
             <!-- Ingredient Edit Panel -->
-            <div class="edit-panel" id="ingredientEditPanel">
+            <div class="edit-panel" id="ingredientEditPanel" role="dialog" aria-labelledby="ingredientEditPanelTitle"
+                aria-modal="true">
                 <div class="edit-panel-header">
                     <h2 id="ingredientEditPanelTitle">Create New Ingredient</h2>
-                    <button class="close-btn" onclick="window._client.closeIngredientEditor()">&times;</button>
+                    <button class="close-btn" data-action="close-ingredient-editor" aria-label="Close">&times;</button>
                 </div>
-                
+
                 <div class="edit-panel-body">
-                    <form id="ingredientEditForm" onsubmit="window._client.saveIngredient(event)">
+                    <form id="ingredientEditForm" data-form="ingredient-edit">
                         <div class="form-group">
                             <label for="ingredientNameInput">Ingredient Name *</label>
-                            <input 
-                                type="text" 
-                                id="ingredientNameInput" 
-                                class="form-control"
-                                placeholder="Enter ingredient name"
-                                required
-                            >
-                            <span class="error-text" id="ingredientNameError"></span>
+                            <input type="text" id="ingredientNameInput" class="form-control"
+                                placeholder="Enter ingredient name" required aria-required="true">
+                            <span class="error-text" id="ingredientNameError" role="alert"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="servingSizeInput">Serving Size *</label>
                             <div class="input-group">
-                                <input 
-                                    type="number" 
-                                    id="servingSizeInput" 
-                                    class="form-control"
-                                    placeholder="100"
-                                    step="0.01"
-                                    min="0.01"
-                                    required
-                                >
-                                <select id="servingUnitSelect" class="form-control">
+                                <input type="number" id="servingSizeInput" class="form-control" placeholder="100"
+                                    step="0.01" min="0.01" required aria-required="true"
+                                    aria-describedby="servingSizeHelp">
+                                <select id="servingUnitSelect" class="form-control" aria-label="Serving unit">
                                     <option value="g">g</option>
                                     <option value="ml">ml</option>
                                     <option value="mg">mg</option>
                                     <option value="mcg">mcg</option>
                                 </select>
                             </div>
-                            <small>Standard serving size for this ingredient</small>
+                            <small id="servingSizeHelp">Standard serving size for this ingredient</small>
                         </div>
 
                         <div class="form-group">
                             <label for="densityInput">Density (g/ml)</label>
-                            <input 
-                                type="number" 
-                                id="densityInput" 
-                                class="form-control"
-                                placeholder="1.0"
-                                step="0.01"
-                                min="0.01"
-                            >
-                            <small>Only for liquid ingredients (e.g., milk = 1.03)</small>
+                            <input type="number" id="densityInput" class="form-control" placeholder="1.0" step="0.01"
+                                min="0.01" aria-describedby="densityHelp">
+                            <small id="densityHelp">Only for liquid ingredients (e.g., milk = 1.03)</small>
                         </div>
 
                         <div class="form-group">
                             <label for="oxalateInput">Oxalate per Gram (mg/g)</label>
-                            <input 
-                                type="number" 
-                                id="oxalateInput" 
-                                class="form-control"
-                                placeholder="0.15"
-                                step="0.001"
-                                min="0"
-                            >
-                            <small>Oxalate content in milligrams per gram (leave blank if unknown)</small>
-                            <span class="error-text" id="oxalateError"></span>
+                            <input type="number" id="oxalateInput" class="form-control" placeholder="0.15" step="0.001"
+                                min="0" aria-describedby="oxalateHelp">
+                            <small id="oxalateHelp">Oxalate content in milligrams per gram (leave blank if
+                                unknown)</small>
+                            <span class="error-text" id="oxalateError" role="alert"></span>
                         </div>
 
                         <div class="form-group">
@@ -434,7 +398,8 @@
 
                                 <div class="form-group">
                                     <label for="carbohydratesInput">Carbohydrates (g)</label>
-                                    <input type="number" id="carbohydratesInput" class="form-control" step="0.1" min="0">
+                                    <input type="number" id="carbohydratesInput" class="form-control" step="0.1"
+                                        min="0">
                                 </div>
 
                                 <div class="form-group">
@@ -484,12 +449,14 @@
 
                                 <div class="form-group">
                                     <label for="polysaturatedFatInput">Polyunsaturated Fat (g)</label>
-                                    <input type="number" id="polysaturatedFatInput" class="form-control" step="0.1" min="0">
+                                    <input type="number" id="polysaturatedFatInput" class="form-control" step="0.1"
+                                        min="0">
                                 </div>
 
                                 <div class="form-group">
                                     <label for="monosaturatedFatInput">Monounsaturated Fat (g)</label>
-                                    <input type="number" id="monosaturatedFatInput" class="form-control" step="0.1" min="0">
+                                    <input type="number" id="monosaturatedFatInput" class="form-control" step="0.1"
+                                        min="0">
                                 </div>
 
                                 <div class="form-group">
@@ -550,7 +517,8 @@
                         </div>
 
                         <div class="edit-panel-footer">
-                            <button type="button" class="btn btn-secondary" onclick="window._client.closeIngredientEditor()">Cancel</button>
+                            <button type="button" class="btn btn-secondary"
+                                data-action="close-ingredient-editor">Cancel</button>
                             <button type="submit" class="btn btn-primary">Save Ingredient</button>
                         </div>
                     </form>
@@ -563,10 +531,10 @@
             <section class="menus-section">
                 <h2>Menus</h2>
                 <div class="coming-soon">
-                    <div class="coming-soon-icon">🚧</div>
+                    <div class="coming-soon-icon" aria-hidden="true">🚧</div>
                     <h3>Coming Soon</h3>
                     <p>Menu planning and meal collections will be available in a future update.</p>
-                    <button class="btn btn-primary" onclick="window._client.navigateTo('home')">Back to Home</button>
+                    <button class="btn btn-primary" data-action="navigate" data-page="home">Back to Home</button>
                 </div>
             </section>
         </div>
@@ -574,4 +542,5 @@
 
     <script src="/js/client.js"></script>
 </body>
+
 </html>
