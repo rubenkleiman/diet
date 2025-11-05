@@ -30,28 +30,8 @@
     {
       "type": "chrome",
       "request": "launch",
-      "name": "Debug Client (Chrome)",
+      "name": "Launch Chrome",
       "url": "http://localhost:3001",
-      "webRoot": "${workspaceFolder}/public",
-      "sourceMapPathOverrides": {
-        "webpack:///*": "${webRoot}/*"
-      }
-    },
-    {
-      "type": "msedge",
-      "request": "launch",
-      "name": "Debug Client (Edge)",
-      "url": "http://localhost:3001",
-      "webRoot": "${workspaceFolder}/public",
-      "sourceMapPathOverrides": {
-        "webpack:///*": "${webRoot}/*"
-      }
-    },
-    {
-      "type": "chrome",
-      "request": "attach",
-      "name": "Attach to Chrome",
-      "port": 9222,
       "webRoot": "${workspaceFolder}/public",
       "sourceMapPathOverrides": {
         "webpack:///*": "${webRoot}/*"
@@ -63,7 +43,7 @@
       "name": "Debug Full Stack",
       "configurations": [
         "Debug Node.js Server (with nodemon)",
-        "Attach to Chrome"
+        "Launch Chrome"
       ],
       "presentation": {
         "hidden": false,
