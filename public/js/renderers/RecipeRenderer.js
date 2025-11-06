@@ -108,6 +108,9 @@ export class RecipeRenderer {
 
     let html = '<div class="details-content">';
 
+    // Dietary Assessment
+    html += this.renderDietaryAssessment(data, calculateOxalateRisk);
+
     // Ingredient Contributions
     if (data.ingredients && data.ingredients.length > 0) {
       html += this.renderIngredientContributions(data, {
@@ -125,9 +128,6 @@ export class RecipeRenderer {
       userSettings,
       INGREDIENT_PROPS
     });
-
-    // Dietary Assessment
-    html += this.renderDietaryAssessment(data, calculateOxalateRisk);
 
     // Ingredient Details
     html += this.renderIngredientDetails(data);

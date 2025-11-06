@@ -353,6 +353,7 @@ class Client {
     handleAction(element) {
         const action = element.dataset.action;
         const page = element.dataset.page;
+        const ingredientId = element.dataset.ingredientId;
 
         switch (action) {
             case 'navigate':
@@ -480,7 +481,7 @@ class Client {
     // Show recipe details
     async showRecipeDetails(recipeId) {
         const summaryCheckbox = document.getElementById('summaryCheckbox');
-        const summary = summaryCheckbox ? !summaryCheckbox.checked : true;
+        const summary = summaryCheckbox ? summaryCheckbox.checked : true;
 
         try {
             const data = await this.recipeManager.getRecipe(recipeId, summary);
@@ -640,7 +641,7 @@ class Client {
     async deleteRecipe() {
         if (!this.selectedRecipeId) return;
 
-        const recipe = this.recipes.find(r => r.id === this.selectedRecipeId);
+        const recipe = this.recipes.find(r => r.id == this.selectedRecipeId);
         if (!recipe) return;
 
         if (!confirm(`Delete recipe "${recipe.name}"? This cannot be undone.`)) {
@@ -703,7 +704,7 @@ class Client {
             } else {
                 await this.recipeManager.createRecipe(payload);
                 alert('Recipe created successfully');
-                const newRecipe = this.recipes.find(r => r.name === recipeName);
+                const newRecipe = this.recipes.find(r => r.name == recipeName);
                 if (newRecipe) {
                     this.recipeManager.selectRecipe(newRecipe.id);
                     await this.showRecipeDetails(newRecipe.id);
@@ -783,7 +784,7 @@ class Client {
     async deleteIngredient() {
         if (!this.selectedIngredientId) return;
 
-        const ingredient = this.ingredients.find(i => i.id === this.selectedIngredientId);
+        const ingredient = this.ingredients.find(i => i.id == this.selectedIngredientId);
         if (!ingredient) return;
 
         if (!confirm(`Delete ingredient "${ingredient.name}"? This cannot be undone.`)) {
@@ -898,7 +899,7 @@ class Client {
             } else {
                 await this.ingredientManager.createIngredient(payload);
                 alert('Ingredient created successfully');
-                const newIngredient = this.ingredients.find(i => i.name === name);
+                const newIngredient = this.ingredients.find(i => i.name == name);
                 if (newIngredient) {
                     await this.showIngredientDetails(newIngredient.id);
                     this.ingredientManager.selectIngredient(newIngredient.id);

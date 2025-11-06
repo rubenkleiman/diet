@@ -1,7 +1,5 @@
-pragma foreign_keys=on;
-insert into users(id, username, password,display_name) values('a70ff520-1125-4098-90b3-144e22ebe84a','rk','rk','Ruben');
-select * from users;
--- select * from daily_requirements;
+--pragma foreign_keys=on;
+--insert into users(id, username, password,display_name) values('a70ff520-1125-4098-90b3-144e22ebe84a','rk','rk','Ruben');
 PRAGMA table_info(brand_data);
 -- record counts
 select (
@@ -26,44 +24,36 @@ select (
     ) daily_requirements;
 
 
-select *
-from users;
-select *
-from recipes;
-select *
-from recipe_items;
-select r.name,
-    i.*
-from recipes r
-    inner join recipe_items i on r.id = i.recipe_id
-order by r.id,
-    i.item_order;
+select * from users;
+insert into users(id, username, password,display_name) values('a70ff520-1125-4098-90b3-144e22ebe84a','rk','rk','Ruben');
+
+select * from recipes;
+select * from recipe_items where  recipe_id = 6;
+select r.*, i.* from recipes r
+  inner join recipe_items i on r.id = i.recipe_id
+  and r.id = 6;
+
 select * from daily_requirements where name like '%folic%' order by name;
 insert into daily_requirements(name, recommended, dash_recommendation,minimum,
     maximum, note,source) values('folic_acid','400 mcg',null,null,null,null,'NIH');
 update daily_requirements set maximum = '50 mg' where id = 27;
+
 select *
 from menus;
 select m.name
 from menus m
     INNER JOIN menu_items mi on m.id = mi.menu_id
     inner join recipes r on r.id == mi.recipe_id;
+
 -- BRANDS
-select *
-from brands
-where id = 32;
-update brands
-set oxalate_per_gram = 0.028,
+select * from brands where id = 32;
+update brands set oxalate_per_gram = 0.028,
     oxalate_per_gram_unit = "mg/g"
-where id = 1;
-select *
-from brand_data
-where brand_id = 32;
-SELECT id,
-    brand_id,
-    calories
-FROM brand_data
-WHERE brand_id = 22;
+    where id = 1;
+select * from brands
+    inner join brand_data d 
+    on brands.id = d.brand_id
+    where brand_id = 32;
 insert into brand_data(
         brand_id,
         user_id,
@@ -107,4 +97,3 @@ VALUES (
         NULL,
         NULL
     );
-INSERT INTO brand_data ()
