@@ -35,7 +35,7 @@ body {
     left: 0;
     right: 0;
     background-color: var(--primary-color);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     z-index: 1000;
 }
 
@@ -114,7 +114,7 @@ body {
     margin-top: 0.5rem;
     background: white;
     border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     min-width: 160px;
     display: none;
     flex-direction: column;
@@ -158,19 +158,19 @@ body {
     display: none;
     flex-direction: column;
     background: var(--primary-color);
-    border-top: 1px solid rgba(255,255,255,0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .mobile-menu a {
     color: white;
     padding: 1rem;
     text-decoration: none;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     transition: background-color 0.3s;
 }
 
 .mobile-menu a:hover {
-    background-color: rgba(255,255,255,0.1);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .mobile-menu.show {
@@ -181,11 +181,11 @@ body {
     .nav-menu {
         display: none;
     }
-    
+
     .hamburger {
         display: flex;
     }
-    
+
     .nav-brand {
         font-size: 1.2rem;
     }
@@ -196,7 +196,7 @@ body {
     max-width: 1400px;
     margin: 0 auto;
     padding: 1rem;
-    min-height: calc(100vh - 60px);
+    min-height: 100vh; /*  calc(100vh - 60px); */
 }
 
 /* Page System - Only one page visible at a time */
@@ -248,7 +248,7 @@ body {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: white;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .hero-section h1 {
@@ -276,7 +276,7 @@ body {
     background: var(--card-background);
     padding: 2rem;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: center;
@@ -284,7 +284,7 @@ body {
 
 .feature-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
 .card-icon {
@@ -327,7 +327,7 @@ body {
     padding: 1.5rem;
     border-radius: 8px;
     border-left: 4px solid var(--secondary-color);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .info-card h3 {
@@ -349,7 +349,7 @@ body {
     background: var(--card-background);
     padding: 1.5rem;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .recipe-list-section h2 {
@@ -383,8 +383,12 @@ body {
     overflow-y: auto;
     border: 1px solid var(--border-color);
     border-radius: 6px;
-    max-height: 400px;
+    max-height: 100vh;
     background: white;
+}
+
+#menuListContainer {
+    max-height: 50vh;
 }
 
 .recipe-list {
@@ -489,7 +493,7 @@ body {
 .btn-primary:hover:not(:disabled) {
     background-color: #2980b9;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn-secondary {
@@ -512,7 +516,7 @@ body {
     background: var(--card-background);
     padding: 1.5rem;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
 }
@@ -529,7 +533,7 @@ body {
 .details-container {
     flex: 1;
     overflow-y: auto;
-    max-height: 500px;
+    max-height: 100vh;
     padding-right: 0.5rem;
 }
 
@@ -619,7 +623,7 @@ body {
     background: var(--card-background);
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .settings-section h2 {
@@ -684,7 +688,7 @@ body {
     background: var(--card-background);
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .profile-section h2 {
@@ -709,7 +713,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .profile-avatar svg {
@@ -762,7 +766,7 @@ body {
     background: var(--card-background);
     padding: 1.5rem;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -828,7 +832,7 @@ body {
     background: var(--card-background);
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .menus-section h2 {
@@ -928,7 +932,7 @@ body {
     .details-container {
         max-height: 400px;
     }
-    
+
     .recipe-meta {
         flex-direction: column;
         gap: 0.25rem;
@@ -954,6 +958,7 @@ body {
 
 /* Print Styles */
 @media print {
+
     .navbar,
     .search-box,
     .controls,
@@ -1086,7 +1091,7 @@ body {
 .btn-danger:hover:not(:disabled) {
     background-color: #c0392b;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Edit Panel */
@@ -1097,7 +1102,7 @@ body {
     width: 550px;
     height: calc(100vh - 60px);
     background: white;
-    box-shadow: -4px 0 12px rgba(0,0,0,0.15);
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
     z-index: 900;
     transition: right 0.3s ease;
     display: flex;
@@ -1211,7 +1216,7 @@ body {
     overflow-y: auto;
     display: none;
     z-index: 10;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .search-results.show {
@@ -1336,26 +1341,26 @@ body {
         width: 100%;
         right: -100%;
     }
-    
+
     .action-buttons .btn {
         min-width: 100px;
         font-size: 0.9rem;
     }
-    
+
     .ingredient-row {
         grid-template-columns: 1fr;
         gap: 0.5rem;
     }
-    
+
     .ingredient-name {
         grid-column: 1;
     }
-    
+
     .amount-input,
     .unit-select {
         width: 100%;
     }
-    
+
     .nutrition-inputs {
         grid-template-columns: 1fr !important;
     }
@@ -1383,4 +1388,217 @@ body {
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
     margin-top: 0;
+}
+
+/* Menu-Specific Styles - Add to the end of styles.css */
+
+/* Menu List Section */
+.menu-list-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: var(--card-background);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.menu-list-section h2 {
+    font-size: 1.75rem;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+/* Menu List */
+.menu-list {
+    list-style: none;
+}
+
+.menu-item {
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s, transform 0.1s;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.menu-item:last-child {
+    border-bottom: none;
+}
+
+.menu-item:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+    transform: translateX(4px);
+}
+
+.menu-item.selected {
+    background-color: var(--selected-color);
+    color: white;
+}
+
+.menu-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.menu-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.menu-recipe-count,
+.menu-calories,
+.menu-oxalates {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+}
+
+.menu-item.selected .menu-recipe-count,
+.menu-item.selected .menu-calories,
+.menu-item.selected .menu-oxalates {
+    color: white !important;
+}
+
+/* Menu Details Section */
+.menu-details-section {
+    background: var(--card-background);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-details-section h2 {
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+/* Menu Recipe List */
+.menu-recipe-list {
+    list-style: none;
+    padding: 0;
+}
+
+.menu-recipe-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: white;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    border: 1px solid #dee2e6;
+}
+
+.menu-recipe-item:last-child {
+    margin-bottom: 0;
+}
+
+.menu-recipe-item .recipe-name {
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+.menu-recipe-item .recipe-stats {
+    display: flex;
+    gap: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+}
+
+/* Menu Editor - Recipe Search */
+.recipes-editor {
+    margin-top: 1.5rem;
+}
+
+.recipe-search {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+/* Selected Recipes */
+.selected-recipes {
+    background: #f8f9fa;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    padding: 1rem;
+}
+
+.selected-recipes h4 {
+    margin: 0 0 1rem 0;
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.recipe-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.no-recipes-message {
+    text-align: center;
+    color: #95a5a6;
+    padding: 2rem 1rem;
+    font-style: italic;
+}
+
+.recipe-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    background: white;
+    padding: 0.75rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.recipe-row .recipe-name {
+    flex: 1;
+    font-weight: 500;
+    color: var(--text-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Mobile responsiveness for menu meta */
+@media (max-width: 767px) {
+    .menu-meta {
+        flex-direction: column;
+        gap: 0.25rem;
+        align-items: flex-end;
+    }
+}
+
+@media (min-width: 768px) {
+    .menu-details-section {
+        align-self: start;
+        position: sticky;
+        top: 80px;
+    }
+}
+
+/* Print Styles for Menus */
+@media print {
+    .menu-list-section {
+        display: none;
+    }
+
+    .menu-details-section {
+        box-shadow: none;
+        max-width: 100%;
+    }
 }

@@ -6,6 +6,13 @@
 class StateManager {
   constructor() {
     this.state = {
+      
+      // Menu data 
+      menus: [],
+      selectedMenuId: null,
+      editingMenuId: null,
+      selectedRecipesForMenu: [],
+      
       // Recipe data
       recipes: [],
       selectedRecipeId: null,
@@ -119,6 +126,10 @@ class StateManager {
       selectedRecipeId: null,
       ingredients: [],
       selectedIngredientId: null,
+      menus: [],
+      selectedMenuId: null,
+      editingMenuId: null,
+      selectedRecipesForMenu: [],
       config: {},
       kidneyStoneRiskData: {},
       dailyRequirements: {},

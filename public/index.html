@@ -83,7 +83,7 @@
                 <div class="feature-card" data-action="navigate" data-page="menus" role="button" tabindex="0">
                     <div class="card-icon" aria-hidden="true">📅</div>
                     <h2>Menus</h2>
-                    <p>Plan your meals with customized menu collections (Coming Soon)</p>
+                    <p>Plan your meals with <span id="menuCount">0</span> customized menu collections</p>
                     <span class="card-link">View Menus →</span>
                 </div>
             </section>
@@ -527,16 +527,96 @@
         </div>
 
         <!-- MENUS PAGE (STUB) -->
-        <div id="menusPage" class="page">
-            <section class="menus-section">
+        <!-- MENUS PAGE - Replace the existing stub with this complete implementation -->
+        <div id="menusPage" class="page page-with-sidebar">
+            <section class="menu-list-section">
                 <h2>Menus</h2>
-                <div class="coming-soon">
-                    <div class="coming-soon-icon" aria-hidden="true">🚧</div>
-                    <h3>Coming Soon</h3>
-                    <p>Menu planning and meal collections will be available in a future update.</p>
-                    <button class="btn btn-primary" data-action="navigate" data-page="home">Back to Home</button>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-primary" data-action="create-menu">
+                        <span class="btn-icon" aria-hidden="true">+</span> Create Menu
+                    </button>
+                    <button class="btn btn-secondary" id="editMenuBtn" data-action="edit-menu" disabled>
+                        <span class="btn-icon" aria-hidden="true">✏️</span> Edit Menu
+                    </button>
+                    <button class="btn btn-danger" id="deleteMenuBtn" data-action="delete-menu" disabled>
+                        <span class="btn-icon" aria-hidden="true">🗑️</span> Delete
+                    </button>
+                </div>
+
+                <div class="search-box">
+                    <label for="menuSearchInput" class="sr-only">Search menus</label>
+                    <input type="text" id="menuSearchInput" placeholder="Search menus..." aria-label="Search menus">
+                </div>
+
+                <div class="list-container" id="menuListContainer" role="list">
+                    <ul id="menuList" class="menu-list">
+                        <!-- Menus will be loaded here -->
+                    </ul>
                 </div>
             </section>
+
+            <section class="menu-details-section" id="menuDetailsSection" style="display: none;" role="region"
+                aria-label="Menu details">
+                <h2 id="menuDetailsTitle">Menu: </h2>
+                <div class="details-container" id="menuDetailsContent">
+                    <!-- Menu details will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Menu Edit Panel -->
+            <div class="edit-panel" id="menuEditPanel" role="dialog" aria-labelledby="menuEditPanelTitle"
+                aria-modal="true">
+                <div class="edit-panel-header">
+                    <h2 id="menuEditPanelTitle">Create New Menu</h2>
+                    <button class="close-btn" data-action="close-menu-editor" aria-label="Close">&times;</button>
+                </div>
+
+                <div class="edit-panel-body">
+                    <form id="menuEditForm" data-form="menu-edit">
+                        <div class="form-group">
+                            <label for="menuNameInput">Menu Name *</label>
+                            <input type="text" id="menuNameInput" class="form-control" placeholder="Enter menu name"
+                                maxlength="64" required aria-required="true">
+                            <small>Maximum 64 characters</small>
+                            <span class="error-text" id="menuNameError" role="alert"></span>
+                        </div>
+
+                        <div class="form-group recipes-editor">
+                            <label>Recipes *</label>
+
+                            <!-- Recipe Search -->
+                            <div class="recipe-search">
+                                <label for="recipeSearchBox" class="sr-only">Search recipes to add</label>
+                                <input type="text" id="recipeSearchBox" class="form-control"
+                                    placeholder="Search recipes to add..." autocomplete="off" aria-autocomplete="list"
+                                    aria-controls="recipeSearchResults">
+                                <div class="search-results" id="recipeSearchResults" role="listbox">
+                                    <!-- Search results appear here -->
+                                </div>
+                            </div>
+
+                            <!-- Selected Recipes List -->
+                            <div class="selected-recipes" id="selectedRecipesList">
+                                <h4>Selected Recipes</h4>
+                                <div class="recipe-rows" id="recipeRows">
+                                    <!-- Recipe rows appear here -->
+                                    <div class="no-recipes-message">No recipes added yet</div>
+                                </div>
+                            </div>
+                            <small>Minimum 1 recipe, maximum 30 recipes</small>
+                            <span class="error-text" id="recipesError" role="alert"></span>
+                        </div>
+
+                        <div class="edit-panel-footer">
+                            <button type="button" class="btn btn-secondary"
+                                data-action="close-menu-editor">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Menu</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 

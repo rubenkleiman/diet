@@ -2,6 +2,7 @@
 // Updated: async methods, database repositories, brandId instead of brandName
 import MakeMenu from './lib/MakeMenu.js'
 import IngredientsManager from './lib/IngredientsManager.js'
+import MenuRepository from './lib/db/MenuRepository.js'
 import RecipeRepository from './lib/db/RecipeRepository.js'
 import BrandRepository from './lib/db/BrandRepository.js'
 import database from './lib/db/Database.js'
@@ -13,25 +14,24 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 // System user ID (auto-logged in for now)
-const SYSTEM_USER_ID = 'a70ff520-1125-4098-90b3-144e22ebe84a'
 
 class ServicesClass {
+    static SYSTEM_USER_ID = 'a70ff520-1125-4098-90b3-144e22ebe84a'
+
     constructor() {
         this.menu = new MakeMenu()
         this.ingredientsManager = IngredientsManager
+        this.menuRepository = MenuRepository
         this.recipeRepository = RecipeRepository
         this.brandRepository = BrandRepository
-        this.currentUserId = SYSTEM_USER_ID // Hardcoded for now
-        
+        this.currentUserId = ServicesClass.SYSTEM_USER_ID // Hardcoded for now
+
         // Load kidney stone risk data from lib/data
         const kidneyRiskPath = path.join(__dirname, 'lib', 'data', 'kidneyStoneRisk.json')
         this.kidneyStoneRiskData = JSON.parse(fs.readFileSync(kidneyRiskPath, 'utf8'))
-        
-        // Daily requirements will be loaded from database
+
+        // User's daily requirements will be loaded from database
         this.dailyRequirements = null
-        
-        // Recipe ID map (lazy loaded)
-        this.recipeIdMap = null
     }
 
     /**
@@ -42,8 +42,9 @@ class ServicesClass {
 
         const requirements = await database.all(`SELECT * FROM daily_requirements where user_id = '${userId}'`);
         this.dailyRequirements = {}
-        
+
         for (const req of requirements) {
+            // TODO should be user-specific LRU cache
             this.dailyRequirements[req.name] = {
                 recommended: req.recommended,
                 dashRecommendation: req.dash_recommendation,
@@ -55,31 +56,57 @@ class ServicesClass {
         }
     }
 
+    // Menus
+
+
     /**
-     * Initialize recipe ID map from database
+     * Gets all menus 
+     * @param {string} userId User id
+     * @returns {Promise<Array>} Array of {id, name} objects
      */
-    async initRecipeIdMap() {
-        if (this.recipeIdMap) return
+    async getAllMenus(userId) {
+        return await this.menuRepository.getList(userId)
+    }
 
-        const recipes = await this.recipeRepository.getList(this.currentUserId)
-        this.recipeIdMap = {
-            toName: {},
-            toId: {}
-        }
 
-        for (const recipe of recipes) {
-            const id = this.canonicalizeRecipeId(recipe.name)
-            this.recipeIdMap.toName[id] = recipe.name
-            this.recipeIdMap.toId[recipe.name] = id
-        }
+    /**
+     * Gets detailed information for a menu
+     * @param {string} id - Canonical menu ID
+     * @param {boolean} summary - If true, return summary fields only
+     * @returns {Promise<Object|null>} Menu details or null if not found
+     */
+    async getMenuDetails(id, summary) {
+        return await this.menuRepository.getMenu(id, summary)
     }
 
     /**
-     * Refresh recipe ID map (call after create/update/delete)
+     * Creates a menu
+     * @param {string} name Menu's name
+     * @param {Array} recipeIds Array of recipe ids
+     * @param {string} userId User's id
      */
-    async refreshRecipeIdMap() {
-        this.recipeIdMap = null
-        await this.initRecipeIdMap()
+    async createMenu(name, recipeIds, userId) {
+        return await this.menuRepository.createMenu(name, recipeIds, userId);
+    }
+
+    /**
+     * Updates a menu
+     * @param {string} id Menu id
+     * @param {string} name Menu name
+     * @param {Array} recipeIds Array of recipe ids
+     * @param {string} userId User id
+     */
+    async updateMenu(id, name, recipeIds, userId) {
+        return await this.menuRepository.updateMenu(id, name, recipeIds, userId);
+    }
+
+    /**
+     * Deletes the menu
+     * @param {string} id menu id
+     * @param {string} userId user id
+     */
+    async deleteMenu(id, userId) {
+        return await this.menuRepository.deleteMenu(id, userId);
     }
 
     /**
@@ -97,23 +124,13 @@ class ServicesClass {
     }
 
     /**
-     * Gets recipe name from canonical ID
-     * @param {string} recipeId 
-     * @returns {string|null} Recipe name or null if not found
-     */
-    getRecipeNameFromId(recipeId) {
-        return this.recipeIdMap?.toName[recipeId] || null
-    }
-
-    /**
      * Gets all recipes with their IDs
      * @returns {Promise<Array>} Array of {id, name} objects
      */
-    async getAllRecipes() {
-        await this.initRecipeIdMap()
-        const recipes = await this.recipeRepository.getList(this.currentUserId)
+    async getAllRecipes(userId) {
+        const recipes = await this.recipeRepository.getList(userId)
         return recipes.map(recipe => ({
-            id: this.recipeIdMap.toId[recipe.name],
+            id: recipe.id,
             name: recipe.name
         }))
     }
@@ -125,13 +142,7 @@ class ServicesClass {
      * @returns {Promise<Object|null>} Recipe details or null if not found
      */
     async getRecipeDetails(recipeId, summary = false) {
-        await this.initRecipeIdMap()
-        const recipeName = this.getRecipeNameFromId(recipeId)
-        if (!recipeName) {
-            return null
-        }
-
-        return this.menu.getRecipeData(recipeName, summary)
+        return this.menu.getRecipeData(recipeId, summary)
     }
 
     /**
@@ -141,15 +152,10 @@ class ServicesClass {
      * @returns {Promise<Object|null>} Full recipe details or null if not found
      */
     async getRecipeFullDetails(recipeId, userId) {
-        await this.initRecipeIdMap()
-        const recipeName = this.getRecipeNameFromId(recipeId)
-        if (!recipeName) {
-            return null
-        }
-
         // Get recipe from database
-        const recipe = await this.recipeRepository.getByName(recipeName, userId)
+        const recipe = await this.recipeRepository.getById(recipeId, userId)
         if (!recipe) {
+            console.error(`Recipe id ${recipeId} not found`)
             return null
         }
 
@@ -186,7 +192,7 @@ class ServicesClass {
     async createRecipe(name, ingredients, userId) {
         // Convert brandIds to brandNames for RecipeRepository
         const ingredientsMap = {}
-        
+
         for (const ing of ingredients) {
             const brand = await this.brandRepository.getById(ing.brandId, userId)
             if (!brand) {
@@ -194,13 +200,13 @@ class ServicesClass {
             }
             ingredientsMap[brand.name] = `${ing.amount} ${ing.unit}`
         }
-        
+
         // Create recipe in database
         await this.recipeRepository.create(name, ingredientsMap, userId)
-        
+
         // Refresh ID map
         await this.refreshRecipeIdMap()
-        
+
         // Return canonical ID
         return this.canonicalizeRecipeId(name)
     }
@@ -213,21 +219,15 @@ class ServicesClass {
      * @param {string} userId - User ID
      */
     async updateRecipe(recipeId, name, ingredients, userId) {
-        await this.initRecipeIdMap()
-        const recipeName = this.getRecipeNameFromId(recipeId)
-        if (!recipeName) {
-            throw new Error('Recipe not found')
-        }
-        
         // Get recipe database ID
-        const recipe = await this.recipeRepository.getByName(recipeName, userId)
+        const recipe = await this.recipeRepository.getById(recipeId, userId)
         if (!recipe) {
             throw new Error('Recipe not found')
         }
-        
+
         // Convert brandIds to brandNames for RecipeRepository
         const ingredientsMap = {}
-        
+
         for (const ing of ingredients) {
             const brand = await this.brandRepository.getById(ing.brandId, userId)
             if (!brand) {
@@ -235,12 +235,9 @@ class ServicesClass {
             }
             ingredientsMap[brand.name] = `${ing.amount} ${ing.unit}`
         }
-        
+
         // Update recipe in database
         await this.recipeRepository.update(recipe.id, name, ingredientsMap, userId)
-        
-        // Refresh ID map
-        await this.refreshRecipeIdMap()
     }
 
     /**
@@ -249,51 +246,45 @@ class ServicesClass {
      * @param {string} userId - User ID
      */
     async deleteRecipe(recipeId, userId) {
-        await this.initRecipeIdMap()
-        const recipeName = this.getRecipeNameFromId(recipeId)
-        if (!recipeName) {
-            throw new Error('Recipe not found')
-        }
-        
         // Get recipe database ID
-        const recipe = await this.recipeRepository.getByName(recipeName, userId)
+        const recipe = await this.recipeRepository.getById(recipeId, userId)
         if (!recipe) {
             throw new Error('Recipe not found')
         }
-        
+
         // Delete recipe from database
         await this.recipeRepository.delete(recipe.id, userId)
-        
+
         // Refresh ID map
         await this.refreshRecipeIdMap()
     }
 
-    /**
-     * Compares two recipe variations
-     * @param {string} recipeId - Base recipe canonical ID
-     * @param {Object} variations - Ingredient variations
-     * @param {Object} addedIngredients - New ingredients
-     * @param {Array<string>} removedIngredients - Ingredients to remove
-     * @param {boolean} summary - Summary mode
-     * @param {Array<string>} explained - Nutrients to explain
-     * @returns {Promise<Object|null>} Comparison data or null if not found
-     */
-    async compareRecipeVariations(recipeId, variations = {}, addedIngredients = {}, removedIngredients = [], summary = false, explained = []) {
-        await this.initRecipeIdMap()
-        const recipeName = this.getRecipeNameFromId(recipeId)
-        if (!recipeName) {
-            return null
-        }
+    // /**
+    //  * Compares two recipe variations
+    //  * @param {string} recipeId - Base recipe canonical ID
+    //  * @param {Object} variations - Ingredient variations
+    //  * @param {Object} addedIngredients - New ingredients
+    //  * @param {Array<string>} removedIngredients - Ingredients to remove
+    //  * @param {boolean} summary - Summary mode
+    //  * @param {Array<string>} explained - Nutrients to explain
+    //  * @returns {Promise<Object|null>} Comparison data or null if not found
+    //  */
+    // async compareRecipeVariations(recipeId, variations = {}, addedIngredients = {}, removedIngredients = [], summary = false, explained = []) {
+    //     await this.initRecipeIdMap()
+    //     const recipeName = this.getRecipeNameFromId(recipeId)
+    //     if (!recipeName) {
+    //         return null
+    //     }
 
-        return this.menu.getRecipeComparison(
-            recipeName,
-            variations,
-            addedIngredients,
-            removedIngredients,
-            summary,
-            explained
-        )
-    }
+    //     return this.menu.getRecipeComparison(
+    //         recipeName,
+    //         variations,
+    //         addedIngredients,
+    //         removedIngredients,
+    //         summary,
+    //         explained
+    //     )
+    // }
 
     /**
      * Gets all ingredients with compact info
@@ -330,7 +321,7 @@ class ServicesClass {
     async getIngredientFullDetails(brandId, userId) {
         const ingredient = await this.brandRepository.getById(brandId, userId)
         if (!ingredient) return null
-        
+
         // Get raw data from database with ALL fields
         const brandData = await database.get(`
             SELECT 
@@ -346,9 +337,9 @@ class ServicesClass {
             LEFT JOIN brand_data bd ON b.id = bd.brand_id
             WHERE b.id = ?
         `, [brandId])
-        
+
         if (!brandData) return null
-        
+
         // Parse values - remove " mg" suffix for values with units, keep calories as-is
         const parseValue = (val) => {
             if (!val) return null
@@ -358,7 +349,7 @@ class ServicesClass {
             }
             return parseFloat(strVal)
         }
-        
+
         return {
             id: brandData.id,
             name: brandData.name,
@@ -459,17 +450,17 @@ class ServicesClass {
         if (percent < 50) {
             return { status: 'safe', percent, color: '#27ae60', message: '' }
         } else if (percent < 100) {
-            return { 
-                status: 'warning', 
-                percent, 
-                color: '#b8860b', 
+            return {
+                status: 'warning',
+                percent,
+                color: '#b8860b',
                 message: `Approaching your daily oxalate limit (${maxOxalates}mg)`
             }
         } else {
-            return { 
-                status: 'danger', 
-                percent, 
-                color: '#e74c3c', 
+            return {
+                status: 'danger',
+                percent,
+                color: '#e74c3c',
                 message: `Exceeds your daily oxalate limit (${maxOxalates}mg). This recipe contains ${oxalateMg.toFixed(1)}mg oxalates, which is ${(percent - 100).toFixed(0)}% over your ${riskLevel.toLowerCase()} risk limit.`
             }
         }

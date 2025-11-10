@@ -168,6 +168,58 @@ class APIClientManager {
       method: 'DELETE',
     });
   }
+  
+  // ===== MENU ENDPOINTS =====
+
+  /**
+   * Get all menus
+   * @param {string} search - Optional search term
+   */
+  async getMenus(search = '') {
+    const endpoint = search ? `/menus?search=${encodeURIComponent(search)}` : '/menus';
+    return await this.request(endpoint);
+  }
+
+  /**
+   * Get a single menu with details
+   * @param {string} id - Menu ID
+   */
+  async getMenu(id) {
+    return await this.request(`/menus/${id}`);
+  }
+
+  /**
+   * Create a new menu
+   * @param {Object} menuData - { name, recipeIds: [recipeId1, recipeId2, ...] }
+   */
+  async createMenu(menuData) {
+    return await this.request('/menus', {
+      method: 'POST',
+      body: JSON.stringify(menuData),
+    });
+  }
+
+  /**
+   * Update a menu
+   * @param {string} id - Menu ID
+   * @param {Object} menuData - { name, recipeIds: [recipeId1, recipeId2, ...] }
+   */
+  async updateMenu(id, menuData) {
+    return await this.request(`/menus/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(menuData),
+    });
+  }
+
+  /**
+   * Delete a menu
+   * @param {string} id - Menu ID
+   */
+  async deleteMenu(id) {
+    return await this.request(`/menus/${id}`, {
+      method: 'DELETE',
+    });
+  }
 
   // ===== UTILITY METHODS =====
 

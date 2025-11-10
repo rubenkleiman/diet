@@ -42,7 +42,7 @@
     {
       "name": "Debug Full Stack",
       "configurations": [
-        "Debug Node.js Server (with nodemon)",
+        "Debug Node.js Server",
         "Launch Chrome"
       ],
       "presentation": {

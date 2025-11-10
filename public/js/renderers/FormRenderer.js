@@ -4,7 +4,7 @@
  */
 
 export class FormRenderer {
-  
+
   /**
    * Render selected ingredients for recipe editor
    */
@@ -223,7 +223,7 @@ export class FormRenderer {
   static clearRecipeForm() {
     const nameInput = document.getElementById('recipeNameInput');
     const searchBox = document.getElementById('ingredientSearchBox');
-    
+
     if (nameInput) nameInput.value = '';
     if (searchBox) searchBox.value = '';
   }
@@ -301,5 +301,46 @@ export class FormRenderer {
         el.value = ingredient.data[dataKey] || '';
       }
     }
+  }
+
+  /**
+   * Open menu editor panel
+   */
+  static openMenuEditor() {
+    const panel = document.getElementById('menuEditPanel');
+    if (panel) {
+      panel.classList.add('active');
+    }
+  }
+
+  /**
+   * Close menu editor panel
+   */
+  static closeMenuEditor() {
+    const panel = document.getElementById('menuEditPanel');
+    if (panel) {
+      panel.classList.remove('active');
+    }
+  }
+
+  /**
+   * Set menu editor title
+   */
+  static setMenuEditorTitle(title) {
+    const titleEl = document.getElementById('menuEditPanelTitle');
+    if (titleEl) {
+      titleEl.textContent = title;
+    }
+  }
+
+  /**
+   * Clear menu form
+   */
+  static clearMenuForm() {
+    const nameInput = document.getElementById('menuNameInput');
+    const searchBox = document.getElementById('recipeSearchBox');
+
+    if (nameInput) nameInput.value = '';
+    if (searchBox) searchBox.value = '';
   }
 }

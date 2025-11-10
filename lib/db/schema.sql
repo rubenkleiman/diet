@@ -156,13 +156,14 @@ CREATE TABLE IF NOT EXISTS daily_requirements (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX idx_daily_requirements_name ON daily_requirements(name);
+
 -- Menus (collections of recipes for meal planning)
 CREATE TABLE IF NOT EXISTS menus (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     -- Use AUTO_INCREMENT for MySQL
     user_id VARCHAR(36) NOT NULL,
     name VARCHAR(255) NOT NULL,
-    menu_type VARCHAR(16) NOT NULL CHECK(
+    menu_type VARCHAR(16) CHECK(
         menu_type IN ('Dinner', 'Lunch', 'Breakfast', 'Snack', 'Other')
     ),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -172,8 +173,9 @@ CREATE TABLE IF NOT EXISTS menus (
 );
 CREATE INDEX idx_menus_user ON menus(user_id);
 CREATE INDEX idx_menus_type ON menus(menu_type);
--- Menu items (recipes in a menu)
-CREATE TABLE IF NOT EXISTS menu_items (
+
+-- Menu recipes
+CREATE TABLE IF NOT EXISTS menu_recipes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     -- Use AUTO_INCREMENT for MySQL
     menu_id INTEGER NOT NULL,
@@ -181,11 +183,13 @@ CREATE TABLE IF NOT EXISTS menu_items (
     item_order INTEGER DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT menu_items_menu_fk FOREIGN KEY(menu_id) REFERENCES menus(id) ON DELETE CASCADE,
-    CONSTRAINT menu_items_recipe_fk FOREIGN KEY(recipe_id) REFERENCES recipes(id)
+    CONSTRAINT menu_recipes_menu_fk FOREIGN KEY(menu_id) REFERENCES menus(id) ON DELETE CASCADE,
+    CONSTRAINT menu_recipes_fk FOREIGN KEY(recipe_id) REFERENCES recipes(id)
 );
-CREATE INDEX idx_menu_items_menu ON menu_items(menu_id);
-CREATE INDEX idx_menu_items_recipe ON menu_items(recipe_id);
+CREATE INDEX idx_menu_recipes_menu ON menu_recipes(menu_id);
+CREATE INDEX idx_menu_recipes_recipe ON menu_recipes(recipe_id);
+
+
 -- Note: kidney_stone_risk data maintained in kidneyStoneRisk.json
 -- Could optionally be moved to database:
 /*

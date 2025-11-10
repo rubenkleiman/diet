@@ -253,6 +253,7 @@ export class RecipeRenderer {
     html += showAllNutrients ? 'Show Key Nutrients' : 'Show All Nutrients';
     html += '</button>';
     html += '</div>';
+    html += "<div><i>Displays each nutrient's quantity and its percent contribution towards the recipe's content. Totals show the total nutrition quantity and the percent of the recommended daily requirements.</i></div><br/>"
 
     const contributions = calculateContributions(data);
 

@@ -38,12 +38,22 @@ insert into daily_requirements(name, recommended, dash_recommendation,minimum,
     maximum, note,source) values('folic_acid','400 mcg',null,null,null,null,'NIH');
 update daily_requirements set maximum = '50 mg' where id = 27;
 
-select *
-from menus;
-select m.name
-from menus m
-    INNER JOIN menu_items mi on m.id = mi.menu_id
-    inner join recipes r on r.id == mi.recipe_id;
+-- MENUS
+select * from menus;
+select * from menu_recipes;
+delete from menus where user_id = 'a70ff520-1125-4098-90b3-144e22ebe84a' and id = 3;
+insert into menus(user_id, name) values('a70ff520-1125-4098-90b3-144e22ebe84a', 'Test Menu3');
+insert into menu_recipes(menu_id, recipe_id) values(2, 5);
+insert into menu_recipes(menu_id, recipe_id) values(2, 6);
+select menu_id, recipe_id from menu_recipes;
+select * from recipes;
+select * from menus;
+select menus.name, menus.id, menu_recipes.recipe_id
+        from menus
+        INNER JOIN menu_recipes 
+        on menu_recipes.menu_id = menus.id
+        where menus.user_id = 'a70ff520-1125-4098-90b3-144e22ebe84a'
+        order by item_order;
 
 -- BRANDS
 select * from brands where id = 32;
