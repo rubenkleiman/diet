@@ -400,10 +400,12 @@ class Client {
     }
 
     // Handle data-action clicks
-    handleAction(element) {
+    async handleAction(element) {
         const action = element.dataset.action;
         const page = element.dataset.page;
+        const recipeId = element.dataset.recipeId;
         const ingredientId = element.dataset.ingredientId;
+        const menuId = element.dataset.menuId;
 
         switch (action) {
             case 'navigate':
@@ -414,6 +416,24 @@ class Client {
                 break;
             case 'toggle-mobile-menu':
                 this.toggleMobileMenu();
+                break;
+            case 'select-recipe':
+                if (recipeId) {
+                    this.selectRecipe(recipeId);
+                    await this.showRecipeDetails(recipeId);
+                }
+                break;
+            case 'select-ingredient':
+                if (ingredientId) {
+                    this.selectIngredient(ingredientId);
+                    await this.showIngredientDetails(ingredientId);
+                }
+                break;
+            case 'select-menu':
+                if (menuId) {
+                    this.selectMenu(menuId);
+                    await this.showMenuDetails(menuId);
+                }
                 break;
             case 'create-recipe':
                 this.createRecipe();

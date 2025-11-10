@@ -204,9 +204,6 @@ class ServicesClass {
         // Create recipe in database
         await this.recipeRepository.create(name, ingredientsMap, userId)
 
-        // Refresh ID map
-        await this.refreshRecipeIdMap()
-
         // Return canonical ID
         return this.canonicalizeRecipeId(name)
     }
@@ -254,9 +251,6 @@ class ServicesClass {
 
         // Delete recipe from database
         await this.recipeRepository.delete(recipe.id, userId)
-
-        // Refresh ID map
-        await this.refreshRecipeIdMap()
     }
 
     // /**

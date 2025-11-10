@@ -272,8 +272,9 @@
         </div>
 
         <!-- INGREDIENTS PAGE -->
-        <div id="ingredientsPage" class="page page-single-column">
-            <section class="ingredients-section">
+        <!-- INGREDIENTS PAGE - Replace the existing ingredientsPage section -->
+        <div id="ingredientsPage" class="page page-with-sidebar">
+            <section class="recipe-list-section">
                 <h2>Ingredients</h2>
 
                 <!-- Action Buttons -->
@@ -300,13 +301,13 @@
                         <!-- Ingredients will be loaded here -->
                     </ul>
                 </div>
+            </section>
 
-                <div id="ingredientDetailsSection" class="ingredient-details-section" style="display: none;"
-                    role="region" aria-label="Ingredient details">
-                    <h3 id="ingredientDetailsTitle"></h3>
-                    <div class="details-container" id="ingredientDetailsContent">
-                        <!-- Ingredient details will be loaded here -->
-                    </div>
+            <section class="recipe-details-section" id="ingredientDetailsSection" style="display: none;" role="region"
+                aria-label="Ingredient details">
+                <h2 id="ingredientDetailsTitle"></h2>
+                <div class="details-container" id="ingredientDetailsContent">
+                    <!-- Ingredient details will be loaded here -->
                 </div>
             </section>
 
