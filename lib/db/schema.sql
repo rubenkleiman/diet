@@ -189,6 +189,35 @@ CREATE TABLE IF NOT EXISTS menu_recipes (
 CREATE INDEX idx_menu_recipes_menu ON menu_recipes(menu_id);
 CREATE INDEX idx_menu_recipes_recipe ON menu_recipes(recipe_id);
 
+-- Daily plans
+
+CREATE TABLE IF NOT EXISTS daily_plans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    -- Use AUTO_INCREMENT for MySQL
+    user_id VARCHAR(36) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, name),
+    CONSTRAINT daily_plan_user_fk FOREIGN KEY(user_id) REFERENCES users(id)
+);
+CREATE INDEX idx_daily_plan_user ON daily_plans(user_id);
+
+CREATE TABLE IF NOT EXISTS daily_plan_menus (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    -- Use AUTO_INCREMENT for MySQL
+    daily_plan_id INTEGER NOT NULL,
+    menu_id INTEGER NOT NULL,
+    type VARCHAR(16) DEFAULT 'Other' CHECK(
+        type IN ('Dinner', 'Lunch', 'Breakfast', 'Brunch', 'Snack', 'Other')
+    ),
+    item_order INTEGER DEFAULT 1,
+    CONSTRAINT daily_plan_id_fk FOREIGN KEY(daily_plan_id) REFERENCES daily_plans(id),
+    CONSTRAINT daily_plan_menu_fk FOREIGN KEY(menu_id) REFERENCES menus(id)
+);
+CREATE INDEX idx_daily_plan_type ON daily_plan_menus(type);
+CREATE INDEX idx_daily_plan_id ON daily_plan_menus(daily_plan_id);
+CREATE INDEX idx_daily_plan_menu ON daily_plan_menus(menu_id);
 
 -- Note: kidney_stone_risk data maintained in kidneyStoneRisk.json
 -- Could optionally be moved to database:

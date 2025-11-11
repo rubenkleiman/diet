@@ -48,11 +48,18 @@ export class IngredientRenderer {
     document.querySelectorAll('.ingredient-item').forEach(item => {
       item.classList.remove('selected');
     });
+    document.querySelectorAll('.ingredient-compact').forEach(item => {
+      item.classList.remove('selected');
+    });
 
-    const index = ingredients.findIndex(i => i.id === ingredientId);
+    const index = ingredients.findIndex(i => i.id == ingredientId);
     const selectedItem = document.querySelector(`.ingredient-item:nth-child(${index + 1})`);
     if (selectedItem) {
       selectedItem.classList.add('selected');
+      const compactItem = selectedItem.querySelector(".ingredient-compact")
+      if (compactItem) {
+        compactItem.classList.add('selected')
+      }
     }
   }
 

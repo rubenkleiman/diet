@@ -296,7 +296,7 @@ export class MenuRenderer {
     resultsContainer.innerHTML = '';
 
     results.forEach(recipe => {
-      const alreadyAdded = selectedRecipes.some(r => r.id === recipe.id);
+      const alreadyAdded = selectedRecipes.some(r => r.id == recipe.id);
 
       const item = document.createElement('div');
       item.className = 'search-result-item';

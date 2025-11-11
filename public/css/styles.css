@@ -439,9 +439,20 @@ body {
     font-weight: 600;
 }
 
-.recipe-item.selected .recipe-calories,
-.recipe-item.selected .recipe-oxalates {
+.recipe-item.selected *,
+.menu-item.selected * {
     color: white !important;
+}
+
+.ingredient-item.selected {
+    background-color: #3498db !important;
+    color: white !important;
+    font-weight: 500;
+}
+
+.ingredient-item.selected:hover {
+    transform: none;
+    background-color: #3498db !important;
 }
 
 .no-results {
@@ -785,7 +796,8 @@ body {
     padding: 1rem 1.25rem;
     cursor: pointer;
     border-bottom: 1px solid var(--border-color);
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, transform 0.1s;
+    user-select: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -798,11 +810,20 @@ body {
 
 .ingredient-item:hover {
     background-color: rgba(52, 152, 219, 0.1);
+    transform: translateX(4px);
 }
 
-.ingredient-name {
+.ingredient-item .ingredient-name {
     flex: 1;
     font-weight: 500;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    line-height: 1.4;
+}
+
+.ingredient-item.selected .ingredient-name {
+    color: white !important;
 }
 
 .ingredient-compact {
@@ -810,6 +831,10 @@ body {
     font-size: 0.85rem;
     color: var(--secondary-color);
     font-weight: 600;
+}
+
+.ingredient-compact.selected {
+    color: white !important;
 }
 
 .ingredient-details-section {
@@ -922,7 +947,7 @@ body {
     .settings-section,
     .ingredients-section,
     .profile-section {
-        padding: 1rem;
+        padding: 1rem;  
     }
 
     .list-container {
