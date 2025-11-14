@@ -3,6 +3,7 @@
 import MakeMenu from './lib/MakeMenu.js'
 import IngredientsManager from './lib/IngredientsManager.js'
 import MenuRepository from './lib/db/MenuRepository.js'
+import DailyPlanRepository from './lib/db/DailyPlanRepository.js'
 import RecipeRepository from './lib/db/RecipeRepository.js'
 import BrandRepository from './lib/db/BrandRepository.js'
 import database from './lib/db/Database.js'
@@ -16,15 +17,14 @@ const __dirname = path.dirname(__filename)
 // System user ID (auto-logged in for now)
 
 class ServicesClass {
-    static SYSTEM_USER_ID = 'a70ff520-1125-4098-90b3-144e22ebe84a'
 
     constructor() {
         this.menu = new MakeMenu()
         this.ingredientsManager = IngredientsManager
+        this.dailyPlanRepository = DailyPlanRepository
         this.menuRepository = MenuRepository
         this.recipeRepository = RecipeRepository
         this.brandRepository = BrandRepository
-        this.currentUserId = ServicesClass.SYSTEM_USER_ID // Hardcoded for now
 
         // Load kidney stone risk data from lib/data
         const kidneyRiskPath = path.join(__dirname, 'lib', 'data', 'kidneyStoneRisk.json')
@@ -56,8 +56,58 @@ class ServicesClass {
         }
     }
 
-    // Menus
+    // Daily plans
 
+    /**
+     * Returns all daily plans for the user.
+     * @param {string} searchTerm An optional search term to filter results
+     * @param {string} userId The user id
+     */
+    async getAllDailyPlans(searchTerm, userId) {
+        return await this.dailyPlanRepository.get(searchTerm, null, userId);
+    }
+
+    /**
+     * Returns details for a daily plan for the user
+     * @param {integer} id The plan's id 
+     * @param {string} userId The user id
+     * @returns {object} Daily plan details
+     */
+    async getDailyPlanDetails(id, userId) {
+        return await this.dailyPlanRepository.getDetails(id, userId);
+    }
+
+    /**
+     * Creates a daily plan for the user
+     * @param {object} request The requested daily plan
+     * @param {string} userId The user id
+     * @returns {object} The created daily plan's details
+     */
+    async createDailyPlan(request, userId) {
+        return await this.dailyPlanRepository.create(request, userId);
+    }
+
+    /**
+     * Updates a daily plan for the user
+     * @param {integer} id The plan's id 
+     * @param {object} request The updated daily plan
+     * @param {string} userId The user id
+     * @returns {object} The updated daily plan's details
+     */
+    async updateDailyPlan(id, request, userId) {
+        return await this.dailyPlanRepository.update(id, request, userId);
+    }
+
+    /**
+     * Deletes a daily plan for the user
+     * @param {integer} id The plan's id 
+     * @param {string} userId The user id
+     */
+    async deleteDailyPlan(id, userId) {
+        return await this.dailyPlanRepository.delete(id, userId);
+    }
+
+    // Menus
 
     /**
      * Gets all menus 
@@ -282,28 +332,31 @@ class ServicesClass {
 
     /**
      * Gets all ingredients with compact info
+     * @param {string} userId The user id
      * @returns {Promise<Array>} Array of ingredients
      */
-    async getAllIngredients() {
-        return await this.ingredientsManager.getAllIngredients(this.currentUserId)
+    async getAllIngredients(userId) {
+        return await this.ingredientsManager.getAllIngredients(userId)
     }
 
     /**
      * Searches ingredients by term
      * @param {string} searchTerm 
+     * @param {string} userId The user id
      * @returns {Promise<Array>} Filtered ingredients
      */
-    async searchIngredients(searchTerm) {
-        return await this.ingredientsManager.searchIngredients(searchTerm, this.currentUserId)
+    async searchIngredients(searchTerm, userId) {
+        return await this.ingredientsManager.searchIngredients(searchTerm, userId)
     }
 
     /**
      * Gets detailed info for a specific ingredient
      * @param {number} brandId - Brand ID
+     * @param {string} userId The user id
      * @returns {Promise<Object|null>} Ingredient details
      */
-    async getIngredientDetails(brandId) {
-        return await this.ingredientsManager.getIngredientDetails(brandId, this.currentUserId)
+    async getIngredientDetails(brandId, userId) {
+        return await this.ingredientsManager.getIngredientDetails(brandId, userId)
     }
 
     /**

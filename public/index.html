@@ -18,6 +18,7 @@
                 <li><a href="#" data-action="navigate" data-page="recipes">Recipes</a></li>
                 <li><a href="#" data-action="navigate" data-page="ingredients">Ingredients</a></li>
                 <li><a href="#" data-action="navigate" data-page="menus">Menus</a></li>
+                <li><a href="#" data-action="navigate" data-page="dailyPlans">Daily Plans</a></li>
                 <li class="account-dropdown">
                     <button class="account-btn" data-action="toggle-account-dropdown" aria-label="Account menu"
                         aria-expanded="false">
@@ -47,6 +48,7 @@
             <a href="#" data-action="navigate" data-page="recipes">Recipes</a>
             <a href="#" data-action="navigate" data-page="ingredients">Ingredients</a>
             <a href="#" data-action="navigate" data-page="menus">Menus</a>
+            <a href="#" data-action="navigate" data-page="dailyPlans">Daily Plans</a>
             <a href="#" data-action="navigate" data-page="profile">User Profile</a>
             <a href="#" data-action="navigate" data-page="settings">Settings</a>
         </div>
@@ -85,6 +87,13 @@
                     <h2>Menus</h2>
                     <p>Plan your meals with <span id="menuCount">0</span> customized menu collections</p>
                     <span class="card-link">View Menus →</span>
+                </div>
+
+                <div class="feature-card" data-action="navigate" data-page="dailyPlans" role="button" tabindex="0">
+                    <div class="card-icon" aria-hidden="true">📅</div>
+                    <h2>Daily Plans</h2>
+                    <p>Organize your meals with <span id="dailyPlanCount">0</span> customized daily meal plans</p>
+                    <span class="card-link">View Daily Plans →</span>
                 </div>
             </section>
 
@@ -523,6 +532,99 @@
                             <button type="submit" class="btn btn-primary">Save Ingredient</button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <div id="dailyPlansPage" class="page page-with-sidebar">
+                <section class="recipe-list-section">
+                    <h2>Daily Plans</h2>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" data-action="create-daily-plan">
+                            <span class="btn-icon" aria-hidden="true">+</span> Create Daily Plan
+                        </button>
+                        <button class="btn btn-secondary" id="editDailyPlanBtn" data-action="edit-daily-plan" disabled>
+                            <span class="btn-icon" aria-hidden="true">✏️</span> Edit Daily Plan
+                        </button>
+                        <button class="btn btn-danger" id="deleteDailyPlanBtn" data-action="delete-daily-plan" disabled>
+                            <span class="btn-icon" aria-hidden="true">🗑️</span> Delete
+                        </button>
+                    </div>
+
+                    <div class="search-box">
+                        <label for="dailyPlanSearchInput" class="sr-only">Search daily plans</label>
+                        <input type="text" id="dailyPlanSearchInput" placeholder="Search daily plans..."
+                            aria-label="Search daily plans">
+                    </div>
+
+                    <div class="list-container" id="dailyPlanListContainer" role="list">
+                        <ul id="dailyPlanList" class="daily-plan-list">
+                            <!-- Daily plans will be loaded here -->
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="recipe-details-section" id="dailyPlanDetailsSection" style="display: none;"
+                    role="region" aria-label="Daily plan details">
+                    <h2 id="dailyPlanDetailsTitle">Daily Plan: </h2>
+                    <div class="details-container" id="dailyPlanDetailsContent">
+                        <!-- Daily plan details will be loaded here -->
+                    </div>
+                </section>
+
+                <!-- Daily Plan Edit Panel -->
+                <div class="edit-panel" id="dailyPlanEditPanel" role="dialog" aria-labelledby="dailyPlanEditPanelTitle"
+                    aria-modal="true">
+                    <div class="edit-panel-header">
+                        <h2 id="dailyPlanEditPanelTitle">Create New Daily Plan</h2>
+                        <button class="close-btn" data-action="close-daily-plan-editor"
+                            aria-label="Close">&times;</button>
+                    </div>
+
+                    <div class="edit-panel-body">
+                        <form id="dailyPlanEditForm" data-form="daily-plan-edit">
+                            <div class="form-group">
+                                <label for="dailyPlanNameInput">Daily Plan Name *</label>
+                                <input type="text" id="dailyPlanNameInput" class="form-control"
+                                    placeholder="Enter daily plan name" maxlength="64" required aria-required="true">
+                                <small>Maximum 64 characters</small>
+                                <span class="error-text" id="dailyPlanNameError" role="alert"></span>
+                            </div>
+
+                            <div class="form-group menus-editor">
+                                <label>Menus *</label>
+
+                                <!-- Menu Search -->
+                                <div class="menu-search">
+                                    <label for="menuSearchBoxForDailyPlan" class="sr-only">Search menus to add</label>
+                                    <input type="text" id="menuSearchBoxForDailyPlan" class="form-control"
+                                        placeholder="Search menus to add..." autocomplete="off" aria-autocomplete="list"
+                                        aria-controls="menuSearchResultsForDailyPlan">
+                                    <div class="search-results" id="menuSearchResultsForDailyPlan" role="listbox">
+                                        <!-- Search results appear here -->
+                                    </div>
+                                </div>
+
+                                <!-- Selected Menus List -->
+                                <div class="selected-menus" id="selectedMenusListForDailyPlan">
+                                    <h4>Selected Menus</h4>
+                                    <div class="menu-rows-daily-plan" id="menuRowsForDailyPlan">
+                                        <!-- Menu rows appear here -->
+                                        <div class="no-menus-message">No menus added yet</div>
+                                    </div>
+                                </div>
+                                <small>Minimum 1 menu. Same menu can be added multiple times.</small>
+                                <span class="error-text" id="menusError" role="alert"></span>
+                            </div>
+
+                            <div class="edit-panel-footer">
+                                <button type="button" class="btn btn-secondary"
+                                    data-action="close-daily-plan-editor">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Save Daily Plan</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

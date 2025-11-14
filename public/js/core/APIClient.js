@@ -1,3 +1,4 @@
+"use strict";
 /**
  * API Client Module
  * Centralized API communication layer
@@ -13,17 +14,24 @@ class APIClientManager {
    */
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     try {
-      const response = await fetch(url, {
+      const data = {
         headers: {
           'Content-Type': 'application/json',
           ...options.headers,
         },
         ...options,
-      });
+      };
+      // console.log(`APIClient URL: ${url} DATA:\n${JSON.stringify(data)}`)
+      const response = await fetch(url, data);
+      // console.log(`RESPONSE: ${response.ok ? 'success':'failure'} URL: ${url} DATA:\n${JSON.stringify(data)}`)
 
+      if (!response.ok) {
+        throw Error(`Response error. URL ${url}`)
+      }
       const result = await response.json();
+      // console.log(`JSON: ${url} DATATYPE: ${typeof data} DATALEN:${typeof data == "object" ? Object.keys(data).length : data?.length} DATA:\n${JSON.stringify(data)}`)
       return result;
     } catch (error) {
       console.error(`API Error (${endpoint}):`, error);
@@ -168,7 +176,7 @@ class APIClientManager {
       method: 'DELETE',
     });
   }
-  
+
   // ===== MENU ENDPOINTS =====
 
   /**
@@ -217,6 +225,58 @@ class APIClientManager {
    */
   async deleteMenu(id) {
     return await this.request(`/menus/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // ===== DAILY PLAN ENDPOINTS =====
+
+  /**
+   * Get all daily plans
+   * @param {string} search - Optional search term
+   */
+  async getDailyPlans(search = '') {
+    const endpoint = search ? `/daily-plans?search=${encodeURIComponent(search)}` : '/daily-plans';
+    return await this.request(endpoint);
+  }
+
+  /**
+   * Get a single daily plan with details
+   * @param {string} id - Daily Plan ID
+   */
+  async getDailyPlan(id) {
+    return await this.request(`/daily-plans/${id}`);
+  }
+
+  /**
+   * Create a new daily plan
+   * @param {Object} dailyPlanData - { name, dailyPlanMenus: [{ menuId, type }, ...] }
+   */
+  async createDailyPlan(dailyPlanData) {
+    return await this.request('/daily-plans', {
+      method: 'POST',
+      body: JSON.stringify(dailyPlanData),
+    });
+  }
+
+  /**
+   * Update a daily plan
+   * @param {string} id - Daily Plan ID
+   * @param {Object} dailyPlanData - { name, dailyPlanMenus: [{ menuId, type }, ...] }
+   */
+  async updateDailyPlan(id, dailyPlanData) {
+    return await this.request(`/daily-plans/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(dailyPlanData),
+    });
+  }
+
+  /**
+   * Delete a daily plan
+   * @param {string} id - Daily Plan ID
+   */
+  async deleteDailyPlan(id) {
+    return await this.request(`/daily-plans/${id}`, {
       method: 'DELETE',
     });
   }

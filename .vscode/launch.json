@@ -4,8 +4,20 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "app.js",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/app.js",
+      "experimentalNetworking": "off"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Debug Node.js Server",
-      "skipFiles": ["<node_internals>/**"],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
       "program": "${workspaceFolder}/app.js",
       "env": {
         "NODE_ENV": "development"
@@ -22,7 +34,9 @@
       "restart": true,
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "skipFiles": ["<node_internals>/**"],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
       "env": {
         "NODE_ENV": "development"
       }

@@ -196,7 +196,8 @@ body {
     max-width: 1400px;
     margin: 0 auto;
     padding: 1rem;
-    min-height: 100vh; /*  calc(100vh - 60px); */
+    min-height: 100vh;
+    /*  calc(100vh - 60px); */
 }
 
 /* Page System - Only one page visible at a time */
@@ -224,17 +225,19 @@ body {
     gap: 2rem;
 }
 
+/* Split page widths as 50/50 */
 @media (min-width: 768px) {
     .page-with-sidebar.active {
-        grid-template-columns: minmax(300px, 1fr) minmax(400px, 2fr);
+        grid-template-columns: 1fr 1fr;
     }
 }
 
 @media (min-width: 1200px) {
     .page-with-sidebar.active {
-        grid-template-columns: minmax(350px, 1fr) minmax(500px, 2.5fr);
+        grid-template-columns: 1fr 1fr;
     }
 }
+
 
 /* Single column pages */
 .page-single-column.active {
@@ -947,7 +950,7 @@ body {
     .settings-section,
     .ingredients-section,
     .profile-section {
-        padding: 1rem;  
+        padding: 1rem;
     }
 
     .list-container {
@@ -1625,5 +1628,152 @@ body {
     .menu-details-section {
         box-shadow: none;
         max-width: 100%;
+    }
+}
+
+/* Daily Plan Styles - Add to the end of styles.css */
+
+/* Daily Plan List */
+.daily-plan-list {
+    list-style: none;
+}
+
+.daily-plan-item {
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s, transform 0.1s;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.daily-plan-item:last-child {
+    border-bottom: none;
+}
+
+.daily-plan-item:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+    transform: translateX(4px);
+}
+
+.daily-plan-item.selected {
+    background-color: var(--selected-color);
+    color: white;
+}
+
+.daily-plan-name {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.daily-plan-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.daily-plan-menu-count,
+.daily-plan-calories,
+.daily-plan-sodium,
+.daily-plan-oxalates {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+}
+
+.daily-plan-item.selected *,
+.daily-plan-item.selected .daily-plan-name,
+.daily-plan-item.selected .daily-plan-menu-count,
+.daily-plan-item.selected .daily-plan-calories,
+.daily-plan-item.selected .daily-plan-sodium,
+.daily-plan-item.selected .daily-plan-oxalates {
+    color: white !important;
+}
+
+/* Menu Rows in Daily Plan Editor */
+.menu-rows-daily-plan {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.no-menus-message {
+    text-align: center;
+    color: #95a5a6;
+    padding: 2rem 1rem;
+    font-style: italic;
+}
+
+.menu-row-daily-plan {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    gap: 0.5rem;
+    align-items: center;
+    background: white;
+    padding: 0.75rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.menu-row-daily-plan .menu-name {
+    flex: 1;
+    font-weight: 500;
+    color: var(--text-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.type-select {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background: white;
+    cursor: pointer;
+}
+
+.type-select:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+}
+
+/* Selected Menus Container */
+.selected-menus {
+    background: #f8f9fa;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    padding: 1rem;
+}
+
+.selected-menus h4 {
+    margin: 0 0 1rem 0;
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+/* Menu Search for Daily Plan */
+.menu-search {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.menus-editor {
+    margin-top: 1.5rem;
+}
+
+/* Mobile responsiveness for daily plan meta */
+@media (max-width: 767px) {
+    .daily-plan-meta {
+        flex-direction: column;
+        gap: 0.25rem;
+        align-items: flex-start;
+    }
+
+    .menu-row-daily-plan {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
     }
 }

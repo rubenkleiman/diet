@@ -9,5 +9,7 @@
     ],
     "files.exclude": {
         "**/.db": false
-    }
+    },
+    "debug.javascript.usePreview": false,
+    "debug.javascript.unmapMissingSources": true
 }

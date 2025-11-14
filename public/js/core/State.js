@@ -7,6 +7,14 @@ class StateManager {
   constructor() {
     this.state = {
       
+      // Daily Plan data
+      dailyPlans: [],
+      selectedDailyPlanId: null,
+      editingDailyPlanId: null,
+      selectedMenusForDailyPlan: [],
+      showAllDailyNutrients: false,
+      currentDailyNutrientPage: 0,
+      
       // Menu data 
       menus: [],
       selectedMenuId: null,
@@ -122,6 +130,12 @@ class StateManager {
    */
   reset() {
     const initialState = {
+      dailyPlans: [],
+      selectedDailyPlanId: null,
+      editingDailyPlanId: null,
+      selectedMenusForDailyPlan: [],
+      showAllDailyNutrients: false,
+      currentDailyNutrientPage: 0,
       recipes: [],
       selectedRecipeId: null,
       ingredients: [],

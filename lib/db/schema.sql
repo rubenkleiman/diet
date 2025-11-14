@@ -46,6 +46,7 @@ INSERT INTO ingredient_categories(name)
 VALUES('Sugars');
 INSERT INTO ingredient_categories(name)
 VALUES('Vegetables');
+
 -- Brands table (ingredients)
 CREATE TABLE IF NOT EXISTS brands (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,6 +67,7 @@ CREATE TABLE IF NOT EXISTS brands (
 );
 CREATE INDEX idx_brands_user ON brands(user_id);
 CREATE INDEX idx_brands_name ON brands(name);
+
 -- Brand nutritional data (per serving)
 -- All values stored as VARCHAR(20) in format "amount unit" (e.g., "80 mg", "2 g")
 -- Calories stored as FLOAT (no unit)
@@ -123,6 +125,7 @@ CREATE TABLE IF NOT EXISTS recipes (
 );
 CREATE INDEX idx_recipes_user ON recipes(user_id);
 CREATE INDEX idx_recipes_name ON recipes(name);
+
 -- Recipe items (ingredients in a recipe)
 CREATE TABLE IF NOT EXISTS recipe_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

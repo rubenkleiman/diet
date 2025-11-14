@@ -33,11 +33,54 @@ select r.*, i.* from recipes r
   inner join recipe_items i on r.id = i.recipe_id
   and r.id = 6;
 
-select * from daily_requirements where name like '%folic%' order by name;
+select * from daily_requirements where name like '%sugar%' order by name;
 insert into daily_requirements(name, recommended, dash_recommendation,minimum,
     maximum, note,source) values('folic_acid','400 mcg',null,null,null,null,'NIH');
-update daily_requirements set maximum = '50 mg' where id = 27;
+update daily_requirements set maximum = '25 mg', recommended = '25 mg' where name = "sugars";
 
+-- PLANS
+select * from daily_plans;
+select * from daily_plan_menus;
+
+-- plan details phase 1: given plan id, get menus
+select plan.id as id, plan.user_id as userId, plan.name as dailyPlanName,
+    dpmenus.menu_id as menuId, dpmenus.type
+    FROM daily_plans plan
+    inner join daily_plan_menus dpmenus
+    on dpMenus.daily_plan_id = plan.id
+    and plan.user_id = 'a70ff520-1125-4098-90b3-144e22ebe84a'
+    and plan.id = 1
+    order by dpmenus.item_order;
+
+-- plan details phase 2: given menu ids, aggregate nutrients per menu
+select menus.id as menuId, menus.menu_type as type, menus.name
+    ,mr.recipe_id, recipe_items.amount as recipeAmount, recipe_items.unit as recipeUnit
+    ,brands.serving as ingredientAmount, brands.serving_unit as ingredientUnit, 
+    brands.density, brands.oxalate_per_gram
+    ,data.*
+    from menus 
+    inner join menu_recipes mr
+    on mr.menu_id = menus.id
+    inner join recipe_items 
+    on recipe_items.recipe_id = mr.recipe_id
+    inner join brands
+    on recipe_items.brand_id = brands.id
+    inner join brand_data data
+    on data.brand_id = brands.id
+    and menus.id in (7, 9);
+
+select * from daily_plans;
+select * from daily_plan_menus;
+select * from menus where id in (7, 9);
+select * from menu_recipes where menu_id in (7, 9);
+select * from recipes;
+select * from recipe_items;
+select * from brand_data;
+select * from brands;
+
+insert into daily_plans(user_id,name) values('a70ff520-1125-4098-90b3-144e22ebe84a', 'Today''s Plan');
+insert into daily_plan_menus(daily_plan_id,menu_id,type) values(1, 7, "Breakfast");
+insert into daily_plan_menus(daily_plan_id,menu_id,type) values(1, 9, "Dinner");
 -- MENUS
 select * from menus;
 select * from menu_recipes;
@@ -54,6 +97,7 @@ select menus.name, menus.id, menu_recipes.recipe_id
         on menu_recipes.menu_id = menus.id
         where menus.user_id = 'a70ff520-1125-4098-90b3-144e22ebe84a'
         order by item_order;
+update menus set menu_type = 'Dinner' where id = 9;
 
 -- BRANDS
 select * from brands where id = 32;

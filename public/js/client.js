@@ -2,25 +2,27 @@
 // UI rendering extracted to dedicated modules, event delegation introduced
 
 // Import core modules
-import { State } from '@core/State.js';
-import { Router } from '@core/Router.js';
-import { APIClient as API } from '@core/APIClient.js';
+import { State } from './core/State.js';
+import { Router } from './core/Router.js';
+import { APIClient as API } from './core/APIClient.js';
 
 // Import managers
-import { MenuManager } from '@managers/MenuManager.js';
-import { RecipeManager } from '@managers/RecipeManager.js';
-import { IngredientManager } from '@managers/IngredientManager.js';
-import { SettingsManager } from '@managers/SettingsManager.js';
+import { DailyPlanManager } from './managers/DailyPlanManager.js';
+import { MenuManager } from './managers/MenuManager.js';
+import { RecipeManager } from './managers/RecipeManager.js';
+import { IngredientManager } from './managers/IngredientManager.js';
+import { SettingsManager } from './managers/SettingsManager.js';
 
 // Import renderers
-import { MenuRenderer } from '@renderers/MenuRenderer.js';
-import { RecipeRenderer } from '@renderers/RecipeRenderer.js';
-import { IngredientRenderer } from '@renderers/IngredientRenderer.js';
-import { FormRenderer } from '@renderers/FormRenderer.js';
+import { DailyPlanRenderer } from './renderers/DailyPlanRenderer.js';
+import { MenuRenderer } from './renderers/MenuRenderer.js';
+import { RecipeRenderer } from './renderers/RecipeRenderer.js';
+import { IngredientRenderer } from './renderers/IngredientRenderer.js';
+import { FormRenderer } from './renderers/FormRenderer.js';
 
 // Import utilities
-import { validateRecipe, validateIngredient } from '@utils/validation.js';
-import { setButtonsDisabled, toggleDropdown, closeDropdown, toggleMobileMenu, closeMobileMenu, setupEventDelegation, hideElement } from '@utils/dom.js';
+import { validateRecipe, validateIngredient } from './utils/validation.js';
+import { setButtonsDisabled, toggleDropdown, closeDropdown, toggleMobileMenu, closeMobileMenu, setupEventDelegation, hideElement } from './utils/dom.js';
 
 class Client {
 
@@ -60,6 +62,7 @@ class Client {
 
     constructor() {
         // Initialize managers
+        this.dailyPlanManager = new DailyPlanManager();
         this.menuManager = new MenuManager();
         this.recipeManager = new RecipeManager();
         this.ingredientManager = new IngredientManager();
@@ -81,6 +84,13 @@ class Client {
             useAge: false,
             kidneyStoneRisk: 'Normal'
         };
+        this.dailyPlans = [];
+        this.selectedDailyPlanId = null;
+        this.editingDailyPlanId = null;
+        this.selectedMenusForDailyPlan = [];
+        this.menuSearchTimeout = null;
+        this.showAllDailyNutrients = false;
+        this.currentDailyNutrientPage = 0;
 
         // Editor state
         this.editingMenuId = null;
@@ -102,6 +112,35 @@ class Client {
 
     // Sync legacy properties with State
     setupStateSync() {
+        State.subscribe('dailyPlans', (newValue) => {
+            this.dailyPlans = newValue;
+            this.updateHomeCounts();
+        });
+
+        State.subscribe('selectedDailyPlanId', (newValue) => {
+            this.selectedDailyPlanId = newValue;
+        });
+
+        State.subscribe('editingDailyPlanId', (newValue) => {
+            this.editingDailyPlanId = newValue;
+        });
+
+        State.subscribe('selectedMenusForDailyPlan', (newValue) => {
+            this.selectedMenusForDailyPlan = newValue;
+            DailyPlanRenderer.renderSelectedMenus(
+                newValue,
+                (index) => this.dailyPlanManager.removeMenuFromDailyPlan(index),
+                (index, type) => this.dailyPlanManager.updateMenuType(index, type)
+            );
+        });
+
+        State.subscribe('showAllDailyNutrients', (newValue) => {
+            this.showAllDailyNutrients = newValue;
+        });
+
+        State.subscribe('currentDailyNutrientPage', (newValue) => {
+            this.currentDailyNutrientPage = newValue;
+        });
         State.subscribe('menus', (newValue) => {
             this.menus = newValue;
             this.updateHomeCounts();
@@ -181,22 +220,60 @@ class Client {
     }
 
     // Initialize app
+    // Replace your init() method with this version:
+
     async init() {
-        this.settingsManager.loadUserSettings();
-        await this.settingsManager.loadConfig();
-        await this.settingsManager.loadKidneyStoneRiskData();
-        await this.settingsManager.loadDailyRequirements();
-        await this.recipeManager.loadRecipes();
-        await this.ingredientManager.loadIngredients();
-        await this.menuManager.loadMenus();
+        console.log('🟢 Client init started');
 
-        this.settingsManager.applyUIConfig();
-        this.setupEventListeners();
-        this.setupEventDelegation();
-        this.updateHomeCounts();
+        try {
+            // Load user settings (synchronous)
+            this.settingsManager.loadUserSettings();
 
-        const page = window.location.hash.slice(1) || 'home';
-        this.navigateTo(page, false);
+            // Load configuration data
+            await this.settingsManager.loadConfig();
+            await this.settingsManager.loadKidneyStoneRiskData();
+            await this.settingsManager.loadDailyRequirements();
+
+            // Load core data
+            await this.recipeManager.loadRecipes();
+            await this.ingredientManager.loadIngredients();
+            await this.menuManager.loadMenus();
+
+            // Load daily plans (optional - may not have backend yet)
+            try {
+                await this.dailyPlanManager.loadDailyPlans();
+            } catch (error) {
+                console.warn('⚠️ Daily plans not available yet:', error.message);
+                // Set empty array so the UI doesn't break
+                State.set('dailyPlans', []);
+            }
+
+            // Setup UI
+            this.settingsManager.applyUIConfig();
+            this.setupEventListeners();
+            this.setupEventDelegation();
+            this.updateHomeCounts();
+
+            // Navigate to initial page
+            const page = window.location.hash.slice(1) || 'home';
+            this.navigateTo(page, false);
+
+            console.log('✅ Client init completed successfully');
+
+        } catch (error) {
+            console.error('❌ Client init failed:', error);
+            console.error('Stack trace:', error.stack);
+
+            // Still try to setup event listeners so the app isn't completely broken
+            try {
+                this.setupEventListeners();
+                this.setupEventDelegation();
+                this.navigateTo('home', false);
+                console.log('⚠️ App running in degraded mode');
+            } catch (e) {
+                console.error('❌ Cannot recover from init failure');
+            }
+        }
     }
 
     // Update home page counts
@@ -204,24 +281,31 @@ class Client {
         const recipeCountEl = document.getElementById('recipeCount');
         const ingredientCountEl = document.getElementById('ingredientCount');
         const menuCountEl = document.getElementById('menuCount');
+        const dailyPlanCountEl = document.getElementById('dailyPlanCount');
 
         if (menuCountEl) menuCountEl.textContent = this.menus.length;
         if (recipeCountEl) recipeCountEl.textContent = this.recipes.length;
         if (ingredientCountEl) ingredientCountEl.textContent = this.ingredients.length;
+        if (dailyPlanCountEl) dailyPlanCountEl.textContent = this.dailyPlans.length;
     }
 
     // Navigation
+    // Replace your navigateTo method with this version:
+
     navigateTo(page, pushState = true) {
         closeDropdown('accountDropdown');
         closeMobileMenu();
 
         window.scrollTo(0, 0);
 
+        // Remove active class from all pages
         document.querySelectorAll('.page').forEach(p => {
             p.classList.remove('active');
         });
 
+        // Add active class to target page
         const pageElement = document.getElementById(`${page}Page`);
+
         if (pageElement) {
             pageElement.classList.add('active');
 
@@ -240,6 +324,7 @@ class Client {
                 history.pushState({ page }, '', `#${page}`);
             }
 
+            // Call page-specific initialization
             if (page === 'settings') {
                 this.loadSettingsForm();
             } else if (page === 'ingredients') {
@@ -248,10 +333,21 @@ class Client {
                 this.renderRecipeList(this.recipes);
             } else if (page === 'menus') {
                 this.renderMenuList(this.menus);
+            } else if (page === 'dailyPlans') {
+                this.renderDailyPlanList(this.dailyPlans);
+            }
+        } else {
+            console.warn(`Page not found: ${page}Page`);
+            // Fallback to home if page doesn't exist
+            const homePage = document.getElementById('homePage');
+            if (homePage) {
+                homePage.classList.add('active');
+                if (pushState) {
+                    history.pushState({ page: 'home' }, '', '#home');
+                }
             }
         }
     }
-
     // Account dropdown
     toggleAccountDropdown() {
         const btn = document.querySelector('[data-action="toggle-account-dropdown"]');
@@ -278,10 +374,30 @@ class Client {
 
     // Setup event listeners (non-delegated)
     setupEventListeners() {
+        // console.warn('setupEventListeners called')
         window.addEventListener('popstate', (event) => {
             const page = event.state?.page || 'home';
             this.navigateTo(page, false);
         });
+
+        const dailyPlanSearchInput = document.getElementById('dailyPlanSearchInput');
+        if (dailyPlanSearchInput) {
+            dailyPlanSearchInput.addEventListener('input', (e) => {
+                this.filterDailyPlans(e.target.value);
+            });
+        }
+
+        const dailyPlanEditForm = document.getElementById('dailyPlanEditForm');
+        if (dailyPlanEditForm) {
+            dailyPlanEditForm.addEventListener('submit', (e) => this.saveDailyPlan(e));
+        }
+
+        const menuSearchBoxForDailyPlan = document.getElementById('menuSearchBoxForDailyPlan');
+        if (menuSearchBoxForDailyPlan) {
+            menuSearchBoxForDailyPlan.addEventListener('input', (e) => {
+                this.handleMenuSearchForDailyPlan(e.target.value);
+            });
+        }
 
         // Global click handler for data-action elements
         document.addEventListener('click', (e) => {
@@ -474,6 +590,24 @@ class Client {
             case 'close-menu-editor':
                 this.closeMenuEditor();
                 break;
+            case 'select-daily-plan':
+                if (dailyPlanId) {
+                    this.selectDailyPlan(dailyPlanId);
+                    await this.showDailyPlanDetails(dailyPlanId);
+                }
+                break;
+            case 'create-daily-plan':
+                this.createDailyPlan();
+                break;
+            case 'edit-daily-plan':
+                this.editDailyPlan();
+                break;
+            case 'delete-daily-plan':
+                this.deleteDailyPlan();
+                break;
+            case 'close-daily-plan-editor':
+                this.closeDailyPlanEditor();
+                break;
             default:
                 console.warn('Unknown action:', action);
         }
@@ -481,6 +615,37 @@ class Client {
 
     // Setup event delegation for dynamically created content
     setupEventDelegation() {
+
+        const menuRowsForDailyPlan = document.getElementById('menuRowsForDailyPlan');
+        if (menuRowsForDailyPlan) {
+            setupEventDelegation(menuRowsForDailyPlan, {
+                'remove-menu-from-daily-plan': (target) => {
+                    const index = parseInt(target.dataset.index);
+                    this.dailyPlanManager.removeMenuFromDailyPlan(index);
+                }
+            });
+        }
+
+        const menuSearchResultsForDailyPlan = document.getElementById('menuSearchResultsForDailyPlan');
+        if (menuSearchResultsForDailyPlan) {
+            setupEventDelegation(menuSearchResultsForDailyPlan, {
+                'add-menu-to-daily-plan': (target) => {
+                    this.addMenuToDailyPlan({
+                        id: target.dataset.menuId,
+                        name: target.dataset.menuName
+                    });
+                }
+            });
+        }
+
+        const dailyPlanDetails = document.getElementById('dailyPlanDetailsContent');
+        if (dailyPlanDetails) {
+            setupEventDelegation(dailyPlanDetails, {
+                'toggle-daily-nutrient-view': () => this.toggleDailyNutrientView(),
+                'prev-daily-nutrient-page': () => this.prevDailyNutrientPage(),
+                'next-daily-nutrient-page': () => this.nextDailyNutrientPage()
+            });
+        }
 
         // Recipe rows in menu editor
         const recipeRows = document.getElementById('recipeRows');
@@ -1255,6 +1420,269 @@ class Client {
             document.getElementById('recipeSearchBox').value = '';
         } else {
             alert('This recipe is already in the menu');
+        }
+    }
+
+    // Daily Plan List & Selection
+    renderDailyPlanList(dailyPlansToShow) {
+        DailyPlanRenderer.renderList(dailyPlansToShow, (dailyPlanId) => {
+            this.selectDailyPlan(dailyPlanId);
+            this.showDailyPlanDetails(dailyPlanId);
+        });
+
+        // Load summaries asynchronously
+        dailyPlansToShow.forEach(plan => {
+            this.fetchDailyPlanSummary(plan.id).then(data => {
+                if (data && Object.keys(data).length) {
+                    DailyPlanRenderer.updateDailyPlanItemWithSummary(
+                        plan.id,
+                        data,
+                        (ox) => this.dailyPlanManager.calculateOxalateRisk(ox)
+                    );
+                }
+            });
+        });
+    }
+
+    async fetchDailyPlanSummary(dailyPlanId) {
+        try {
+            return await this.dailyPlanManager.getDailyPlan(dailyPlanId);
+        } catch (error) {
+            console.error('Error fetching daily plan summary:', error);
+            return null;
+        }
+    }
+
+    filterDailyPlans(searchTerm) {
+        const filtered = this.dailyPlanManager.filterDailyPlans(searchTerm);
+        this.renderDailyPlanList(filtered);
+    }
+
+    selectDailyPlan(dailyPlanId) {
+        DailyPlanRenderer.markAsSelected(dailyPlanId);
+        this.dailyPlanManager.selectDailyPlan(dailyPlanId);
+        setButtonsDisabled(['editDailyPlanBtn', 'deleteDailyPlanBtn'], false);
+    }
+
+    async showDailyPlanDetails(dailyPlanId) {
+        try {
+            const data = await this.dailyPlanManager.getDailyPlan(dailyPlanId);
+
+            DailyPlanRenderer.renderDetails(data, {
+                dailyRequirements: this.dailyRequirements,
+                userSettings: this.userSettings,
+                showAllNutrients: this.showAllDailyNutrients,
+                currentNutrientPage: this.currentDailyNutrientPage,
+                calculateOxalateRisk: (ox) => this.dailyPlanManager.calculateOxalateRisk(ox),
+                INGREDIENT_PROPS: Client.INGREDIENT_PROPS,
+                NUTRIENTS_PER_PAGE: this.NUTRIENTS_PER_PAGE
+            });
+        } catch (error) {
+            console.error('Error loading daily plan details:', error);
+            DailyPlanRenderer.showError('Failed to load daily plan details');
+        }
+    }
+
+    // Daily Plan CRUD Operations
+    createDailyPlan() {
+        this.dailyPlanManager.startEdit(null);
+        FormRenderer.setDailyPlanEditorTitle('Create New Daily Plan');
+        FormRenderer.clearDailyPlanForm();
+        DailyPlanRenderer.renderSelectedMenus([],
+            (index) => this.dailyPlanManager.removeMenuFromDailyPlan(index),
+            (index, type) => this.dailyPlanManager.updateMenuType(index, type)
+        );
+        FormRenderer.openDailyPlanEditor();
+    }
+
+    async editDailyPlan() {
+        if (!this.selectedDailyPlanId) return;
+
+        this.dailyPlanManager.startEdit(this.selectedDailyPlanId);
+
+        try {
+            const dailyPlan = await this.dailyPlanManager.getDailyPlan(this.selectedDailyPlanId);
+
+            FormRenderer.setDailyPlanEditorTitle('Edit Daily Plan');
+            document.getElementById('dailyPlanNameInput').value = dailyPlan.dailyPlanName;
+            document.getElementById('menuSearchBoxForDailyPlan').value = '';
+
+            // Convert dailyPlanMenus to the format needed for rendering
+            const menus = dailyPlan.menus.map(menu => ({
+                menuId: menu.menuId,
+                name: menu.name,
+                type: menu.type
+            }));
+
+            State.set('selectedMenusForDailyPlan', menus);
+            FormRenderer.openDailyPlanEditor();
+        } catch (error) {
+            console.error('Error loading daily plan for editing:', error);
+            alert('Failed to load daily plan details');
+        }
+    }
+
+    async deleteDailyPlan() {
+        if (!this.selectedDailyPlanId) return;
+
+        const dailyPlan = this.dailyPlans.find(dp => dp.id == this.selectedDailyPlanId);
+        if (!dailyPlan) return;
+
+        if (!confirm(`Delete daily plan "${dailyPlan.name}"? This cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            await this.dailyPlanManager.deleteDailyPlan(this.selectedDailyPlanId);
+            this.renderDailyPlanList(this.dailyPlans);
+
+            this.dailyPlanManager.deselectDailyPlan();
+            setButtonsDisabled(['editDailyPlanBtn', 'deleteDailyPlanBtn'], true);
+            hideElement('dailyPlanDetailsSection');
+
+            alert('Daily plan deleted successfully');
+        } catch (error) {
+            console.error('Error deleting daily plan:', error);
+            alert('Failed to delete daily plan');
+        }
+    }
+
+    closeDailyPlanEditor() {
+        FormRenderer.closeDailyPlanEditor();
+        this.dailyPlanManager.cancelEdit();
+        FormRenderer.clearDailyPlanForm();
+        DailyPlanRenderer.hideMenuSearchResults();
+        FormRenderer.clearErrors();
+    }
+
+    async saveDailyPlan(event) {
+        event.preventDefault();
+
+        const dailyPlanName = document.getElementById('dailyPlanNameInput').value.trim();
+        const validation = this.validateDailyPlan(dailyPlanName, this.selectedMenusForDailyPlan);
+
+        if (!validation.valid) {
+            validation.errors.forEach(error => {
+                FormRenderer.showError(error.field, error.message);
+            });
+            return;
+        }
+
+        FormRenderer.clearErrors();
+
+        const payload = {
+            name: dailyPlanName,
+            dailyPlanMenus: this.selectedMenusForDailyPlan.map(menu => ({
+                menuId: menu.menuId,
+                type: menu.type
+            }))
+        };
+
+        try {
+            if (this.editingDailyPlanId) {
+                await this.dailyPlanManager.updateDailyPlan(this.editingDailyPlanId, payload);
+                alert('Daily plan updated successfully');
+                this.dailyPlanManager.selectDailyPlan(this.editingDailyPlanId);
+                await this.showDailyPlanDetails(this.editingDailyPlanId);
+            } else {
+                await this.dailyPlanManager.createDailyPlan(payload);
+                alert('Daily plan created successfully');
+                const newDailyPlan = this.dailyPlans.find(dp => dp.name === dailyPlanName);
+                if (newDailyPlan) {
+                    this.dailyPlanManager.selectDailyPlan(newDailyPlan.id);
+                    await this.showDailyPlanDetails(newDailyPlan.id);
+                }
+            }
+
+            this.renderDailyPlanList(this.dailyPlans);
+            this.closeDailyPlanEditor();
+        } catch (error) {
+            console.error('Error saving daily plan:', error);
+            FormRenderer.showError('menusError', error.message || 'Failed to save daily plan');
+        }
+    }
+
+    // Daily Plan Validation
+    validateDailyPlan(dailyPlanName, menus) {
+        const errors = [];
+
+        if (!dailyPlanName || dailyPlanName.trim().length === 0) {
+            errors.push({ field: 'dailyPlanNameError', message: 'Daily plan name is required' });
+        }
+
+        if (dailyPlanName && dailyPlanName.length > 64) {
+            errors.push({ field: 'dailyPlanNameError', message: 'Daily plan name cannot exceed 64 characters' });
+        }
+
+        if (!menus || menus.length === 0) {
+            errors.push({ field: 'menusError', message: 'At least one menu is required' });
+        }
+
+        return {
+            valid: errors.length === 0,
+            errors
+        };
+    }
+
+    // Menu Search for Daily Plan Editor
+    handleMenuSearchForDailyPlan(searchTerm) {
+        clearTimeout(this.menuSearchTimeout);
+
+        if (!searchTerm || searchTerm.trim().length < 2) {
+            DailyPlanRenderer.hideMenuSearchResults();
+            return;
+        }
+
+        this.menuSearchTimeout = setTimeout(() => {
+            this.performMenuSearchForDailyPlan(searchTerm.trim());
+        }, 300);
+    }
+
+    performMenuSearchForDailyPlan(searchTerm) {
+        const term = searchTerm.toLowerCase();
+        const results = this.menus.filter(menu =>
+            menu.name.toLowerCase().includes(term)
+        );
+
+        DailyPlanRenderer.renderMenuSearchResults(
+            results,
+            (menu) => this.addMenuToDailyPlan(menu)
+        );
+    }
+
+    addMenuToDailyPlan(menu) {
+        const added = this.dailyPlanManager.addMenuToDailyPlan(menu);
+
+        if (added) {
+            DailyPlanRenderer.hideMenuSearchResults();
+            document.getElementById('menuSearchBoxForDailyPlan').value = '';
+        }
+    }
+
+    // Daily Plan Nutrient View Navigation
+    toggleDailyNutrientView() {
+        const current = State.get('showAllDailyNutrients');
+        State.set('showAllDailyNutrients', !current);
+        State.set('currentDailyNutrientPage', 0);
+        if (this.selectedDailyPlanId) {
+            this.showDailyPlanDetails(this.selectedDailyPlanId);
+        }
+    }
+
+    prevDailyNutrientPage() {
+        const current = State.get('currentDailyNutrientPage');
+        if (current > 0) {
+            State.set('currentDailyNutrientPage', current - 1);
+            if (this.selectedDailyPlanId) {
+                this.showDailyPlanDetails(this.selectedDailyPlanId);
+            }
+        }
+    }
+
+    nextDailyNutrientPage() {
+        State.set('currentDailyNutrientPage', State.get('currentDailyNutrientPage') + 1);
+        if (this.selectedDailyPlanId) {
+            this.showDailyPlanDetails(this.selectedDailyPlanId);
         }
     }
 

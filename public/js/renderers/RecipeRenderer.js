@@ -6,7 +6,7 @@
 import { State } from '@core/State.js';
 
 export class RecipeRenderer {
-  
+
   /**
    * Render recipe list
    */
@@ -197,7 +197,8 @@ export class RecipeRenderer {
 
     let html = '<div class="details-section">';
     html += '<h3>Dietary Assessment</h3>';
-    html += `<p><strong>DASH Adherence:</strong> ${data.dashAdherence}</p>`;
+    const color = {Excellent: "green", Good: "green", Fair: "brown", Poor: "red"};
+    html += `<p style="color:${color[data.dashAdherence]}"><strong>DASH Adherence:</strong> ${data.dashAdherence} </p>`;
     html += `<p><strong>Reasons:</strong> ${data.dashReasons}</p>`;
     html += `<p><strong>Oxalate Level:</strong> <span style="color: ${oxalateRisk.color}; font-weight: bold;">${data.oxalateLevel}</span> (${data.oxalateMg.toFixed(2)} mg)</p>`;
 
@@ -334,7 +335,7 @@ export class RecipeRenderer {
    * Render all nutrients table with pagination
    */
   static renderAllNutrientsTable(contributions, data, options) {
-    const { currentNutrientPage, NUTRIENTS_PER_PAGE } = options;
+    const { currentNutrientPage, NUTRIENTS_PER_PAGE, dailyRequirements, userSettings } = options;
 
     const allNutrients = new Set();
     Object.values(contributions).forEach(contrib => {
@@ -401,11 +402,37 @@ export class RecipeRenderer {
 
     pageNutrients.forEach(nutrient => {
       const total = data.totals[nutrient] || 0;
+      let formattedValue = '';
+      let percentDaily = '';
+
+      // Calculate percentage of daily requirement
       if (nutrient === 'calories') {
-        html += `<td><strong>${total.toFixed(0)}</strong></td>`;
+        formattedValue = total.toFixed(0);
+        const userSettings = State.get('userSettings');
+        const percent = ((total / userSettings.caloriesPerDay) * 100).toFixed(1);
+        percentDaily = ` (${percent}%)`;
+      } else if (dailyRequirements[nutrient]) {
+        const req = dailyRequirements[nutrient];
+        let dailyValue = null;
+
+        if (req.recommended) {
+          dailyValue = parseFloat(req.recommended);
+        } else if (req.maximum) {
+          dailyValue = parseFloat(req.maximum);
+        }
+
+        formattedValue = total.toFixed(1);
+
+        if (dailyValue) {
+          const percent = ((total / dailyValue) * 100).toFixed(1);
+          percentDaily = ` (${percent}%)`;
+        }
       } else {
-        html += `<td><strong>${total.toFixed(1)}</strong></td>`;
+        // No daily requirement data available
+        formattedValue = total.toFixed(1);
       }
+
+      html += `<td><strong>${formattedValue}${percentDaily}</strong></td>`;
     });
 
     html += '</tr>';

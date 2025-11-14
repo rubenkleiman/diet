@@ -304,6 +304,47 @@ export class FormRenderer {
   }
 
   /**
+   * Open daily plan editor panel
+   */
+  static openDailyPlanEditor() {
+    const panel = document.getElementById('dailyPlanEditPanel');
+    if (panel) {
+      panel.classList.add('active');
+    }
+  }
+
+  /**
+   * Close daily plan editor panel
+   */
+  static closeDailyPlanEditor() {
+    const panel = document.getElementById('dailyPlanEditPanel');
+    if (panel) {
+      panel.classList.remove('active');
+    }
+  }
+
+  /**
+   * Set daily plan editor title
+   */
+  static setDailyPlanEditorTitle(title) {
+    const titleEl = document.getElementById('dailyPlanEditPanelTitle');
+    if (titleEl) {
+      titleEl.textContent = title;
+    }
+  }
+
+  /**
+   * Clear daily plan form
+   */
+  static clearDailyPlanForm() {
+    const nameInput = document.getElementById('dailyPlanNameInput');
+    const searchBox = document.getElementById('menuSearchBoxForDailyPlan');
+
+    if (nameInput) nameInput.value = '';
+    if (searchBox) searchBox.value = '';
+  }
+
+  /**
    * Open menu editor panel
    */
   static openMenuEditor() {
