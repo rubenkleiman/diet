@@ -3,8 +3,8 @@
  * Handles all ingredient-related operations
  */
 
-import { State } from '@core/State.js';
-import { APIClient } from '@core/APIClient.js';
+import { State } from '../core/State.js';
+import { APIClient } from '../core/APIClient.js';
 
 export class IngredientManager {
   

@@ -3,7 +3,7 @@
  * Handles all menu-related UI rendering
  */
 
-import { State } from '@core/State.js';
+import { State } from '../core/State.js';
 
 export class MenuRenderer {
   

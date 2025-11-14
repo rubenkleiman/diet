@@ -21,7 +21,7 @@ import { IngredientRenderer } from './renderers/IngredientRenderer.js';
 import { FormRenderer } from './renderers/FormRenderer.js';
 
 // Import utilities
-import { validateRecipe, validateIngredient } from './utils/validation.js';
+import { validateRecipe, validateIngredient } from './utils/Validation.js';
 import { setButtonsDisabled, toggleDropdown, closeDropdown, toggleMobileMenu, closeMobileMenu, setupEventDelegation, hideElement } from './utils/dom.js';
 
 class Client {

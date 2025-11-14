@@ -10,6 +10,6 @@
     "files.exclude": {
         "**/.db": false
     },
-    "debug.javascript.usePreview": false,
+    "debug.javascript.usePreview": true,
     "debug.javascript.unmapMissingSources": true
 }

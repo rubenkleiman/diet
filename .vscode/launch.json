@@ -1,71 +1,31 @@
 {
   "version": "0.2.0",
-  "configurations": [
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "app.js",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/app.js",
-      "experimentalNetworking": "off"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug Node.js Server",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/app.js",
-      "env": {
-        "NODE_ENV": "development"
-      },
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug Node.js Server (with nodemon)",
-      "runtimeExecutable": "nodemon",
-      "program": "${workspaceFolder}/app.js",
-      "restart": true,
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "env": {
-        "NODE_ENV": "development"
-      }
-    },
-    {
-      "type": "chrome",
-      "request": "launch",
-      "name": "Launch Chrome",
-      "url": "http://localhost:3001",
-      "webRoot": "${workspaceFolder}/public",
-      "sourceMapPathOverrides": {
-        "webpack:///*": "${webRoot}/*"
-      }
-    }
-  ],
   "compounds": [
     {
       "name": "Debug Full Stack",
       "configurations": [
-        "Debug Node.js Server",
-        "Launch Chrome"
-      ],
-      "presentation": {
-        "hidden": false,
-        "group": "Full Stack",
-        "order": 1
-      },
-      "stopAll": true,
-      "preLaunchTask": "Start Webpack Dev Server"
+        "Backend: Debug app.js",
+        "Frontend: Chrome"
+      ]
+    }
+  ],
+  "configurations": [
+    {
+      "name": "Backend: Debug app.js",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/app.js",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "env": { "NODE_ENV": "development" }
+    },
+    {
+      "name": "Frontend: Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/public",
+      "sourceMaps": true
     }
   ]
 }

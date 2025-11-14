@@ -10,11 +10,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-
-
-
 // Middleware
-// Set a less restrictive CSP
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -22,8 +18,8 @@ app.use(express.urlencoded({ extended: true }));
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, 'dist')));
 } else {
-  // In development, webpack-dev-server handles the frontend
-  // app.use('/css', express.static(path.join(__dirname, 'public/css')));
+  app.use(express.static(path.join(__dirname, 'public')));
+  console.log(`Serving static dev files from ${path.join(__dirname, 'public')}`);
 }
 
 function reportError(msg, error, res) {
@@ -38,6 +34,7 @@ const SYSTEM_USER_ID = 'a70ff520-1125-4098-90b3-144e22ebe84a'
 app.get('/api/config', async (req, res) => {
   try {
     // Return configuration data - modify as needed
+    console.log("hi theres");
     res.json({
       success: true,
       data: {
@@ -375,10 +372,10 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';");
-  next();
-});
+// app.use((req, res, next) => {
+//   res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';");
+//   next();
+// });
 
 // Error handling
 app.use((err, req, res, next) => {
@@ -390,9 +387,9 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(`Frontend dev server: http://localhost:3001`);
-  }
+  // if (process.env.NODE_ENV !== 'production') {
+  //   console.log(`Frontend dev server: http://localhost:3001`);
+  // }
 });
 
 export default app;

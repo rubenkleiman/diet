@@ -3,7 +3,7 @@
  * Handles all daily plan-related UI rendering
  */
 
-import { State } from '@core/State.js';
+import { State } from '../core/State.js';
 
 export class DailyPlanRenderer {
   

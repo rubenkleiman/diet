@@ -1,4 +1,3 @@
-"use strict";
 /**
  * API Client Module
  * Centralized API communication layer
