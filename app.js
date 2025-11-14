@@ -34,7 +34,6 @@ const SYSTEM_USER_ID = 'a70ff520-1125-4098-90b3-144e22ebe84a'
 app.get('/api/config', async (req, res) => {
   try {
     // Return configuration data - modify as needed
-    console.log("hi theres");
     res.json({
       success: true,
       data: {

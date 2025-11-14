@@ -1,23 +1,14 @@
 {
   "version": "0.2.0",
-  "compounds": [
-    {
-      "name": "Debug Full Stack",
-      "configurations": [
-        "Backend: Debug app.js",
-        "Frontend: Chrome"
-      ]
-    }
-  ],
   "configurations": [
     {
-      "name": "Backend: Debug app.js",
+      "name": "Backend: Attach",
       "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/app.js",
-      "cwd": "${workspaceFolder}",
-      "console": "integratedTerminal",
-      "env": { "NODE_ENV": "development" }
+      "request": "attach",
+      "port": 9229,
+      "restart": true,
+      "skipFiles": ["<node_internals>/**"],
+      "preLaunchTask": "Start Backend"
     },
     {
       "name": "Frontend: Chrome",
@@ -25,7 +16,17 @@
       "request": "launch",
       "url": "http://localhost:3000",
       "webRoot": "${workspaceFolder}/public",
-      "sourceMaps": true
+      "sourceMaps": true,
+      "preLaunchTask": "Watch Frontend"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug Full Stack",
+      "configurations": [
+        "Backend: Attach",
+        "Frontend: Chrome"
+      ]
     }
   ]
 }

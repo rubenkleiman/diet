@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "description": "Diet Guidelines Application",
   "main": "app.js",
-  "scripts": {
-    "dev": "node app.js",
+  "scripts": {    "dev": "nodemon --inspect=9229 app.js",
     "build": "esbuild public/js/client.js --bundle --outfile=public/js/bundle.js --sourcemap --format=iife",
     "watch": "esbuild public/js/client.js --bundle --outfile=public/js/bundle.js --sourcemap --format=iife --watch",
+    "dev:full": "concurrently \"npm run dev\" \"npm run watch\"",
     
     "db:comment": "echo 'db:* scripts handle db backup & population'",
     "db:init": "node lib/db/init.js",
