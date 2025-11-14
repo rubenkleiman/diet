@@ -1,6 +1,8 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import livereload from 'livereload';
+import connectLivereload from 'connect-livereload';
 import services from './services.js';
 import { report } from 'process';
 
@@ -18,6 +20,14 @@ app.use(express.urlencoded({ extended: true }));
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, 'dist')));
 } else {
+  const liveReloadServer = livereload.createServer();
+  liveReloadServer.watch(path.join(__dirname, 'public'));
+  app.use(connectLivereload());
+
+  // Notify browser after initial connection
+  liveReloadServer.server.once("connection", () => {
+    setTimeout(() => liveReloadServer.refresh("/"), 100);
+  });
   app.use(express.static(path.join(__dirname, 'public')));
   console.log(`Serving static dev files from ${path.join(__dirname, 'public')}`);
 }
@@ -33,7 +43,7 @@ const SYSTEM_USER_ID = 'a70ff520-1125-4098-90b3-144e22ebe84a'
 // API routes - Config and system data
 app.get('/api/config', async (req, res) => {
   try {
-    // Return configuration data - modify as needed
+    console.warn('hi theres')
     res.json({
       success: true,
       data: {
