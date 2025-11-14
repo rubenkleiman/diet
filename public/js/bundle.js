@@ -3441,6 +3441,15 @@
         case "toggle-mobile-menu":
           this.toggleMobileMenu();
           break;
+        case "toggle-nutrient-view":
+          this.toggleNutrientView();
+          break;
+        case "prev-nutrient-page":
+          this.prevNutrientPage();
+          break;
+        case "next-nutrient-page":
+          this.nextNutrientPage();
+          break;
         case "select-recipe":
           if (recipeId) {
             this.selectRecipe(recipeId);
@@ -3531,25 +3540,6 @@
           }
         });
       }
-      const menuSearchResultsForDailyPlan = document.getElementById("menuSearchResultsForDailyPlan");
-      if (menuSearchResultsForDailyPlan) {
-        setupEventDelegation(menuSearchResultsForDailyPlan, {
-          "add-menu-to-daily-plan": (target) => {
-            this.addMenuToDailyPlan({
-              id: target.dataset.menuId,
-              name: target.dataset.menuName
-            });
-          }
-        });
-      }
-      const dailyPlanDetails = document.getElementById("dailyPlanDetailsContent");
-      if (dailyPlanDetails) {
-        setupEventDelegation(dailyPlanDetails, {
-          "toggle-daily-nutrient-view": () => this.toggleDailyNutrientView(),
-          "prev-daily-nutrient-page": () => this.prevDailyNutrientPage(),
-          "next-daily-nutrient-page": () => this.nextDailyNutrientPage()
-        });
-      }
       const recipeRows = document.getElementById("recipeRows");
       if (recipeRows) {
         setupEventDelegation(recipeRows, {
@@ -3557,25 +3547,6 @@
             const index = parseInt(target.dataset.index);
             this.menuManager.removeRecipeFromMenu(index);
           }
-        });
-      }
-      const recipeSearchResults = document.getElementById("recipeSearchResults");
-      if (recipeSearchResults) {
-        setupEventDelegation(recipeSearchResults, {
-          "add-recipe-to-menu": (target) => {
-            this.addRecipeToMenu({
-              id: target.dataset.recipeId,
-              name: target.dataset.recipeName
-            });
-          }
-        });
-      }
-      const recipeDetails = document.getElementById("recipeDetailsContent");
-      if (recipeDetails) {
-        setupEventDelegation(recipeDetails, {
-          "toggle-nutrient-view": () => this.toggleNutrientView(),
-          "prev-nutrient-page": () => this.prevNutrientPage(),
-          "next-nutrient-page": () => this.nextNutrientPage()
         });
       }
       const ingredientRows = document.getElementById("ingredientRows");
