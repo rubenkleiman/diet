@@ -6,7 +6,7 @@
 import { State } from '../core/State.js';
 
 export class DailyPlanRenderer {
-  
+
   /**
    * Render daily plan list
    */
@@ -49,28 +49,29 @@ export class DailyPlanRenderer {
   }
 
   /**
-   * Update daily plan item with summary data
+   * Update daily plan item
    */
-  static updateDailyPlanItemWithSummary(dailyPlanId, summaryData, calculateOxalateRisk) {
+  static updateDailyPlanItemWithSummary(dailyPlanId, data, calculateOxalateRisk) {
     const item = document.querySelector(`[data-daily-plan-id="${dailyPlanId}"]`);
-    if (!item || !summaryData) return;
+    if (!item || !data) return;
 
     const userSettings = State.get('userSettings');
     const dailyRequirements = State.get('dailyRequirements');
-    
+    const summaryData = data;
+
     const calories = summaryData.totals.calories || 0;
     const caloriesPercent = ((calories / userSettings.caloriesPerDay) * 100).toFixed(0);
-    
+
     const sodium = summaryData.totals.sodium || 0;
     const sodiumReq = parseFloat(dailyRequirements['sodium']?.maximum) || 2300;
     const sodiumPercent = ((sodium / sodiumReq) * 100).toFixed(0);
-    
+
     const oxalates = summaryData.oxalateMg || 0;
     const oxalateRisk = calculateOxalateRisk(oxalates);
     const kidneyStoneRiskData = State.get('kidneyStoneRiskData');
     const maxOxalates = kidneyStoneRiskData[userSettings.kidneyStoneRisk]?.maxOxalatesPerDay || 200;
     const oxalatesPercent = ((oxalates / maxOxalates) * 100).toFixed(0);
-    
+
     const menuCount = summaryData.menus.length;
 
     item.innerHTML = `
@@ -209,7 +210,7 @@ export class DailyPlanRenderer {
     const sodiumReq = parseFloat(dailyRequirements['sodium']?.maximum) || 2300;
     const sodiumPercent = ((sodium / sodiumReq) * 100).toFixed(1);
 
-    const oxalates = data.oxalateMg || 0;
+    const oxalates = data.oxalateMg || 0;  // ✅ FIXED: Use data.oxalateMg, not data.totals.oxalates
     const oxalateRisk = calculateOxalateRisk(oxalates);
     const oxalatesPercent = oxalateRisk.percent.toFixed(1);
 
@@ -229,7 +230,7 @@ export class DailyPlanRenderer {
     const { dailyRequirements, userSettings, currentNutrientPage, INGREDIENT_PROPS, NUTRIENTS_PER_PAGE } = options;
 
     const allNutrients = Object.keys(data.totals).filter(key => data.totals[key] > 0);
-    
+
     const startIdx = currentNutrientPage * NUTRIENTS_PER_PAGE;
     const endIdx = Math.min(startIdx + NUTRIENTS_PER_PAGE, allNutrients.length);
     const pageNutrients = allNutrients.slice(startIdx, endIdx);
@@ -291,7 +292,7 @@ export class DailyPlanRenderer {
    */
   static renderMenusByType(data) {
     const typeOrder = ['Breakfast', 'Lunch', 'Brunch', 'Snack', 'Dinner', 'Other'];
-    
+
     // Group menus by type
     const menusByType = {};
     typeOrder.forEach(type => {

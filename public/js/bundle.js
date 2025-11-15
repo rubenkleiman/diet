@@ -591,8 +591,8 @@
     /**
      * Select a daily plan
      */
-    selectDailyPlan(dailyPlanId2) {
-      State.set("selectedDailyPlanId", dailyPlanId2);
+    selectDailyPlan(dailyPlanId) {
+      State.set("selectedDailyPlanId", dailyPlanId);
     }
     /**
      * Deselect daily plan
@@ -616,9 +616,9 @@
     /**
      * Start editing a daily plan
      */
-    startEdit(dailyPlanId2 = null) {
-      State.set("editingDailyPlanId", dailyPlanId2);
-      if (dailyPlanId2 === null) {
+    startEdit(dailyPlanId = null) {
+      State.set("editingDailyPlanId", dailyPlanId);
+      if (dailyPlanId === null) {
         State.set("selectedMenusForDailyPlan", []);
       }
     }
@@ -1530,13 +1530,14 @@
       });
     }
     /**
-     * Update daily plan item with summary data
+     * Update daily plan item
      */
-    static updateDailyPlanItemWithSummary(dailyPlanId2, summaryData, calculateOxalateRisk) {
-      const item = document.querySelector(`[data-daily-plan-id="${dailyPlanId2}"]`);
-      if (!item || !summaryData) return;
+    static updateDailyPlanItemWithSummary(dailyPlanId, data, calculateOxalateRisk) {
+      const item = document.querySelector(`[data-daily-plan-id="${dailyPlanId}"]`);
+      if (!item || !data) return;
       const userSettings = State.get("userSettings");
       const dailyRequirements = State.get("dailyRequirements");
+      const summaryData = data;
       const calories = summaryData.totals.calories || 0;
       const caloriesPercent = (calories / userSettings.caloriesPerDay * 100).toFixed(0);
       const sodium = summaryData.totals.sodium || 0;
@@ -1558,18 +1559,18 @@
       </span>
     `;
       const selectedDailyPlanId = State.get("selectedDailyPlanId");
-      if (dailyPlanId2 == selectedDailyPlanId) {
+      if (dailyPlanId == selectedDailyPlanId) {
         item.classList.add("selected");
       }
     }
     /**
      * Mark daily plan as selected
      */
-    static markAsSelected(dailyPlanId2) {
+    static markAsSelected(dailyPlanId) {
       document.querySelectorAll(".daily-plan-item").forEach((item) => {
         item.classList.remove("selected");
       });
-      const selectedItem = document.querySelector(`[data-daily-plan-id="${dailyPlanId2}"]`);
+      const selectedItem = document.querySelector(`[data-daily-plan-id="${dailyPlanId}"]`);
       if (selectedItem) {
         selectedItem.classList.add("selected");
       }
@@ -3431,6 +3432,7 @@
       const recipeId = element.dataset.recipeId;
       const ingredientId = element.dataset.ingredientId;
       const menuId = element.dataset.menuId;
+      const dailyPlanId = element.dataset.dailyPlanId;
       switch (action) {
         case "navigate":
           if (page) this.navigateTo(page);
@@ -3466,6 +3468,12 @@
           if (menuId) {
             this.selectMenu(menuId);
             await this.showMenuDetails(menuId);
+          }
+          break;
+        case "select-daily-plan":
+          if (dailyPlanId) {
+            this.selectDailyPlan(dailyPlanId);
+            await this.showDailyPlanDetails(dailyPlanId);
           }
           break;
         case "create-recipe":
@@ -3507,12 +3515,6 @@
         case "close-menu-editor":
           this.closeMenuEditor();
           break;
-        case "select-daily-plan":
-          if (dailyPlanId) {
-            this.selectDailyPlan(dailyPlanId);
-            await this.showDailyPlanDetails(dailyPlanId);
-          }
-          break;
         case "create-daily-plan":
           this.createDailyPlan();
           break;
@@ -3540,6 +3542,25 @@
           }
         });
       }
+      const menuSearchResultsForDailyPlan = document.getElementById("menuSearchResultsForDailyPlan");
+      if (menuSearchResultsForDailyPlan) {
+        setupEventDelegation(menuSearchResultsForDailyPlan, {
+          "add-menu-to-daily-plan": (target) => {
+            this.addMenuToDailyPlan({
+              id: target.dataset.menuId,
+              name: target.dataset.menuName
+            });
+          }
+        });
+      }
+      const dailyPlanDetails = document.getElementById("dailyPlanDetailsContent");
+      if (dailyPlanDetails) {
+        setupEventDelegation(dailyPlanDetails, {
+          "toggle-daily-nutrient-view": () => this.toggleDailyNutrientView(),
+          "prev-daily-nutrient-page": () => this.prevDailyNutrientPage(),
+          "next-daily-nutrient-page": () => this.nextDailyNutrientPage()
+        });
+      }
       const recipeRows = document.getElementById("recipeRows");
       if (recipeRows) {
         setupEventDelegation(recipeRows, {
@@ -3547,6 +3568,25 @@
             const index = parseInt(target.dataset.index);
             this.menuManager.removeRecipeFromMenu(index);
           }
+        });
+      }
+      const recipeSearchResults = document.getElementById("recipeSearchResults");
+      if (recipeSearchResults) {
+        setupEventDelegation(recipeSearchResults, {
+          "add-recipe-to-menu": (target) => {
+            this.addRecipeToMenu({
+              id: target.dataset.recipeId,
+              name: target.dataset.recipeName
+            });
+          }
+        });
+      }
+      const recipeDetails = document.getElementById("recipeDetailsContent");
+      if (recipeDetails) {
+        setupEventDelegation(recipeDetails, {
+          "toggle-nutrient-view": () => this.toggleNutrientView(),
+          "prev-nutrient-page": () => this.prevNutrientPage(),
+          "next-nutrient-page": () => this.nextNutrientPage()
         });
       }
       const ingredientRows = document.getElementById("ingredientRows");
@@ -4167,9 +4207,9 @@
     }
     // Daily Plan List & Selection
     renderDailyPlanList(dailyPlansToShow) {
-      DailyPlanRenderer.renderList(dailyPlansToShow, (dailyPlanId2) => {
-        this.selectDailyPlan(dailyPlanId2);
-        this.showDailyPlanDetails(dailyPlanId2);
+      DailyPlanRenderer.renderList(dailyPlansToShow, (dailyPlanId) => {
+        this.selectDailyPlan(dailyPlanId);
+        this.showDailyPlanDetails(dailyPlanId);
       });
       dailyPlansToShow.forEach((plan) => {
         this.fetchDailyPlanSummary(plan.id).then((data) => {
@@ -4183,9 +4223,9 @@
         });
       });
     }
-    async fetchDailyPlanSummary(dailyPlanId2) {
+    async fetchDailyPlanSummary(dailyPlanId) {
       try {
-        return await this.dailyPlanManager.getDailyPlan(dailyPlanId2);
+        return await this.dailyPlanManager.getDailyPlan(dailyPlanId);
       } catch (error) {
         console.error("Error fetching daily plan summary:", error);
         return null;
@@ -4195,14 +4235,14 @@
       const filtered = this.dailyPlanManager.filterDailyPlans(searchTerm);
       this.renderDailyPlanList(filtered);
     }
-    selectDailyPlan(dailyPlanId2) {
-      DailyPlanRenderer.markAsSelected(dailyPlanId2);
-      this.dailyPlanManager.selectDailyPlan(dailyPlanId2);
+    selectDailyPlan(dailyPlanId) {
+      DailyPlanRenderer.markAsSelected(dailyPlanId);
+      this.dailyPlanManager.selectDailyPlan(dailyPlanId);
       setButtonsDisabled(["editDailyPlanBtn", "deleteDailyPlanBtn"], false);
     }
-    async showDailyPlanDetails(dailyPlanId2) {
+    async showDailyPlanDetails(dailyPlanId) {
       try {
-        const data = await this.dailyPlanManager.getDailyPlan(dailyPlanId2);
+        const data = await this.dailyPlanManager.getDailyPlan(dailyPlanId);
         DailyPlanRenderer.renderDetails(data, {
           dailyRequirements: this.dailyRequirements,
           userSettings: this.userSettings,

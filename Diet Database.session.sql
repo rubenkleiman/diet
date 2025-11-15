@@ -53,21 +53,21 @@ select plan.id as id, plan.user_id as userId, plan.name as dailyPlanName,
     order by dpmenus.item_order;
 
 -- plan details phase 2: given menu ids, aggregate nutrients per menu
-select menus.id as menuId, menus.menu_type as type, menus.name
-    ,mr.recipe_id, recipe_items.amount as recipeAmount, recipe_items.unit as recipeUnit
-    ,brands.serving as ingredientAmount, brands.serving_unit as ingredientUnit, 
-    brands.density, brands.oxalate_per_gram
-    ,data.*
-    from menus 
-    inner join menu_recipes mr
-    on mr.menu_id = menus.id
-    inner join recipe_items 
-    on recipe_items.recipe_id = mr.recipe_id
-    inner join brands
-    on recipe_items.brand_id = brands.id
-    inner join brand_data data
-    on data.brand_id = brands.id
-    and menus.id in (7, 9);
+ select menus.id as menuId, menus.menu_type as type, menus.name
+                ,mr.recipe_id, recipe_items.amount as recipeAmount, recipe_items.unit as recipeUnit
+                ,brands.serving as ingredientAmount, brands.serving_unit as ingredientUnit, 
+                brands.density, brands.oxalate_per_gram
+                ,data.*
+                from menus 
+                inner join menu_recipes mr
+                on mr.menu_id = menus.id
+                inner join recipe_items 
+                on recipe_items.recipe_id = mr.recipe_id
+                inner join brands
+                on recipe_items.brand_id = brands.id
+                inner join brand_data data
+                on data.brand_id = brands.id
+                and menus.id in (7, 9);
 
 select * from daily_plans;
 select * from daily_plan_menus;
