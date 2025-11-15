@@ -1522,12 +1522,6 @@
       `;
         listElement.appendChild(li);
       });
-      listElement.addEventListener("click", (e) => {
-        const item = e.target.closest('[data-action="select-daily-plan"]');
-        if (item && onSelect) {
-          onSelect(item.dataset.dailyPlanId);
-        }
-      });
     }
     /**
      * Update daily plan item

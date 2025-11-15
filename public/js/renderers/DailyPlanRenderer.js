@@ -38,14 +38,6 @@ export class DailyPlanRenderer {
 
       listElement.appendChild(li);
     });
-
-    // Add click handler using event delegation
-    listElement.addEventListener('click', (e) => {
-      const item = e.target.closest('[data-action="select-daily-plan"]');
-      if (item && onSelect) {
-        onSelect(item.dataset.dailyPlanId);
-      }
-    });
   }
 
   /**
