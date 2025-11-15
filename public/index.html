@@ -202,6 +202,19 @@
                             <span class="error-text" id="ingredientsError" role="alert"></span>
                         </div>
 
+                        <div class="nutrient-preview-section">
+                            <div class="nutrient-preview-header">
+                                <h4>📊 Nutritional Preview</h4>
+                                <button type="button" class="btn btn-secondary btn-small" id="toggleRecipePreviewBtn"
+                                    data-action="toggle-recipe-preview-nutrients">
+                                    Show All Nutrients
+                                </button>
+                            </div>
+                            <div id="recipeNutrientPreview" class="nutrient-preview-content">
+                                <p class="preview-empty">Add ingredients to see nutritional preview</p>
+                            </div>
+                        </div>
+
                         <div class="edit-panel-footer">
                             <button type="button" class="btn btn-secondary"
                                 data-action="close-recipe-editor">Cancel</button>

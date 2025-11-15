@@ -1377,6 +1377,152 @@
     }
   };
 
+  // public/js/managers/NutrientPreviewManager.js
+  var NutrientPreviewManager = class {
+    constructor() {
+      this.NUTRIENTS_PER_PAGE = 5;
+      this.ingredientCache = /* @__PURE__ */ new Map();
+    }
+    /**
+     * Calculate recipe totals from selected ingredients
+     */
+    async calculateRecipeTotals(selectedIngredients) {
+      if (!selectedIngredients || selectedIngredients.length === 0) {
+        return null;
+      }
+      const totals = {};
+      let totalOxalates = 0;
+      for (const ing of selectedIngredients) {
+        try {
+          let ingredientData;
+          if (this.ingredientCache.has(ing.brandId)) {
+            ingredientData = this.ingredientCache.get(ing.brandId);
+          } else {
+            const result = await APIClient.getIngredient(ing.brandId);
+            if (!APIClient.isSuccess(result)) continue;
+            ingredientData = result.data;
+            this.ingredientCache.set(ing.brandId, ingredientData);
+          }
+          const amountInGrams = this.convertToGrams(ing.amount, ing.unit, ingredientData);
+          const scaleFactor = amountInGrams / ingredientData.gramsPerServing;
+          for (const [key, value] of Object.entries(ingredientData.data)) {
+            if (value === null || value === void 0) continue;
+            const numValue = this.extractNumericValue(value);
+            if (numValue !== null) {
+              totals[key] = (totals[key] || 0) + numValue * scaleFactor;
+            }
+          }
+          totalOxalates += ingredientData.oxalatePerGram * amountInGrams;
+        } catch (error) {
+          console.error("Error fetching ingredient:", error);
+        }
+      }
+      return {
+        totals,
+        oxalateMg: totalOxalates
+      };
+    }
+    /**
+     * Helper: Convert units to grams
+     */
+    convertToGrams(amount, unit, ingredientData) {
+      if (unit === "g") return amount;
+      if (unit === "mg") return amount / 1e3;
+      if (unit === "mcg") return amount / 1e6;
+      if (unit === "ml") {
+        const density = ingredientData.density || 1;
+        return amount * density;
+      }
+      return amount;
+    }
+    /**
+     * Helper: Extract numeric value from string like "450 mg"
+     */
+    extractNumericValue(value) {
+      if (typeof value === "number") return value;
+      if (typeof value === "string") {
+        const match = value.match(/^([\d.]+)/);
+        return match ? parseFloat(match[1]) : null;
+      }
+      return null;
+    }
+    /**
+     * Render key nutrients preview
+     */
+    renderKeyNutrients(data, userSettings, dailyRequirements, calculateOxalateRisk) {
+      const calories = data.totals.calories || 0;
+      const caloriesPercent = (calories / userSettings.caloriesPerDay * 100).toFixed(1);
+      const sodium = data.totals.sodium || 0;
+      const sodiumReq = parseFloat(dailyRequirements["sodium"]?.maximum) || 2300;
+      const sodiumPercent = (sodium / sodiumReq * 100).toFixed(1);
+      const oxalates = data.oxalateMg || 0;
+      const oxalateRisk = calculateOxalateRisk(oxalates);
+      const oxalatesPercent = oxalateRisk.percent.toFixed(1);
+      let html = '<table class="preview-table">';
+      html += `<tr><td class="preview-nutrient-name">Calories</td><td class="preview-nutrient-value">${calories.toFixed(0)} (${caloriesPercent}%)</td></tr>`;
+      html += `<tr><td class="preview-nutrient-name">Sodium</td><td class="preview-nutrient-value">${sodium.toFixed(0)} mg (${sodiumPercent}%)</td></tr>`;
+      html += `<tr><td class="preview-nutrient-name">Oxalates</td><td class="preview-nutrient-value" style="color: ${oxalateRisk.color}">${oxalates.toFixed(1)} mg (${oxalatesPercent}%)</td></tr>`;
+      html += "</table>";
+      if (oxalateRisk.message) {
+        html += `<div class="oxalate-warning" style="margin-top: 1rem;">${oxalateRisk.message}</div>`;
+      }
+      return html;
+    }
+    /**
+     * Render all nutrients preview with pagination
+     */
+    renderAllNutrients(data, userSettings, dailyRequirements, currentPage, INGREDIENT_PROPS) {
+      const allNutrients = Object.keys(data.totals).filter((key) => data.totals[key] > 0);
+      if (allNutrients.length === 0) {
+        return '<p class="preview-empty">No nutrients to display</p>';
+      }
+      const startIdx = currentPage * this.NUTRIENTS_PER_PAGE;
+      const endIdx = Math.min(startIdx + this.NUTRIENTS_PER_PAGE, allNutrients.length);
+      const pageNutrients = allNutrients.slice(startIdx, endIdx);
+      const totalPages = Math.ceil(allNutrients.length / this.NUTRIENTS_PER_PAGE);
+      let html = "";
+      if (totalPages > 1) {
+        html += '<div class="pagination-controls">';
+        html += `<button type="button" class="btn btn-secondary btn-small" data-action="prev-recipe-preview-nutrient-page" ${currentPage === 0 ? "disabled" : ""}>\u2190 Prev</button>`;
+        html += `<span class="page-info">Page ${currentPage + 1} of ${totalPages}</span>`;
+        html += `<button type="button" class="btn btn-secondary btn-small" data-action="next-recipe-preview-nutrient-page" ${currentPage >= totalPages - 1 ? "disabled" : ""}>Next \u2192</button>`;
+        html += "</div>";
+      }
+      html += '<table class="preview-table">';
+      pageNutrients.forEach((nutrient) => {
+        const value = data.totals[nutrient];
+        let formattedValue = typeof value === "number" ? value.toFixed(2) : value;
+        let percentDaily = "";
+        if (nutrient === "calories") {
+          const percent = (value / userSettings.caloriesPerDay * 100).toFixed(1);
+          percentDaily = ` (${percent}%)`;
+        } else if (dailyRequirements[nutrient]) {
+          const req = dailyRequirements[nutrient];
+          const dailyValue = parseFloat(req.recommended || req.maximum);
+          if (dailyValue) {
+            const percent = (value / dailyValue * 100).toFixed(1);
+            percentDaily = ` (${percent}%)`;
+          }
+        }
+        if (nutrient !== "calories") {
+          const unit = INGREDIENT_PROPS[nutrient]?.unit;
+          if (unit && unit !== "none") {
+            formattedValue = `${formattedValue} ${unit}`;
+          }
+        }
+        html += `<tr><td class="preview-nutrient-name">${nutrient}</td><td class="preview-nutrient-value">${formattedValue}${percentDaily}</td></tr>`;
+      });
+      html += "</table>";
+      return html;
+    }
+    /**
+     * Clear the ingredient cache
+     */
+    clearCache() {
+      this.ingredientCache.clear();
+    }
+  };
+
   // public/js/managers/SettingsManager.js
   var SettingsManager = class {
     /**
@@ -3068,6 +3214,9 @@
       this.recipeManager = new RecipeManager();
       this.ingredientManager = new IngredientManager();
       this.settingsManager = new SettingsManager();
+      this.nutrientPreviewManager = new NutrientPreviewManager();
+      this.showRecipePreviewAllNutrients = false;
+      this.recipePreviewNutrientPage = 0;
       this.menus = [];
       this.selectedMenuId = null;
       this.recipes = [];
@@ -3179,6 +3328,7 @@
           amount: (index, value) => this.recipeManager.updateIngredientAmount(index, value),
           unit: (index, value) => this.recipeManager.updateIngredientUnit(index, value)
         });
+        this.updateRecipeNutrientPreview();
       });
       State.subscribe("editingIngredientId", (newValue) => {
         this.editingIngredientId = newValue;
@@ -3482,6 +3632,15 @@
         case "close-recipe-editor":
           this.closeRecipeEditor();
           break;
+        case "toggle-recipe-preview-nutrients":
+          this.toggleRecipePreviewNutrients();
+          break;
+        case "prev-recipe-preview-nutrient-page":
+          this.prevRecipePreviewNutrientPage();
+          break;
+        case "next-recipe-preview-nutrient-page":
+          this.nextRecipePreviewNutrientPage();
+          break;
         case "create-ingredient":
           this.createIngredient();
           break;
@@ -3520,6 +3679,18 @@
           break;
         case "close-daily-plan-editor":
           this.closeDailyPlanEditor();
+          break;
+        case "add-ingredient-to-recipe":
+          break;
+        case "remove-ingredient":
+          break;
+        case "add-recipe-to-menu":
+          break;
+        case "remove-recipe":
+          break;
+        case "add-menu-to-daily-plan":
+          break;
+        case "remove-menu-from-daily-plan":
           break;
         default:
           console.warn("Unknown action:", action);
@@ -3753,6 +3924,7 @@
       FormRenderer.clearRecipeForm();
       FormRenderer.renderSelectedIngredients([]);
       FormRenderer.openRecipeEditor();
+      this.updateRecipeNutrientPreview();
     }
     async editRecipe() {
       if (!this.selectedRecipeId) return;
@@ -3770,6 +3942,7 @@
         }));
         State.set("selectedIngredientsForRecipe", ingredients);
         FormRenderer.openRecipeEditor();
+        this.updateRecipeNutrientPreview();
       } catch (error) {
         console.error("Error loading recipe for editing:", error);
         alert("Failed to load recipe details");
@@ -3800,6 +3973,7 @@
       FormRenderer.clearRecipeForm();
       FormRenderer.hideSearchResults();
       FormRenderer.clearErrors();
+      this.nutrientPreviewManager.clearCache();
     }
     async saveRecipe(event) {
       event.preventDefault();
@@ -3870,6 +4044,7 @@
       if (added) {
         FormRenderer.hideSearchResults();
         document.getElementById("ingredientSearchBox").value = "";
+        this.updateRecipeNutrientPreview();
       }
     }
     // Ingredient editor
@@ -4417,6 +4592,59 @@
       if (this.selectedDailyPlanId) {
         this.showDailyPlanDetails(this.selectedDailyPlanId);
       }
+    }
+    /**
+     * Update recipe nutrient preview
+     */
+    async updateRecipeNutrientPreview() {
+      const container = document.getElementById("recipeNutrientPreview");
+      const toggleBtn = document.getElementById("toggleRecipePreviewBtn");
+      if (!container) return;
+      if (toggleBtn) {
+        toggleBtn.textContent = this.showRecipePreviewAllNutrients ? "Show Key Nutrients" : "Show All Nutrients";
+      }
+      const data = await this.nutrientPreviewManager.calculateRecipeTotals(this.selectedIngredientsForRecipe);
+      if (!data) {
+        container.innerHTML = '<p class="preview-empty">Add ingredients to see nutritional preview</p>';
+        return;
+      }
+      const html = this.showRecipePreviewAllNutrients ? this.nutrientPreviewManager.renderAllNutrients(
+        data,
+        this.userSettings,
+        this.dailyRequirements,
+        this.recipePreviewNutrientPage,
+        _Client.INGREDIENT_PROPS
+      ) : this.nutrientPreviewManager.renderKeyNutrients(
+        data,
+        this.userSettings,
+        this.dailyRequirements,
+        (ox) => this.recipeManager.calculateOxalateRisk(ox)
+      );
+      container.innerHTML = html;
+    }
+    /**
+     * Toggle between key and all nutrients in recipe preview
+     */
+    toggleRecipePreviewNutrients() {
+      this.showRecipePreviewAllNutrients = !this.showRecipePreviewAllNutrients;
+      this.recipePreviewNutrientPage = 0;
+      this.updateRecipeNutrientPreview();
+    }
+    /**
+     * Navigate to previous page in recipe preview
+     */
+    prevRecipePreviewNutrientPage() {
+      if (this.recipePreviewNutrientPage > 0) {
+        this.recipePreviewNutrientPage--;
+        this.updateRecipeNutrientPreview();
+      }
+    }
+    /**
+     * Navigate to next page in recipe preview
+     */
+    nextRecipePreviewNutrientPage() {
+      this.recipePreviewNutrientPage++;
+      this.updateRecipeNutrientPreview();
     }
   };
   document.addEventListener("DOMContentLoaded", () => {

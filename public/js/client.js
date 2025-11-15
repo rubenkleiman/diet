@@ -11,6 +11,7 @@ import { DailyPlanManager } from './managers/DailyPlanManager.js';
 import { MenuManager } from './managers/MenuManager.js';
 import { RecipeManager } from './managers/RecipeManager.js';
 import { IngredientManager } from './managers/IngredientManager.js';
+import { NutrientPreviewManager } from './managers/NutrientPreviewManager.js';
 import { SettingsManager } from './managers/SettingsManager.js';
 
 // Import renderers
@@ -67,6 +68,9 @@ class Client {
         this.recipeManager = new RecipeManager();
         this.ingredientManager = new IngredientManager();
         this.settingsManager = new SettingsManager();
+        this.nutrientPreviewManager = new NutrientPreviewManager();
+        this.showRecipePreviewAllNutrients = false;
+        this.recipePreviewNutrientPage = 0;
 
         // Legacy properties - kept for compatibility
         this.menus = [];
@@ -204,6 +208,7 @@ class Client {
                 amount: (index, value) => this.recipeManager.updateIngredientAmount(index, value),
                 unit: (index, value) => this.recipeManager.updateIngredientUnit(index, value)
             });
+            this.updateRecipeNutrientPreview();
         });
 
         State.subscribe('editingIngredientId', (newValue) => {
@@ -579,6 +584,15 @@ class Client {
             case 'close-recipe-editor':
                 this.closeRecipeEditor();
                 break;
+            case 'toggle-recipe-preview-nutrients':
+                this.toggleRecipePreviewNutrients();
+                break;
+            case 'prev-recipe-preview-nutrient-page':
+                this.prevRecipePreviewNutrientPage();
+                break;
+            case 'next-recipe-preview-nutrient-page':
+                this.nextRecipePreviewNutrientPage();
+                break;
             case 'create-ingredient':
                 this.createIngredient();
                 break;
@@ -617,6 +631,24 @@ class Client {
                 break;
             case 'close-daily-plan-editor':
                 this.closeDailyPlanEditor();
+                break;
+            case 'add-ingredient-to-recipe':
+                // Handled by event delegation in setupEventDelegation()
+                break;
+            case 'remove-ingredient':
+                // Handled by event delegation in setupEventDelegation()
+                break;
+            case 'add-recipe-to-menu':
+                // Handled by event delegation in setupEventDelegation()
+                break;
+            case 'remove-recipe':
+                // Handled by event delegation in setupEventDelegation()
+                break;
+            case 'add-menu-to-daily-plan':
+                // Handled by event delegation in setupEventDelegation()
+                break;
+            case 'remove-menu-from-daily-plan':
+                // Handled by event delegation in setupEventDelegation()
                 break;
             default:
                 console.warn('Unknown action:', action);
@@ -891,6 +923,7 @@ class Client {
         FormRenderer.clearRecipeForm();
         FormRenderer.renderSelectedIngredients([]);
         FormRenderer.openRecipeEditor();
+        this.updateRecipeNutrientPreview();
     }
 
     async editRecipe() {
@@ -914,6 +947,7 @@ class Client {
 
             State.set('selectedIngredientsForRecipe', ingredients);
             FormRenderer.openRecipeEditor();
+            this.updateRecipeNutrientPreview();
         } catch (error) {
             console.error('Error loading recipe for editing:', error);
             alert('Failed to load recipe details');
@@ -951,6 +985,7 @@ class Client {
         FormRenderer.clearRecipeForm();
         FormRenderer.hideSearchResults();
         FormRenderer.clearErrors();
+        this.nutrientPreviewManager.clearCache();
     }
 
     async saveRecipe(event) {
@@ -1034,6 +1069,7 @@ class Client {
         if (added) {
             FormRenderer.hideSearchResults();
             document.getElementById('ingredientSearchBox').value = '';
+            this.updateRecipeNutrientPreview();
         }
     }
 
@@ -1695,6 +1731,74 @@ class Client {
         if (this.selectedDailyPlanId) {
             this.showDailyPlanDetails(this.selectedDailyPlanId);
         }
+    }
+
+    /**
+     * Update recipe nutrient preview
+     */
+    async updateRecipeNutrientPreview() {
+        const container = document.getElementById('recipeNutrientPreview');
+        const toggleBtn = document.getElementById('toggleRecipePreviewBtn');
+
+        if (!container) return;
+
+        // Update button text
+        if (toggleBtn) {
+            toggleBtn.textContent = this.showRecipePreviewAllNutrients
+                ? 'Show Key Nutrients'
+                : 'Show All Nutrients';
+        }
+
+        const data = await this.nutrientPreviewManager.calculateRecipeTotals(this.selectedIngredientsForRecipe);
+
+        if (!data) {
+            container.innerHTML = '<p class="preview-empty">Add ingredients to see nutritional preview</p>';
+            return;
+        }
+
+        const html = this.showRecipePreviewAllNutrients
+            ? this.nutrientPreviewManager.renderAllNutrients(
+                data,
+                this.userSettings,
+                this.dailyRequirements,
+                this.recipePreviewNutrientPage,
+                Client.INGREDIENT_PROPS
+            )
+            : this.nutrientPreviewManager.renderKeyNutrients(
+                data,
+                this.userSettings,
+                this.dailyRequirements,
+                (ox) => this.recipeManager.calculateOxalateRisk(ox)
+            );
+
+        container.innerHTML = html;
+    }
+
+    /**
+     * Toggle between key and all nutrients in recipe preview
+     */
+    toggleRecipePreviewNutrients() {
+        this.showRecipePreviewAllNutrients = !this.showRecipePreviewAllNutrients;
+        this.recipePreviewNutrientPage = 0;
+        this.updateRecipeNutrientPreview();
+    }
+
+    /**
+     * Navigate to previous page in recipe preview
+     */
+    prevRecipePreviewNutrientPage() {
+        if (this.recipePreviewNutrientPage > 0) {
+            this.recipePreviewNutrientPage--;
+            this.updateRecipeNutrientPreview();
+        }
+    }
+
+    /**
+     * Navigate to next page in recipe preview
+     */
+    nextRecipePreviewNutrientPage() {
+        this.recipePreviewNutrientPage++;
+        this.updateRecipeNutrientPreview();
     }
 
 }

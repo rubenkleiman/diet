@@ -1777,3 +1777,67 @@ body {
         gap: 0.5rem;
     }
 }
+
+/* Nutrient Preview Styles */
+.nutrient-preview-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 2px solid var(--border-color);
+}
+
+.nutrient-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.nutrient-preview-header h4 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+.nutrient-preview-content {
+    background: white;
+    padding: 1rem;
+    border-radius: 4px;
+    min-height: 100px;
+}
+
+.preview-empty {
+    text-align: center;
+    color: #95a5a6;
+    font-style: italic;
+    margin: 2rem 0;
+}
+
+.preview-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.preview-table tr {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.preview-table tr:last-child {
+    border-bottom: none;
+}
+
+.preview-table td {
+    padding: 0.5rem 0.75rem;
+}
+
+.preview-nutrient-name {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.preview-nutrient-value {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+}
