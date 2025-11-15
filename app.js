@@ -43,7 +43,6 @@ const SYSTEM_USER_ID = 'a70ff520-1125-4098-90b3-144e22ebe84a'
 // API routes - Config and system data
 app.get('/api/config', async (req, res) => {
   try {
-    console.warn('hi theres')
     res.json({
       success: true,
       data: {
