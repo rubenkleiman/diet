@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { request } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import livereload from 'livereload';
@@ -32,13 +32,14 @@ if (process.env.NODE_ENV === 'production') {
   console.log(`Serving static dev files from ${path.join(__dirname, 'public')}`);
 }
 
-function reportError(msg, error, res) {
-  console.error(msg, error);
-  res.status(500).json({ success: false, error: error.message });
-}
-
 // TODO hardwired for now (single-user)
 const SYSTEM_USER_ID = 'a70ff520-1125-4098-90b3-144e22ebe84a'
+
+
+function reportError(msg, req, error, res) {
+  console.error(msg, error);
+  res.status(500).json({ success: false, error: `ERROR: ${msg} - req.params: ${JSON.stringify(req.params)}; req.query: ${JSON.stringify(req.query)} - ${error.message}` });
+}
 
 // API routes - Config and system data
 app.get('/api/config', async (req, res) => {
@@ -53,7 +54,7 @@ app.get('/api/config', async (req, res) => {
       }
     });
   } catch (error) {
-    reportError('Error in /api/config:', error, res);
+    reportError('GET /api/config', req, error, res);
   }
 });
 
@@ -62,7 +63,7 @@ app.get('/api/kidney-stone-risk', async (req, res) => {
     const data = services.getKidneyStoneRiskData();
     res.json({ success: true, data });
   } catch (error) {
-    reportError('Error in /api/kidney-stone-risk:', error, res);
+    reportError('GET /api/kidney-stone-risk', req, error, res);
   }
 });
 
@@ -71,7 +72,7 @@ app.get('/api/daily-requirements', async (req, res) => {
     const data = await services.getDailyRequirements(SYSTEM_USER_ID);
     res.json({ success: true, data });
   } catch (error) {
-    reportError('Error in /api/daily-requirements:', error, res);
+    reportError('GET /api/daily-requirements', req, error, res);
   }
 });
 
@@ -82,7 +83,7 @@ app.get('/api/daily-plans', async (req, res) => {
     const data = await services.getAllDailyPlans(searchTerm, SYSTEM_USER_ID);
     res.json({ success: true, data });
   } catch (error) {
-    reportError('Error in GET /api/daily-plans:', error, res);
+    reportError('GET /api/daily-plans', req, error, res);
   }
 });
 
@@ -93,7 +94,7 @@ app.get('/api/daily-plans/:id', async (req, res) => {
     res.json({ success: true, data });
     // res.send(JSON.stringify({ success: true, data }, null, 2));
   } catch (error) {
-    reportError('Error GET /api/daily-plans/:id', error, res);
+    reportError(`GET /api/daily-plans/:id`, req, error, res);
   }
 });
 
@@ -103,7 +104,7 @@ app.post('/api/daily-plans', async (req, res) => {
     const data = await services.createDailyPlan(request, SYSTEM_USER_ID);
     res.json({ success: true, data });
   } catch (error) {
-    reportError('Error POST /api/daily-plans', error, res);
+    reportError(`POST /api/daily-plans`, req, error, res);
   }
 });
 
@@ -114,7 +115,7 @@ app.put('/api/daily-plans/:id', async (req, res) => {
     const data = await services.updateDailyPlan(id, request, SYSTEM_USER_ID);
     res.json({ success: true, data });
   } catch (error) {
-    reportError('Error PUT /api/daily-plans/:id', error, res);
+    reportError(`PUT /api/daily-plans/:id`, req, error, res);
   }
 });
 
@@ -129,7 +130,7 @@ app.delete('/api/daily-plans/:id', async (req, res) => {
       }
     });
   } catch (error) {
-    reportError('Error DELETE /api/daily-plans', error, res);
+    reportError(`DELETE /api/daily-plans:id`, req, error, res);
   }
 });
 
@@ -139,7 +140,7 @@ app.get('/api/menus', async (req, res) => {
     const menus = await services.getAllMenus(SYSTEM_USER_ID);
     res.json({ success: true, data: menus });
   } catch (error) {
-    reportError('Error in /api/menus:', error, res);
+    reportError('GET /api/menus', req, error, res);
   }
 });
 
@@ -148,14 +149,13 @@ app.get('/api/menus/:id', async (req, res) => {
     const { id } = req.params;
     const summary = req.query.summary === 'true';
     const data = await services.getMenuDetails(id, summary);
-
     if (!data) {
-      return res.status(404).json({ success: false, error: 'Menu not found' });
+      res.status(404).json({ success: false, error: 'Menu not found' });
+    } else {
+      res.json({ success: true, data });
     }
-
-    res.json({ success: true, data });
   } catch (error) {
-    reportError('Error in /api/menus/:id:', error, res);
+    reportError(`GET /api/menus/:id`, req, error, res);
   }
 });
 
@@ -163,9 +163,9 @@ app.post('/api/menus', async (req, res) => {
   try {
     const { name, recipeIds } = req.body
     const menu = await services.createMenu(name, recipeIds, SYSTEM_USER_ID);
-    return { success: true, data: menu };
+    res.json({ success: true, data: menu });
   } catch (error) {
-    reportError('Error in POST /api/menus', error, res);
+    reportError(`POST /api/menus`, req, error, res);
   }
 });
 
@@ -174,9 +174,9 @@ app.put('/api/menus/:id', async (req, res) => {
     const { id } = req.params;
     const { name, recipeIds } = req.body;
     const data = await services.updateMenu(id, name, recipeIds, SYSTEM_USER_ID);
-    return { success: true, data };
+    res.json({ success: true, data });
   } catch (error) {
-    reportError('Error in PUT /api/menus/:id', error, res);
+    reportError(`PUT /api/menus/:id`, req, error, res);
   }
 });
 
@@ -186,7 +186,7 @@ app.delete('/api/menus/:id', async (req, res) => {
     await services.deleteMenu(id, SYSTEM_USER_ID);
     res.json({ success: true, data: { id: id } });
   } catch (error) {
-    reportError('Error in DELETE /api/menus/:id', error, res);
+    reportError(`DELETE /api/menus/:id`, req, error, res);
   }
 });
 
@@ -196,7 +196,7 @@ app.get('/api/recipes', async (req, res) => {
     const recipes = await services.getAllRecipes(SYSTEM_USER_ID);
     res.json({ success: true, data: recipes });
   } catch (error) {
-    reportError('Error in /api/recipes:', error, res);
+    reportError('GET /api/recipes', req, error, res);
   }
 });
 
@@ -205,14 +205,13 @@ app.get('/api/recipes/:id', async (req, res) => {
     const { id } = req.params;
     const summary = req.query.summary === 'true';
     const recipe = await services.getRecipeDetails(id, summary);
-
     if (!recipe) {
-      return res.status(404).json({ success: false, error: 'Recipe not found' });
+      res.status(404).json({ success: false, error: `Recipe not found. id: ${id}; summary: ${summary}` });
+    } else {
+      res.json({ success: true, data: recipe });
     }
-
-    res.json({ success: true, data: recipe });
   } catch (error) {
-    reportError('Error in /api/recipes/:id:', error, res);
+    reportError(`GET /api/recipes/:id`, req, error, res);
   }
 });
 
@@ -220,32 +219,30 @@ app.get('/api/recipes/:id/full', async (req, res) => {
   try {
     const { id } = req.params;
     const recipe = await services.getRecipeFullDetails(id, SYSTEM_USER_ID);
-
     if (!recipe) {
-      return res.status(404).json({ success: false, error: 'Recipe not found' });
+      res.status(404).json({ success: false, error: 'Recipe not found' });
+    } else {
+      res.json({ success: true, data: recipe });
     }
-
-    res.json({ success: true, data: recipe });
   } catch (error) {
-    reportError('Error in /api/recipes/:id/full:', error, res);
+    reportError(`GET /api/recipes/:id/full`, req, error, res);
   }
 });
 
 app.post('/api/recipes', async (req, res) => {
   try {
     const { name, ingredients } = req.body;
-
     if (!name || !ingredients || !Array.isArray(ingredients)) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Name and ingredients array are required'
       });
+    } else {
+      const recipeId = await services.createRecipe(name, ingredients, SYSTEM_USER_ID);
+      res.json({ success: true, data: { id: recipeId, name } });
     }
-
-    const recipeId = await services.createRecipe(name, ingredients, SYSTEM_USER_ID);
-    res.json({ success: true, data: { id: recipeId, name } });
   } catch (error) {
-    reportError('Error in POST /api/recipes:', error, res);
+    reportError(`POST /api/recipes`, req, error, res);
   }
 });
 
@@ -253,18 +250,17 @@ app.put('/api/recipes/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name, ingredients } = req.body;
-
     if (!name || !ingredients || !Array.isArray(ingredients)) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Name and ingredients array are required'
       });
+    } else {
+      await services.updateRecipe(id, name, ingredients, SYSTEM_USER_ID);
+      res.json({ success: true, data: { id, name } });
     }
-
-    await services.updateRecipe(id, name, ingredients, SYSTEM_USER_ID);
-    res.json({ success: true, data: { id, name } });
   } catch (error) {
-    reportError('Error in PUT /api/recipes/:id:', error, res);
+    reportError(`PUT /api/recipes/:id`, req, error, res);
   }
 });
 
@@ -274,7 +270,7 @@ app.delete('/api/recipes/:id', async (req, res) => {
     await services.deleteRecipe(id, SYSTEM_USER_ID);
     res.json({ success: true, message: 'Recipe deleted successfully' });
   } catch (error) {
-    reportError('Error in DELETE /api/recipes/:id:', error, res);
+    reportError(`DELETE /api/recipes/:id`, req, error, res);
   }
 });
 
@@ -283,93 +279,87 @@ app.get('/api/ingredients', async (req, res) => {
   try {
     const searchTerm = req.query.search;
     let ingredients;
-
     if (searchTerm) {
       ingredients = await services.searchIngredients(searchTerm, SYSTEM_USER_ID);
     } else {
       ingredients = await services.getAllIngredients(SYSTEM_USER_ID);
     }
-
     res.json({ success: true, data: ingredients });
   } catch (error) {
-    reportError('Error in /api/ingredients:', error, res);
+    reportError(`GET /api/ingredients`, req, error, res);
   }
 });
 
 app.get('/api/ingredients/:id', async (req, res) => {
   try {
-    const brandId = parseInt(req.params.id);
-    const ingredient = await services.getIngredientDetails(brandId, SYSTEM_USER_ID);
-
+    const id = parseInt(req.params.id);
+    const ingredient = await services.getIngredientDetails(id, SYSTEM_USER_ID);
     if (!ingredient) {
-      return res.status(404).json({ success: false, error: 'Ingredient not found' });
+      res.status(404).json({ success: false, error: 'Ingredient not found' });
+    } else {
+      res.json({ success: true, data: ingredient });
     }
-
-    res.json({ success: true, data: ingredient });
   } catch (error) {
-    reportError('Error in /api/ingredients/:id:', error, res);
+    reportError(`GET /api/ingredients/:id`, req, error, res);
   }
 });
 
 app.get('/api/ingredients/:id/full', async (req, res) => {
   try {
-    const brandId = parseInt(req.params.id);
-    const ingredient = await services.getIngredientFullDetails(brandId, SYSTEM_USER_ID);
-
+    const id = parseInt(req.params.id);
+    const ingredient = await services.getIngredientFullDetails(id, SYSTEM_USER_ID);
     if (!ingredient) {
-      return res.status(404).json({ success: false, error: 'Ingredient not found' });
+      res.status(404).json({ success: false, error: 'Ingredient not found' });
+    } else {
+      res.json({ success: true, data: ingredient });
     }
-
-    res.json({ success: true, data: ingredient });
   } catch (error) {
-    reportError('Error in /api/ingredients/:id/full:', error, res);
+    reportError(`GET /api/ingredients/:id/full`, req, error, res);
   }
 });
 
 app.post('/api/ingredients', async (req, res) => {
   try {
     const ingredientData = req.body;
-
     if (!ingredientData.name || !ingredientData.serving) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Name and serving are required'
       });
+    } else {
+      const brandId = await services.createIngredient(ingredientData, SYSTEM_USER_ID);
+      res.json({ success: true, data: { id: brandId } });
     }
-
-    const brandId = await services.createIngredient(ingredientData, SYSTEM_USER_ID);
-    res.json({ success: true, data: { id: brandId } });
   } catch (error) {
-    reportError('Error in POST /api/ingredients:', error, res);
+    reportError(`POST /api/ingredients`, req, error, res);
   }
 });
 
 app.put('/api/ingredients/:id', async (req, res) => {
   try {
-    const brandId = parseInt(req.params.id);
+    const id = parseInt(req.params.id);
     const ingredientData = req.body;
-
     if (!ingredientData.name || !ingredientData.serving) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Name and serving are required'
       });
+    } else {
+      await services.updateIngredient(id, ingredientData, SYSTEM_USER_ID);
+      res.json({ success: true, data: { id } });
     }
-
-    await services.updateIngredient(brandId, ingredientData, SYSTEM_USER_ID);
-    res.json({ success: true, data: { id: brandId } });
   } catch (error) {
-    reportError('Error in PUT /api/ingredients/:id:', error, res);
+    reportError(`Error in PUT /api/ingredients/:id`, req, error, res);
   }
 });
 
 app.delete('/api/ingredients/:id', async (req, res) => {
   try {
-    const brandId = parseInt(req.params.id);
-    await services.deleteIngredient(brandId, SYSTEM_USER_ID);
+    const id = parseInt(req.params.id);
+    await services.deleteIngredient(id, SYSTEM_USER_ID);
     res.json({ success: true, message: 'Ingredient deleted successfully' });
   } catch (error) {
-    reportError('Error in DELETE /api/ingredients/:id:', error, res);
+    reportError(`DELETE /api/ingredients/:id`, req, error, res);
   }
 });
 
@@ -380,24 +370,15 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// app.use((req, res, next) => {
-//   res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';");
-//   next();
-// });
-
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ success: false, error: 'Internal server error' });
 });
 
-// ✅ GOOD - Only runs when executed directly
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  // if (process.env.NODE_ENV !== 'production') {
-  //   console.log(`Frontend dev server: http://localhost:3001`);
-  // }
 });
 
 export default app;

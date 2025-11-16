@@ -71,6 +71,8 @@ class Client {
         this.nutrientPreviewManager = new NutrientPreviewManager();
         this.showRecipePreviewAllNutrients = false;
         this.recipePreviewNutrientPage = 0;
+        this.showMenuPreviewAllNutrients = false;
+        this.menuPreviewNutrientPage = 0;
 
         // Legacy properties - kept for compatibility
         this.menus = [];
@@ -163,6 +165,7 @@ class Client {
             MenuRenderer.renderSelectedRecipes(newValue, (index) => {
                 this.menuManager.removeRecipeFromMenu(index);
             });
+            this.updateMenuNutrientPreview();
         });
         State.subscribe('recipes', (newValue) => {
             this.recipes = newValue;
@@ -228,6 +231,12 @@ class Client {
     // Replace your init() method with this version:
 
     async init() {
+        if (this._initialized) {
+            console.warn('⚠️ init() called twice! Ignoring second call.');
+            return;
+        }
+        this._initialized = true;
+
         console.log('🟢 Client init started');
 
         try {
@@ -410,6 +419,7 @@ class Client {
 
             if (actionElement) {
                 e.preventDefault();
+                e.stopPropagation();
                 this.handleAction(actionElement);
             }
 
@@ -435,11 +445,17 @@ class Client {
             if (e.key === 'Escape') {
                 const recipePanel = document.getElementById('recipeEditPanel');
                 const ingredientPanel = document.getElementById('ingredientEditPanel');
+                const menuPanel = document.getElementById('menuEditPanel');
+                const dailyPlanPanel = document.getElementById('dailyPlanEditPanel');
 
                 if (recipePanel && recipePanel.classList.contains('active')) {
                     this.closeRecipeEditor();
                 } else if (ingredientPanel && ingredientPanel.classList.contains('active')) {
                     this.closeIngredientEditor();
+                } else if (menuPanel && menuPanel.classList.contains('active')) {
+                    this.closeMenuEditor();
+                } else if (dailyPlanPanel && dailyPlanPanel.classList.contains('active')) {
+                    this.closeDailyPlanEditor();
                 }
             }
         });
@@ -614,11 +630,23 @@ class Client {
             case 'edit-menu':
                 this.editMenu();
                 break;
+            case 'save-menu':
+                document.getElementById('menuEditForm').requestSubmit();
+                break;
             case 'delete-menu':
                 this.deleteMenu();
                 break;
             case 'close-menu-editor':
                 this.closeMenuEditor();
+                break;
+            case 'toggle-menu-preview-nutrients':
+                this.toggleMenuPreviewNutrients();
+                break;
+            case 'prev-menu-preview-nutrient-page':
+                this.prevMenuPreviewNutrientPage();
+                break;
+            case 'next-menu-preview-nutrient-page':
+                this.nextMenuPreviewNutrientPage();
                 break;
             case 'create-daily-plan':
                 this.createDailyPlan();
@@ -1298,6 +1326,7 @@ class Client {
         FormRenderer.clearMenuForm();
         MenuRenderer.renderSelectedRecipes([]);
         FormRenderer.openMenuEditor();
+        this.updateMenuNutrientPreview();  // ✅ ADD THIS LINE
     }
 
     async editMenu() {
@@ -1323,6 +1352,7 @@ class Client {
 
             State.set('selectedRecipesForMenu', recipes);
             FormRenderer.openMenuEditor();
+            this.updateMenuNutrientPreview();
         } catch (error) {
             console.error('Error loading menu for editing:', error);
             alert('Failed to load menu details');
@@ -1360,15 +1390,20 @@ class Client {
         FormRenderer.clearMenuForm();
         MenuRenderer.hideRecipeSearchResults();
         FormRenderer.clearErrors();
+        this.nutrientPreviewManager.clearCache();
     }
 
     async saveMenu(event) {
         event.preventDefault();
+        console.log('🔵 saveMenu START');
 
         const menuName = document.getElementById('menuNameInput').value.trim();
+        console.log('🔵 menuName:', menuName);
+
         const validation = this.validateMenu(menuName, this.selectedRecipesForMenu);
 
         if (!validation.valid) {
+            console.log('❌ Validation failed');
             validation.errors.forEach(error => {
                 FormRenderer.showError(error.field, error.message);
             });
@@ -1381,27 +1416,40 @@ class Client {
             name: menuName,
             recipeIds: this.selectedRecipesForMenu.map(r => r.id)
         };
+        console.log('🔵 payload:', payload);
 
         try {
             if (this.editingMenuId) {
+                console.log('🟡 UPDATE path');
                 await this.menuManager.updateMenu(this.editingMenuId, payload);
                 alert('Menu updated successfully');
                 this.menuManager.selectMenu(this.editingMenuId);
                 await this.showMenuDetails(this.editingMenuId);
             } else {
+                console.log('🟡 CREATE path');
                 await this.menuManager.createMenu(payload);
+                console.log('🟢 createMenu completed');
+                console.log('🟢 this.menus length:', this.menus.length);
+
                 alert('Menu created successfully');
+
                 const newMenu = this.menus.find(m => m.name === menuName);
+                console.log('🟢 newMenu found:', newMenu);
+
                 if (newMenu) {
                     this.menuManager.selectMenu(newMenu.id);
                     await this.showMenuDetails(newMenu.id);
                 }
             }
 
+            console.log('🔵 About to renderMenuList with', this.menus.length, 'menus');
             this.renderMenuList(this.menus);
+            console.log('🔵 About to closeMenuEditor');
             this.closeMenuEditor();
+            console.log('🟢 saveMenu COMPLETE');
         } catch (error) {
-            console.error('Error saving menu:', error);
+            console.error('❌ Error saving menu:', error);
+            console.error('❌ Error stack:', error.stack);
             FormRenderer.showError('recipesError', error.message || 'Failed to save menu');
         }
     }
@@ -1465,6 +1513,7 @@ class Client {
         if (added) {
             MenuRenderer.hideRecipeSearchResults();
             document.getElementById('recipeSearchBox').value = '';
+            this.updateMenuNutrientPreview();
         } else {
             alert('This recipe is already in the menu');
         }
@@ -1799,6 +1848,73 @@ class Client {
     nextRecipePreviewNutrientPage() {
         this.recipePreviewNutrientPage++;
         this.updateRecipeNutrientPreview();
+    }
+    /**
+ * Update menu nutrient preview
+ */
+    async updateMenuNutrientPreview() {
+        const container = document.getElementById('menuNutrientPreview');
+        const toggleBtn = document.getElementById('toggleMenuPreviewBtn');
+
+        if (!container) return;
+
+        // Update button text
+        if (toggleBtn) {
+            toggleBtn.textContent = this.showMenuPreviewAllNutrients
+                ? 'Show Key Nutrients'
+                : 'Show All Nutrients';
+        }
+
+        const data = await this.nutrientPreviewManager.calculateMenuTotals(this.selectedRecipesForMenu);
+
+        if (!data) {
+            container.innerHTML = '<p class="preview-empty">Add recipes to see nutritional preview</p>';
+            return;
+        }
+
+        const html = this.showMenuPreviewAllNutrients
+            ? this.nutrientPreviewManager.renderAllNutrients(
+                data,
+                this.userSettings,
+                this.dailyRequirements,
+                this.menuPreviewNutrientPage,
+                Client.INGREDIENT_PROPS
+            )
+            : this.nutrientPreviewManager.renderKeyNutrients(
+                data,
+                this.userSettings,
+                this.dailyRequirements,
+                (ox) => this.menuManager.calculateOxalateRisk(ox)
+            );
+
+        container.innerHTML = html;
+    }
+
+    /**
+     * Toggle between key and all nutrients in menu preview
+     */
+    toggleMenuPreviewNutrients() {
+        this.showMenuPreviewAllNutrients = !this.showMenuPreviewAllNutrients;
+        this.menuPreviewNutrientPage = 0;
+        this.updateMenuNutrientPreview();
+    }
+
+    /**
+     * Navigate to previous page in menu preview
+     */
+    prevMenuPreviewNutrientPage() {
+        if (this.menuPreviewNutrientPage > 0) {
+            this.menuPreviewNutrientPage--;
+            this.updateMenuNutrientPreview();
+        }
+    }
+
+    /**
+     * Navigate to next page in menu preview
+     */
+    nextMenuPreviewNutrientPage() {
+        this.menuPreviewNutrientPage++;
+        this.updateMenuNutrientPreview();
     }
 
 }

@@ -64,6 +64,42 @@ export class NutrientPreviewManager {
   }
 
   /**
+   * Calculate menu totals from selected recipes
+   */
+  async calculateMenuTotals(selectedRecipes) {
+    if (!selectedRecipes || selectedRecipes.length === 0) {
+      return null;
+    }
+
+    const totals = {};
+    let totalOxalates = 0;
+
+    // Fetch each recipe's summary
+    for (const recipe of selectedRecipes) {
+      try {
+        const result = await APIClient.getRecipe(recipe.id, true);
+        if (!APIClient.isSuccess(result)) continue;
+
+        const data = result.data;
+
+        // Aggregate totals
+        for (const [key, value] of Object.entries(data.totals || {})) {
+          totals[key] = (totals[key] || 0) + value;
+        }
+
+        totalOxalates += (data.oxalateMg || 0);
+      } catch (error) {
+        console.error('Error fetching recipe:', error);
+      }
+    }
+
+    return {
+      totals,
+      oxalateMg: totalOxalates
+    };
+  }
+
+  /**
    * Helper: Convert units to grams
    */
   convertToGrams(amount, unit, ingredientData) {

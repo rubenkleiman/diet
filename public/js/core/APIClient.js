@@ -22,14 +22,14 @@ class APIClientManager {
         },
         ...options,
       };
-      // console.log(`APIClient URL: ${url} DATA:\n${JSON.stringify(data)}`)
+      console.log(`APIClient Endpoint: ${url}; FETCH OPTIONS:\n${JSON.stringify(data)}`)
       const response = await fetch(url, data);
       // console.log(`RESPONSE: ${response.ok ? 'success':'failure'} URL: ${url} DATA:\n${JSON.stringify(data)}`)
 
-      if (!response.ok) {
-        throw Error(`Response error. URL ${url}`)
-      }
       const result = await response.json();
+      if (!response.ok) {
+        throw Error(`Response error. URL ${url}. ${JSON.stringify(result)}`)
+      }
       // console.log(`JSON: ${url} DATATYPE: ${typeof data} DATALEN:${typeof data == "object" ? Object.keys(data).length : data?.length} DATA:\n${JSON.stringify(data)}`)
       return result;
     } catch (error) {

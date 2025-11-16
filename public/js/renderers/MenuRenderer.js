@@ -35,14 +35,6 @@ export class MenuRenderer {
 
       listElement.appendChild(li);
     });
-
-    // Add click handler using event delegation
-    listElement.addEventListener('click', (e) => {
-      const item = e.target.closest('[data-action="select-menu"]');
-      if (item && onSelect) {
-        onSelect(item.dataset.menuId);
-      }
-    });
   }
 
   /**
@@ -315,17 +307,6 @@ export class MenuRenderer {
       }
 
       resultsContainer.appendChild(item);
-    });
-
-    // Add click handler
-    resultsContainer.addEventListener('click', (e) => {
-      const item = e.target.closest('[data-action="add-recipe-to-menu"]');
-      if (item && onAdd) {
-        onAdd({
-          id: item.dataset.recipeId,
-          name: item.dataset.recipeName
-        });
-      }
     });
 
     resultsContainer.classList.add('show');

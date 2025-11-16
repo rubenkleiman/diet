@@ -49,21 +49,20 @@ export class MenuManager {
   /**
    * Create a new menu
    */
-  async createMenu(menuData) {
+async createMenu(menuData) {
     try {
-      const result = await APIClient.createMenu(menuData);
-      
-      if (APIClient.isSuccess(result)) {
-        await this.loadMenus(); // Refresh list
-        return result.data;
-      } else {
-        throw new Error(APIClient.getError(result));
-      }
+        const result = await APIClient.createMenu(menuData);
+        
+        if (APIClient.isSuccess(result)) {
+            await this.loadMenus();
+            return result.data;
+        } else {
+            throw new Error(APIClient.getError(result));
+        }
     } catch (error) {
-      console.error('Error creating menu:', error);
-      throw error;
+        throw error;
     }
-  }
+}
 
   /**
    * Update an existing menu
