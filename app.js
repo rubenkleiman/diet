@@ -36,9 +36,9 @@ if (process.env.NODE_ENV === 'production') {
 const SYSTEM_USER_ID = 'a70ff520-1125-4098-90b3-144e22ebe84a'
 
 
-function reportError(msg, req, error, res) {
+function reportError(msg, req, error, res, status = 500) {
   console.error(msg, error);
-  res.status(500).json({ success: false, error: `ERROR: ${msg} - req.params: ${JSON.stringify(req.params)}; req.query: ${JSON.stringify(req.query)} - ${error.message}` });
+  res.status(status).json({ success: false, error: `ERROR: ${msg} - req.params: ${JSON.stringify(req.params)}; req.query: ${JSON.stringify(req.query)} - ${error.message}` });
 }
 
 // API routes - Config and system data
@@ -101,6 +101,7 @@ app.get('/api/daily-plans/:id', async (req, res) => {
 app.post('/api/daily-plans', async (req, res) => {
   try {
     const request = req.body;
+    console.log(JSON.stringify(request, null, 2));
     const data = await services.createDailyPlan(request, SYSTEM_USER_ID);
     res.json({ success: true, data });
   } catch (error) {
@@ -112,6 +113,7 @@ app.put('/api/daily-plans/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const request = req.body;
+    console.log(JSON.stringify(request, null, 2));
     const data = await services.updateDailyPlan(id, request, SYSTEM_USER_ID);
     res.json({ success: true, data });
   } catch (error) {
@@ -122,13 +124,17 @@ app.put('/api/daily-plans/:id', async (req, res) => {
 app.delete('/api/daily-plans/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    await services.deleteDailyPlan(id, SYSTEM_USER_ID);
-    res.json({
-      "success": true,
-      "data": {
-        "message": "Daily plan deleted successfully"
-      }
-    });
+    const result = await services.deleteDailyPlan(id, SYSTEM_USER_ID);
+    if (result.ok) {
+      res.json({
+        "success": true,
+        "data": {
+          "message": "Daily plan deleted successfully"
+        }
+      });
+    } else {
+      reportError(`DELETE /api/daily-plans:id`, req, error, res, 404);
+    }
   } catch (error) {
     reportError(`DELETE /api/daily-plans:id`, req, error, res);
   }
