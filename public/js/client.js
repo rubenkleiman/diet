@@ -73,6 +73,8 @@ class Client {
         this.recipePreviewNutrientPage = 0;
         this.showMenuPreviewAllNutrients = false;
         this.menuPreviewNutrientPage = 0;
+        this.showDailyPlanPreviewAllNutrients = false;
+        this.dailyPlanPreviewNutrientPage = 0;
 
         // Legacy properties - kept for compatibility
         this.menus = [];
@@ -138,6 +140,7 @@ class Client {
                 (index) => this.dailyPlanManager.removeMenuFromDailyPlan(index),
                 (index, type) => this.dailyPlanManager.updateMenuType(index, type)
             );
+            this.updateDailyPlanNutrientPreview();
         });
 
         State.subscribe('showAllDailyNutrients', (newValue) => {
@@ -421,6 +424,7 @@ class Client {
                 e.preventDefault();
                 e.stopPropagation();
                 this.handleAction(actionElement);
+                return;
             }
 
             // Close dropdowns when clicking outside
@@ -656,6 +660,15 @@ class Client {
                 break;
             case 'delete-daily-plan':
                 this.deleteDailyPlan();
+                break;
+            case 'toggle-daily-plan-preview-nutrients':
+                this.toggleDailyPlanPreviewNutrients();
+                break;
+            case 'prev-daily-plan-preview-nutrient-page':
+                this.prevDailyPlanPreviewNutrientPage();
+                break;
+            case 'next-daily-plan-preview-nutrient-page':
+                this.nextDailyPlanPreviewNutrientPage();
                 break;
             case 'close-daily-plan-editor':
                 this.closeDailyPlanEditor();
@@ -1589,6 +1602,7 @@ class Client {
             (index, type) => this.dailyPlanManager.updateMenuType(index, type)
         );
         FormRenderer.openDailyPlanEditor();
+        this.updateDailyPlanNutrientPreview();
     }
 
     async editDailyPlan() {
@@ -1612,6 +1626,7 @@ class Client {
 
             State.set('selectedMenusForDailyPlan', menus);
             FormRenderer.openDailyPlanEditor();
+            // this.updateDailyPlanNutrientPreview();
         } catch (error) {
             console.error('Error loading daily plan for editing:', error);
             alert('Failed to load daily plan details');
@@ -1649,6 +1664,7 @@ class Client {
         FormRenderer.clearDailyPlanForm();
         DailyPlanRenderer.hideMenuSearchResults();
         FormRenderer.clearErrors();
+        this.nutrientPreviewManager.clearCache();
     }
 
     async saveDailyPlan(event) {
@@ -1752,6 +1768,7 @@ class Client {
         if (added) {
             DailyPlanRenderer.hideMenuSearchResults();
             document.getElementById('menuSearchBoxForDailyPlan').value = '';
+            // this.updateDailyPlanNutrientPreview();
         }
     }
 
@@ -1917,6 +1934,74 @@ class Client {
         this.updateMenuNutrientPreview();
     }
 
+
+    /**
+     * Update daily plan nutrient preview
+     */
+    async updateDailyPlanNutrientPreview() {
+        const container = document.getElementById('dailyPlanNutrientPreview');
+        const toggleBtn = document.getElementById('toggleDailyPlanPreviewBtn');
+
+        if (!container) return;
+
+        // Update button text
+        if (toggleBtn) {
+            toggleBtn.textContent = this.showDailyPlanPreviewAllNutrients
+                ? 'Show Key Nutrients'
+                : 'Show All Nutrients';
+        }
+
+        const data = await this.nutrientPreviewManager.calculateDailyPlanTotals(this.selectedMenusForDailyPlan);
+
+        if (!data) {
+            container.innerHTML = '<p class="preview-empty">Add menus to see nutritional preview</p>';
+            return;
+        }
+
+        const html = this.showDailyPlanPreviewAllNutrients
+            ? this.nutrientPreviewManager.renderAllNutrients(
+                data,
+                this.userSettings,
+                this.dailyRequirements,
+                this.dailyPlanPreviewNutrientPage,
+                Client.INGREDIENT_PROPS
+            )
+            : this.nutrientPreviewManager.renderKeyNutrients(
+                data,
+                this.userSettings,
+                this.dailyRequirements,
+                (ox) => this.dailyPlanManager.calculateOxalateRisk(ox)
+            );
+
+        container.innerHTML = html;
+    }
+
+    /**
+     * Toggle between key and all nutrients in daily plan preview
+     */
+    toggleDailyPlanPreviewNutrients() {
+        this.showDailyPlanPreviewAllNutrients = !this.showDailyPlanPreviewAllNutrients;
+        this.dailyPlanPreviewNutrientPage = 0;
+        this.updateDailyPlanNutrientPreview();
+    }
+
+    /**
+     * Navigate to previous page in daily plan preview
+     */
+    prevDailyPlanPreviewNutrientPage() {
+        if (this.dailyPlanPreviewNutrientPage > 0) {
+            this.dailyPlanPreviewNutrientPage--;
+            this.updateDailyPlanNutrientPreview();
+        }
+    }
+
+    /**
+     * Navigate to next page in daily plan preview
+     */
+    nextDailyPlanPreviewNutrientPage() {
+        this.dailyPlanPreviewNutrientPage++;
+        this.updateDailyPlanNutrientPreview();
+    }
 }
 
 // Initialize when DOM is ready

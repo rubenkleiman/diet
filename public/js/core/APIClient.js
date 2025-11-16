@@ -13,6 +13,7 @@ class APIClientManager {
    */
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+    // console.trace(`APIClient Endpoint Stack Trace: ${url}`)
 
     try {
       const data = {
@@ -22,11 +23,11 @@ class APIClientManager {
         },
         ...options,
       };
-      console.log(`APIClient Endpoint: ${url}; FETCH OPTIONS:\n${JSON.stringify(data)}`)
-      const response = await fetch(url, data);
+      // console.log(`APIClient Endpoint: ${url}; FETCH OPTIONS:\n${JSON.stringify(data)}`)
+      const response =  await fetch(url, data);
       // console.log(`RESPONSE: ${response.ok ? 'success':'failure'} URL: ${url} DATA:\n${JSON.stringify(data)}`)
 
-      const result = await response.json();
+      const result = await response.  json();
       if (!response.ok) {
         throw Error(`Response error. URL ${url}. ${JSON.stringify(result)}`)
       }

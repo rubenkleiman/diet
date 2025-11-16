@@ -97,7 +97,7 @@ select menus.name, menus.id, menu_recipes.recipe_id
         on menu_recipes.menu_id = menus.id
         where menus.user_id = 'a70ff520-1125-4098-90b3-144e22ebe84a'
         order by item_order;
-update menus set menu_type = 'Dinner' where id = 9;
+update menus set menu_type = 'Breakfast' where id = 6;
 
 -- BRANDS
 select * from brands where id = 32;

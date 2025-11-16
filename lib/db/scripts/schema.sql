@@ -215,7 +215,7 @@ CREATE TABLE IF NOT EXISTS daily_plan_menus (
         type IN ('Dinner', 'Lunch', 'Breakfast', 'Brunch', 'Snack', 'Other')
     ),
     item_order INTEGER DEFAULT 1,
-    CONSTRAINT daily_plan_id_fk FOREIGN KEY(daily_plan_id) REFERENCES daily_plans(id),
+    CONSTRAINT daily_plan_id_fk FOREIGN KEY(daily_plan_id) REFERENCES daily_plans(id) ON DELETE CASCADE,
     CONSTRAINT daily_plan_menu_fk FOREIGN KEY(menu_id) REFERENCES menus(id)
 );
 CREATE INDEX idx_daily_plan_type ON daily_plan_menus(type);

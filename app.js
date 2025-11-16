@@ -110,7 +110,7 @@ app.post('/api/daily-plans', async (req, res) => {
 
 app.put('/api/daily-plans/:id', async (req, res) => {
   try {
-    const { id } = body.params;
+    const { id } = req.params;
     const request = req.body;
     const data = await services.updateDailyPlan(id, request, SYSTEM_USER_ID);
     res.json({ success: true, data });
@@ -121,7 +121,7 @@ app.put('/api/daily-plans/:id', async (req, res) => {
 
 app.delete('/api/daily-plans/:id', async (req, res) => {
   try {
-    const { id } = body.params;
+    const { id } = req.params;
     await services.deleteDailyPlan(id, SYSTEM_USER_ID);
     res.json({
       "success": true,

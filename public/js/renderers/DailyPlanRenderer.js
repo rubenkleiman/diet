@@ -432,17 +432,6 @@ export class DailyPlanRenderer {
       resultsContainer.appendChild(item);
     });
 
-    // Add click handler
-    resultsContainer.addEventListener('click', (e) => {
-      const item = e.target.closest('[data-action="add-menu-to-daily-plan"]');
-      if (item && onAdd) {
-        onAdd({
-          id: item.dataset.menuId,
-          name: item.dataset.menuName
-        });
-      }
-    });
-
     resultsContainer.classList.add('show');
   }
 

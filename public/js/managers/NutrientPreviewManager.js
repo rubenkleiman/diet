@@ -100,6 +100,71 @@ export class NutrientPreviewManager {
   }
 
   /**
+   * Calculate daily plan totals from selected menus
+   */
+  async calculateDailyPlanTotals(selectedMenus) {
+    if (!selectedMenus || selectedMenus.length === 0) {
+      return null;
+    }
+
+    const totals = {};
+    let totalOxalates = 0;
+
+    // Fetch each menu's details
+    for (const menu of selectedMenus) {
+      try {
+        const result = await APIClient.getMenu(menu.menuId);
+        if (!APIClient.isSuccess(result)) continue;
+
+        const menuData = result.data;
+
+        // Get nutritional data for this menu
+        const nutritionalData = await this.getMenuNutritionalData(menuData);
+
+        // Aggregate totals
+        for (const [key, value] of Object.entries(nutritionalData.totals || {})) {
+          totals[key] = (totals[key] || 0) + value;
+        }
+
+        totalOxalates += (nutritionalData.oxalateMg || 0);
+      } catch (error) {
+        console.error('Error fetching menu:', error);
+      }
+    }
+
+    return {
+      totals,
+      oxalateMg: totalOxalates
+    };
+  }
+
+  /**
+   * Helper: Get menu nutritional data (similar to MenuManager)
+   */
+  async getMenuNutritionalData(menu) {
+    const recipePromises = menu.recipeIds.map(recipeId => 
+      APIClient.getRecipe(recipeId, false)
+    );
+    
+    const recipeResults = await Promise.all(recipePromises);
+    const recipes = recipeResults
+      .filter(result => APIClient.isSuccess(result))
+      .map(result => result.data);
+
+    const totals = {};
+    let totalOxalates = 0;
+
+    recipes.forEach(recipe => {
+      for (const [key, value] of Object.entries(recipe.totals || {})) {
+        totals[key] = (totals[key] || 0) + value;
+      }
+      totalOxalates += (recipe.oxalateMg || 0);
+    });
+
+    return { totals, oxalateMg: totalOxalates };
+  }
+
+  /**
    * Helper: Convert units to grams
    */
   convertToGrams(amount, unit, ingredientData) {
