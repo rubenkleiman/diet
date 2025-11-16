@@ -71,7 +71,7 @@ select plan.id as id, plan.user_id as userId, plan.name as dailyPlanName,
 
 select * from daily_plans;
 select * from daily_plan_menus;
-select * from menus where id in (7, 9);
+select * from menus where id in (6);
 select * from menu_recipes where menu_id in (7, 9);
 select * from recipes;
 select * from recipe_items;
@@ -81,6 +81,7 @@ select * from brands;
 insert into daily_plans(user_id,name) values('a70ff520-1125-4098-90b3-144e22ebe84a', 'Today''s Plan');
 insert into daily_plan_menus(daily_plan_id,menu_id,type) values(1, 7, "Breakfast");
 insert into daily_plan_menus(daily_plan_id,menu_id,type) values(1, 9, "Dinner");
+
 -- MENUS
 select * from menus;
 select * from menu_recipes;
@@ -151,3 +152,11 @@ VALUES (
         NULL,
         NULL
     );
+
+
+select plans.id, plans.user_id, plans.name, menus.menu_id, menus.type 
+        from daily_plans as plans
+        inner join daily_plan_menus as menus
+        on plans.id = menus.daily_plan_id
+        and user_id = 'a70ff520-1125-4098-90b3-144e22ebe84a'
+        and plans.id = 4;
