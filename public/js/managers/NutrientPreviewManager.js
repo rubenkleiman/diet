@@ -1,6 +1,6 @@
 /**
- * Nutrient Preview Manager
- * Calculates and renders nutritional previews for editors
+ * Nutrient Preview Manager (Simplified with Backend)
+ * Calculates and renders nutritional previews for editors using backend API
  */
 
 import { APIClient } from '../core/APIClient.js';
@@ -8,192 +8,83 @@ import { APIClient } from '../core/APIClient.js';
 export class NutrientPreviewManager {
   constructor() {
     this.NUTRIENTS_PER_PAGE = 5;
-    this.ingredientCache = new Map(); // Cache ingredient data to avoid duplicate API calls
   }
 
   /**
-   * Calculate recipe totals from selected ingredients
+   * Calculate recipe totals from selected ingredients (using backend)
    */
   async calculateRecipeTotals(selectedIngredients) {
     if (!selectedIngredients || selectedIngredients.length === 0) {
       return null;
     }
 
-    const totals = {};
-    let totalOxalates = 0;
-
-    // Fetch each ingredient's details and scale by amount
-    for (const ing of selectedIngredients) {
-      try {
-        // Check cache first
-        let ingredientData;
-        if (this.ingredientCache.has(ing.brandId)) {
-          ingredientData = this.ingredientCache.get(ing.brandId);
-        } else {
-          const result = await APIClient.getIngredient(ing.brandId);
-          if (!APIClient.isSuccess(result)) continue;
-          ingredientData = result.data;
-          this.ingredientCache.set(ing.brandId, ingredientData);
-        }
-
-        const amountInGrams = this.convertToGrams(ing.amount, ing.unit, ingredientData);
-
-        // Scale nutrients
-        const scaleFactor = amountInGrams / ingredientData.gramsPerServing;
-        
-        for (const [key, value] of Object.entries(ingredientData.data)) {
-          if (value === null || value === undefined) continue;
-          
-          const numValue = this.extractNumericValue(value);
-          if (numValue !== null) {
-            totals[key] = (totals[key] || 0) + (numValue * scaleFactor);
-          }
-        }
-
-        // Add oxalates
-        totalOxalates += (ingredientData.oxalatePerGram * amountInGrams);
-      } catch (error) {
-        console.error('Error fetching ingredient:', error);
+    try {
+      const result = await APIClient.previewRecipe(selectedIngredients);
+      
+      if (APIClient.isSuccess(result)) {
+        return result.data; // { totals: {...}, oxalateMg: ... }
       }
+      
+      console.error('Error calculating recipe totals:', APIClient.getError(result));
+      return null;
+    } catch (error) {
+      console.error('Error calculating recipe totals:', error);
+      return null;
     }
-
-    return {
-      totals,
-      oxalateMg: totalOxalates
-    };
   }
 
   /**
-   * Calculate menu totals from selected recipes
+   * Calculate menu totals from selected recipes (using backend)
    */
   async calculateMenuTotals(selectedRecipes) {
     if (!selectedRecipes || selectedRecipes.length === 0) {
       return null;
     }
 
-    const totals = {};
-    let totalOxalates = 0;
-
-    // Fetch each recipe's summary
-    for (const recipe of selectedRecipes) {
-      try {
-        const result = await APIClient.getRecipe(recipe.id, true);
-        if (!APIClient.isSuccess(result)) continue;
-
-        const data = result.data;
-
-        // Aggregate totals
-        for (const [key, value] of Object.entries(data.totals || {})) {
-          totals[key] = (totals[key] || 0) + value;
-        }
-
-        totalOxalates += (data.oxalateMg || 0);
-      } catch (error) {
-        console.error('Error fetching recipe:', error);
+    try {
+      const recipeIds = selectedRecipes.map(r => r.id);
+      const result = await APIClient.previewMenu(recipeIds);
+      
+      if (APIClient.isSuccess(result)) {
+        return result.data;
       }
+      
+      console.error('Error calculating menu totals:', APIClient.getError(result));
+      return null;
+    } catch (error) {
+      console.error('Error calculating menu totals:', error);
+      return null;
     }
-
-    return {
-      totals,
-      oxalateMg: totalOxalates
-    };
   }
 
   /**
-   * Calculate daily plan totals from selected menus
+   * Calculate daily plan totals from selected menus (using backend)
    */
   async calculateDailyPlanTotals(selectedMenus) {
     if (!selectedMenus || selectedMenus.length === 0) {
       return null;
     }
 
-    const totals = {};
-    let totalOxalates = 0;
-
-    // Fetch each menu's details
-    for (const menu of selectedMenus) {
-      try {
-        const result = await APIClient.getMenu(menu.menuId);
-        if (!APIClient.isSuccess(result)) continue;
-
-        const menuData = result.data;
-
-        // Get nutritional data for this menu
-        const nutritionalData = await this.getMenuNutritionalData(menuData);
-
-        // Aggregate totals
-        for (const [key, value] of Object.entries(nutritionalData.totals || {})) {
-          totals[key] = (totals[key] || 0) + value;
-        }
-
-        totalOxalates += (nutritionalData.oxalateMg || 0);
-      } catch (error) {
-        console.error('Error fetching menu:', error);
+    try {
+      const menuIds = selectedMenus.map(m => m.menuId);
+      const result = await APIClient.previewDailyPlan(menuIds);
+      
+      if (APIClient.isSuccess(result)) {
+        return result.data;
       }
+      
+      console.error('Error calculating daily plan totals:', APIClient.getError(result));
+      return null;
+    } catch (error) {
+      console.error('Error calculating daily plan totals:', error);
+      return null;
     }
-
-    return {
-      totals,
-      oxalateMg: totalOxalates
-    };
-  }
-
-  /**
-   * Helper: Get menu nutritional data (similar to MenuManager)
-   */
-  async getMenuNutritionalData(menu) {
-    const recipePromises = menu.recipeIds.map(recipeId => 
-      APIClient.getRecipe(recipeId, false)
-    );
-    
-    const recipeResults = await Promise.all(recipePromises);
-    const recipes = recipeResults
-      .filter(result => APIClient.isSuccess(result))
-      .map(result => result.data);
-
-    const totals = {};
-    let totalOxalates = 0;
-
-    recipes.forEach(recipe => {
-      for (const [key, value] of Object.entries(recipe.totals || {})) {
-        totals[key] = (totals[key] || 0) + value;
-      }
-      totalOxalates += (recipe.oxalateMg || 0);
-    });
-
-    return { totals, oxalateMg: totalOxalates };
-  }
-
-  /**
-   * Helper: Convert units to grams
-   */
-  convertToGrams(amount, unit, ingredientData) {
-    if (unit === 'g') return amount;
-    if (unit === 'mg') return amount / 1000;
-    if (unit === 'mcg') return amount / 1000000;
-    if (unit === 'ml') {
-      const density = ingredientData.density || 1;
-      return amount * density;
-    }
-    return amount;
-  }
-
-  /**
-   * Helper: Extract numeric value from string like "450 mg"
-   */
-  extractNumericValue(value) {
-    if (typeof value === 'number') return value;
-    if (typeof value === 'string') {
-      const match = value.match(/^([\d.]+)/);
-      return match ? parseFloat(match[1]) : null;
-    }
-    return null;
   }
 
   /**
    * Render key nutrients preview
    */
-  renderKeyNutrients(data, userSettings, dailyRequirements, calculateOxalateRisk) {
+  renderKeyNutrients(data, userSettings, dailyRequirements, calculateOxalateRisk, nutrientMetadataManager) {
     const calories = data.totals.calories || 0;
     const caloriesPercent = ((calories / userSettings.caloriesPerDay) * 100).toFixed(1);
 
@@ -221,7 +112,7 @@ export class NutrientPreviewManager {
   /**
    * Render all nutrients preview with pagination
    */
-  renderAllNutrients(data, userSettings, dailyRequirements, currentPage, INGREDIENT_PROPS) {
+  renderAllNutrients(data, userSettings, dailyRequirements, currentPage, nutrientMetadataManager) {
     const allNutrients = Object.keys(data.totals).filter(key => data.totals[key] > 0);
     
     if (allNutrients.length === 0) {
@@ -247,7 +138,8 @@ export class NutrientPreviewManager {
 
     pageNutrients.forEach(nutrient => {
       const value = data.totals[nutrient];
-      let formattedValue = typeof value === 'number' ? value.toFixed(2) : value;
+      const displayName = nutrientMetadataManager.getDisplayName(nutrient);
+      let formattedValue = nutrientMetadataManager.formatValue(nutrient, value);
       let percentDaily = '';
 
       if (nutrient === 'calories') {
@@ -262,25 +154,11 @@ export class NutrientPreviewManager {
         }
       }
 
-      if (nutrient !== 'calories') {
-        const unit = INGREDIENT_PROPS[nutrient]?.unit;
-        if (unit && unit !== 'none') {
-          formattedValue = `${formattedValue} ${unit}`;
-        }
-      }
-
-      html += `<tr><td class="preview-nutrient-name">${nutrient}</td><td class="preview-nutrient-value">${formattedValue}${percentDaily}</td></tr>`;
+      html += `<tr><td class="preview-nutrient-name">${displayName}</td><td class="preview-nutrient-value">${formattedValue}${percentDaily}</td></tr>`;
     });
 
     html += '</table>';
 
     return html;
-  }
-
-  /**
-   * Clear the ingredient cache
-   */
-  clearCache() {
-    this.ingredientCache.clear();
   }
 }

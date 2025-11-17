@@ -24,10 +24,10 @@ class APIClientManager {
         ...options,
       };
       // console.log(`APIClient Endpoint: ${url}; FETCH OPTIONS:\n${JSON.stringify(data)}`)
-      const response =  await fetch(url, data);
+      const response = await fetch(url, data);
       // console.log(`RESPONSE: ${response.ok ? 'success':'failure'} URL: ${url} DATA:\n${JSON.stringify(data)}`)
 
-      const result = await response.  json();
+      const result = await response.json();
       if (!response.ok) {
         throw Error(`Response error. URL ${url}. ${JSON.stringify(result)}`)
       }
@@ -302,6 +302,47 @@ class APIClientManager {
    */
   getData(response) {
     return this.isSuccess(response) ? response.data : null;
+  }
+
+  // ===== NUTRIENT METADATA ENDPOINTS =====
+
+  async getNutrients() {
+    return await this.request('/nutrients');
+  }
+
+  // ===== PREVIEW ENDPOINTS =====
+
+  /**
+   * Preview recipe nutrition from ingredients
+   * @param {Array} ingredients - [{ brandId, amount, unit }]
+   */
+  async previewRecipe(ingredients) {
+    return await this.request('/preview/recipe', {
+      method: 'POST',
+      body: JSON.stringify({ ingredients }),
+    });
+  }
+
+  /**
+   * Preview menu nutrition from recipes
+   * @param {Array} recipeIds - [recipeId1, recipeId2, ...]
+   */
+  async previewMenu(recipeIds) {
+    return await this.request('/preview/menu', {
+      method: 'POST',
+      body: JSON.stringify({ recipeIds }),
+    });
+  }
+
+  /**
+   * Preview daily plan nutrition from menus
+   * @param {Array} menuIds - [menuId1, menuId2, ...]
+   */
+  async previewDailyPlan(menuIds) {
+    return await this.request('/preview/daily-plan', {
+      method: 'POST',
+      body: JSON.stringify({ menuIds }),
+    });
   }
 }
 
