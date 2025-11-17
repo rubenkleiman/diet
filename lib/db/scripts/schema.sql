@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS brand_data (
     iron VARCHAR(20),
     fat VARCHAR(20),
     saturated_fat VARCHAR(20),
-    polysaturated_fat VARCHAR(20),
+    polyunsaturated_fat VARCHAR(20),
     monosaturated_fat VARCHAR(20),
     thiamin VARCHAR(20),
     riboflavin VARCHAR(20),
@@ -226,53 +226,79 @@ CREATE TABLE nutrients(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     -- Use AUTO_INCREMENT for MySQL
     key varchar(32) NOT NULL,
-    displayName varchar(32) NOT NULL,
+    display_name varchar(32) NOT NULL,
     unit varchar(12) NOT NULL DEFAULT "none",
     category varchar(16) NOT NULL DEFAULT "other",
-    dashRelevant BOOLEAN NOT NULL DEFAULT 0,
+    dash_relevant BOOLEAN NOT NULL DEFAULT false,
     item_order INTEGER DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(displayName)
+    UNIQUE(display_name)
 );
-select * from nutrients;
-INSERT INTO nutrients(key, displayName, unit, category, dashRelevant, item_order)
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
 VALUES('calories','Calories','none','macronutrient', true, 1);
-INSERT INTO nutrients(key, displayName, unit, category, dashRelevant, item_order)
-VALUES('calories','Calories','none','macronutrient', true, 1);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('sodium','Sodium','mg','mineral', true, 2);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('cholesterol','Cholesterol','mg','lipid',true, 3);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('sugars','Sugars','g','carbohydrate',true, 4);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('protein','Protein','g','macronutrient',true, 5);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('dietary_fiber','Dietary Fiber','g','non-digestible carbohydrate',true, 6);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('carbohydrates','Carbohydrates','g','macronutrient', true,7);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('calcium','Calcium','mg','mineral',true, 8);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('potassium','Potassium','mg','mineral', true, 9);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('magnesium','Magnesium','mg','mineral',true, 10);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('selenium','Selenium','mcg','mineral',false, 11);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('manganese','Manganese','mg','mineral', false,12);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('zinc','Zinc','mg', 'mineral',false,13);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('iron','Iron','mg','mineral', true,14);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('fat','Fat','g','macronutrient',true, 15);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('saturated_fat','Saturated Fat','g','macronutrient', true,16);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('polyunsaturated_fat','Polyunsaturated Fat','g','macronutrient',true, 17);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('monosaturated_fat','Monosaturated Fat','g', 'macronutrient',true,18);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('thiamin','Thiamin','mg','vitamin',false, 19);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('riboflavin','Riboflavin','mg','vitamin',false, 20);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('niacin','Niacin ','mg','vitamin', false,21);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('folic_acid','Folic Acid','mcg','vitamin',false, 22);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('phosphorus','Phosphorus','mg','mineral',false, 23);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('vitamin_a','Vitamin A','mcg', 'vitamin',false,24);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('vitamin_b6','Vitamin B6','mg','vitamin', false,25);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('vitamin_c','Vitamin C','mg', 'vitamin',false,26);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('vitamin_d','Vitamin D','mcg','vitamin', false,27);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('vitamin_e','Vitamin E','mg', 'vitamin',false,28);
+INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_order)
+VALUES('vitamin_k','Vitamin K','mcg', 'vitamin',false,29);
+
 
 -- Note: kidney_stone_risk data maintained in kidneyStoneRisk.json
 -- Could optionally be moved to database:
 /*
 
-
-GET /api/nutrients
-Response: {
-  nutrients: [
-    { 
-      key: "calories",
-      displayName: "Calories",
-      unit: "none",
-      category: "macronutrient",
-      dashRelevant: true
-    },
-    {
-      key: "sodium",
-      displayName: "Sodium",
-      unit: "mg",
-      category: "mineral",
-      dashRelevant: true
-    },
-    {
-      key: "oxalates",
-      displayName: "Oxalates",
-      unit: "mg",
-      category: "other",
-      dashRelevant: false
-    },
-    // ... all other nutrients
-  ]
-}
 
  CREATE TABLE IF NOT EXISTS kidney_stone_risk (
  id INTEGER PRIMARY KEY AUTOINCREMENT,

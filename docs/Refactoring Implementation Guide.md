@@ -60,6 +60,89 @@ This refactoring reduces `client.js` from ~1600 lines to ~800 lines (50% reducti
 }
 ```
 
+ curl -X POST http://localhost:3000/api/preview/recipe -H "Content-Type: application/json" -d '{"ingredients":[{"brandId": "8", "amount": 30, "unit": "g"}, {"brandId": "12", "amount": 125, "unit": "ml"}, {"brandId": "7", "amount": 10, "unit": "g"}]}'
+
+ [
+  {
+    brandData: {
+      id: 8,
+      name: "Thick Rolled Oats (Bob's Red Mill)",
+      serving: "48 g",
+      gramsPerServing: 48,
+      density: null,
+      oxalatePerGram: 0.1,
+      oxalatePerServing: 4.800000000000001,
+      data: {
+        calories: 180,
+        protein: "5 g",
+        dietary_fiber: "4 g",
+        carbohydrates: "33 g",
+        calcium: "14 mg",
+        potassium: "174 mg",
+        iron: "2 mg",
+        saturated_fat: "0.5 g",
+      },
+    },
+    ingredientServing: {
+      brandId: "8",
+      amount: 30,
+      unit: "g",
+    },
+  },
+  {
+    brandData: {
+      id: 12,
+      name: "Clover Non-Fat Organic Milk",
+      serving: "240 ml",
+      gramsPerServing: 247.92,
+      density: 1.033,
+      oxalatePerGram: 0.004,
+      oxalatePerServing: 0.99168,
+      data: {
+        calories: 90,
+        sodium: "130 mg",
+        cholesterol: "3 mg",
+        sugars: "12 g",
+        protein: "9 g",
+        carbohydrates: "12 g",
+        calcium: "310 mg",
+        potassium: "420 mg",
+        vitamin_a: "150 mcg",
+        vitamin_d: "2.5 mcg",
+      },
+    },
+    ingredientServing: {
+      brandId: "12",
+      amount: 125,
+      unit: "ml",
+    },
+  },
+  {
+    brandData: {
+      id: 7,
+      name: "Hidden Farms Maple Syrup",
+      serving: "30 ml",
+      gramsPerServing: 41.1,
+      density: 1.37,
+      oxalatePerGram: 0.04,
+      oxalatePerServing: 1.6440000000000001,
+      data: {
+        calories: 110,
+        sodium: "5 mg",
+        sugars: "24 g",
+        carbohydrates: "27 g",
+        calcium: "30 mg",
+        potassium: "90 mg",
+      },
+    },
+    ingredientServing: {
+      brandId: "7",
+      amount: 10,
+      unit: "g",
+    },
+  },
+]
+
 **Response**:
 ```json
 {

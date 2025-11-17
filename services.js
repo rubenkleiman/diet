@@ -34,6 +34,14 @@ class ServicesClass {
         this.dailyRequirements = null
     }
 
+    async getNutrients() {
+        return await this.brandRepository.getNutrients()
+    }
+
+    async calculateRecipeNutrition(request, userId) {
+        return await this.recipeRepository.calculateRecipeNutrition(request, userId);
+    }   
+
     /**
      * Load daily requirements from database
      */
@@ -377,7 +385,7 @@ class ServicesClass {
                 bd.calories, bd.sodium, bd.cholesterol, bd.sugars, bd.protein,
                 bd.dietary_fiber, bd.carbohydrates, bd.calcium, bd.potassium, bd.magnesium,
                 bd.selenium, bd.manganese, bd.zinc, bd.iron, bd.fat, bd.saturated_fat,
-                bd.polysaturated_fat, bd.monosaturated_fat, bd.thiamin, bd.riboflavin,
+                bd.polyunsaturated_fat, bd.monosaturated_fat, bd.thiamin, bd.riboflavin,
                 bd.niacin, bd.folic_acid, bd.phosphorus, bd.vitamin_a, bd.vitamin_b6,
                 bd.vitamin_c, bd.vitamin_d, bd.vitamin_e, bd.vitamin_k
             FROM brands b
@@ -421,7 +429,7 @@ class ServicesClass {
                 iron: parseValue(brandData.iron),
                 fat: parseValue(brandData.fat),
                 saturated_fat: parseValue(brandData.saturated_fat),
-                polysaturated_fat: parseValue(brandData.polysaturated_fat),
+                polyunsaturated_fat: parseValue(brandData.polyunsaturated_fat),
                 monosaturated_fat: parseValue(brandData.monosaturated_fat),
                 thiamin: parseValue(brandData.thiamin),
                 riboflavin: parseValue(brandData.riboflavin),
@@ -512,6 +520,7 @@ class ServicesClass {
             }
         }
     }
+
 }
 
 const services = new ServicesClass()

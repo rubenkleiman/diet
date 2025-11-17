@@ -27,8 +27,9 @@ select (
 select * from users;
 insert into users(id, username, password,display_name) values('a70ff520-1125-4098-90b3-144e22ebe84a','rk','rk','Ruben');
 
-select * from recipes;
-select * from recipe_items where  recipe_id = 6;
+select * from nutrients;
+select * from recipes where id = '1';
+select * from recipe_items where  recipe_id = 14;
 select r.*, i.* from recipes r
   inner join recipe_items i on r.id = i.recipe_id
   and r.id = 6;
@@ -90,7 +91,6 @@ insert into menus(user_id, name) values('a70ff520-1125-4098-90b3-144e22ebe84a', 
 insert into menu_recipes(menu_id, recipe_id) values(2, 5);
 insert into menu_recipes(menu_id, recipe_id) values(2, 6);
 select menu_id, recipe_id from menu_recipes;
-select * from recipes;
 select * from menus;
 select menus.name, menus.id, menu_recipes.recipe_id
         from menus
@@ -102,6 +102,7 @@ update menus set menu_type = 'Breakfast' where id = 6;
 
 -- BRANDS
 select * from brands where id = 32;
+select * from brand_data;
 update brands set oxalate_per_gram = 0.028,
     oxalate_per_gram_unit = "mg/g"
     where id = 1;

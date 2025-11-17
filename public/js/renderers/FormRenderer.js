@@ -280,7 +280,7 @@ export class FormRenderer {
       ironInput: 'iron',
       fatInput: 'fat',
       saturatedFatInput: 'saturated_fat',
-      polysaturatedFatInput: 'polysaturated_fat',
+      polysaturatedFatInput: 'polyunsaturated_fat',
       monosaturatedFatInput: 'monosaturated_fat',
       thiaminInput: 'thiamin',
       riboflavinInput: 'riboflavin',

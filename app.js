@@ -371,9 +371,28 @@ app.delete('/api/ingredients/:id', async (req, res) => {
 
 app.get('/api/nutrients', async (req, res) => {
   try {
-    const data = services.getNutrients(SYSTEM_USER_ID);
+    const data = await services.getNutrients();
+    if (data) {
+      res.send(JSON.stringify({ success: true, data }, null, 2));
+    } else {
+      reportError(`DELETE /api/nutrients`, req, error, res, 404);
+    }
   } catch (err) {
     reportError("GET /api/nutrients", req, err, res);
+  }
+});
+
+app.post('/api/preview/recipe', async (req, res) => {
+  try {
+    const request = req.body;
+    const data = await services.calculateRecipeNutrition(request, SYSTEM_USER_ID);
+    if (data) {
+      res.send(JSON.stringify({ success: true, data }, null, 2));
+    } else {
+      reportError(`DELETE /api/preview/recipe`, req, error, res, 404);
+    }
+  } catch (error) {
+    reportError("GET /api/preview/recipe", req, error, res);
   }
 });
 
