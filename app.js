@@ -369,6 +369,48 @@ app.delete('/api/ingredients/:id', async (req, res) => {
   }
 });
 
+/*
+POST /api/preview/recipe
+Body: { ingredients: [{ brandId, amount, unit }] }
+Response: { totals: { calories: 450, sodium: 230, ... }, oxalateMg: 43.2 }
+
+POST /api/preview/menu
+Body: { recipeIds: [1, 2, 3] }
+Response: { totals: { ... }, oxalateMg: 43.2 }
+
+POST /api/preview/daily-plan
+Body: { menuIds: [1, 2, 3] }
+Response: { totals: { ... }, oxalateMg: 43.2 }
+
+GET /api/nutrients
+Response: {
+  nutrients: [
+    { 
+      key: "calories",
+      displayName: "Calories",
+      unit: "none",
+      category: "macronutrient",
+      dashRelevant: true
+    },
+    {
+      key: "sodium",
+      displayName: "Sodium",
+      unit: "mg",
+      category: "mineral",
+      dashRelevant: true
+    },
+    {
+      key: "oxalates",
+      displayName: "Oxalates",
+      unit: "mg",
+      category: "other",
+      dashRelevant: false
+    },
+    // ... all other nutrients
+  ]
+}
+*/
+
 // Serve index.html for all other routes (SPA)
 if (process.env.NODE_ENV === 'production') {
   app.get('*', (req, res) => {
