@@ -222,9 +222,58 @@ CREATE INDEX idx_daily_plan_type ON daily_plan_menus(type);
 CREATE INDEX idx_daily_plan_id ON daily_plan_menus(daily_plan_id);
 CREATE INDEX idx_daily_plan_menu ON daily_plan_menus(menu_id);
 
+CREATE TABLE nutrients(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    -- Use AUTO_INCREMENT for MySQL
+    key varchar(32) NOT NULL,
+    displayName varchar(32) NOT NULL,
+    unit varchar(12) NOT NULL DEFAULT "none",
+    category varchar(16) NOT NULL DEFAULT "other",
+    dashRelevant BOOLEAN NOT NULL DEFAULT 0,
+    item_order INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(displayName)
+);
+select * from nutrients;
+INSERT INTO nutrients(key, displayName, unit, category, dashRelevant, item_order)
+VALUES('calories','Calories','none','macronutrient', true, 1);
+INSERT INTO nutrients(key, displayName, unit, category, dashRelevant, item_order)
+VALUES('calories','Calories','none','macronutrient', true, 1);
+
 -- Note: kidney_stone_risk data maintained in kidneyStoneRisk.json
 -- Could optionally be moved to database:
 /*
+
+
+GET /api/nutrients
+Response: {
+  nutrients: [
+    { 
+      key: "calories",
+      displayName: "Calories",
+      unit: "none",
+      category: "macronutrient",
+      dashRelevant: true
+    },
+    {
+      key: "sodium",
+      displayName: "Sodium",
+      unit: "mg",
+      category: "mineral",
+      dashRelevant: true
+    },
+    {
+      key: "oxalates",
+      displayName: "Oxalates",
+      unit: "mg",
+      category: "other",
+      dashRelevant: false
+    },
+    // ... all other nutrients
+  ]
+}
+
  CREATE TABLE IF NOT EXISTS kidney_stone_risk (
  id INTEGER PRIMARY KEY AUTOINCREMENT,
  risk_level VARCHAR(32) NOT NULL UNIQUE,
