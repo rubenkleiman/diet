@@ -108,7 +108,8 @@ export class DailyPlanRenderer {
       currentNutrientPage,
       calculateOxalateRisk,
       INGREDIENT_PROPS,
-      NUTRIENTS_PER_PAGE
+      NUTRIENTS_PER_PAGE,
+      dailyPlanManager
     } = options;
 
     const section = document.getElementById('dailyPlanDetailsSection');
@@ -120,6 +121,9 @@ export class DailyPlanRenderer {
     title.textContent = `Daily Plan: ${data.dailyPlanName}`;
 
     let html = '<div class="details-content">';
+
+    // Dietary Assessment (from aggregated totals)
+    html += this.renderDietaryAssessment(data, calculateOxalateRisk, dailyPlanManager, userSettings);
 
     // Daily Totals Section
     html += this.renderDailyTotals(data, {
@@ -182,6 +186,37 @@ export class DailyPlanRenderer {
 
     if (oxalateRisk.message) {
       html += `<div class="oxalate-warning" style="border-left-color: ${oxalateRisk.color}; margin-top: 1rem;">${oxalateRisk.message}</div>`;
+    }
+
+    html += '</div>';
+
+    return html;
+  }
+
+  /**
+   * Render dietary assessment section
+   */
+  static renderDietaryAssessment(data, calculateOxalateRisk, dailyPlanManager, userSettings) {
+    // Calculate DASH adherence from aggregated totals
+    const dashAssessment = dailyPlanManager.calculateDashAdherence(data.totals, userSettings);
+    const oxalateLevel = dailyPlanManager.calculateOverallOxalateLevel(data.oxalateMg);
+    const oxalateRisk = calculateOxalateRisk(data.oxalateMg);
+
+    const color = {
+      Excellent: "green",
+      Good: "green",
+      Fair: "brown",
+      Poor: "red"
+    };
+
+    let html = '<div class="details-section">';
+    html += '<h3>Dietary Assessment</h3>';
+    html += `<p style="color:${color[dashAssessment.adherence] || 'black'}"><strong>DASH Adherence:</strong> ${dashAssessment.adherence}</p>`;
+    html += `<p><strong>Reasons:</strong> ${dashAssessment.reasons}</p>`;
+    html += `<p><strong>Oxalate Level:</strong> <span style="color: ${oxalateRisk.color}; font-weight: bold;">${oxalateLevel}</span> (${data.oxalateMg.toFixed(2)} mg)</p>`;
+
+    if (oxalateRisk.message) {
+      html += `<div class="oxalate-warning" style="border-left-color: ${oxalateRisk.color};">${oxalateRisk.message}</div>`;
     }
 
     html += '</div>';

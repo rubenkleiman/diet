@@ -121,6 +121,8 @@ class Client {
     // Sync legacy properties with State
     setupStateSync() {
         State.subscribe('dailyPlans', (newValue) => {
+            console.log('🔵 dailyPlans subscriber fired, count:', JSON.stringify(newValue), newValue.length);
+
             this.dailyPlans = newValue;
             this.updateHomeCounts();
         });
@@ -1324,7 +1326,8 @@ class Client {
                 dailyRequirements: this.dailyRequirements,
                 userSettings: this.userSettings,
                 calculateOxalateRisk: (ox) => this.menuManager.calculateOxalateRisk(ox),
-                INGREDIENT_PROPS: Client.INGREDIENT_PROPS
+                INGREDIENT_PROPS: Client.INGREDIENT_PROPS,
+                menuManager: this.menuManager
             });
         } catch (error) {
             console.error('Error loading menu details:', error);
@@ -1584,7 +1587,8 @@ class Client {
                 currentNutrientPage: this.currentDailyNutrientPage,
                 calculateOxalateRisk: (ox) => this.dailyPlanManager.calculateOxalateRisk(ox),
                 INGREDIENT_PROPS: Client.INGREDIENT_PROPS,
-                NUTRIENTS_PER_PAGE: this.NUTRIENTS_PER_PAGE
+                NUTRIENTS_PER_PAGE: this.NUTRIENTS_PER_PAGE,
+                dailyPlanManager: this.dailyPlanManager
             });
         } catch (error) {
             console.error('Error loading daily plan details:', error);
@@ -1693,6 +1697,9 @@ class Client {
         try {
             if (this.editingDailyPlanId) {
                 await this.dailyPlanManager.updateDailyPlan(this.editingDailyPlanId, payload);
+
+                console.log('🟢 After update, this.dailyPlans count:', this.dailyPlans.length);
+
                 alert('Daily plan updated successfully');
                 this.dailyPlanManager.selectDailyPlan(this.editingDailyPlanId);
                 await this.showDailyPlanDetails(this.editingDailyPlanId);

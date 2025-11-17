@@ -6,7 +6,7 @@
 import { State } from '../core/State.js';
 
 export class MenuRenderer {
-  
+
   /**
    * Render menu list
    */
@@ -89,7 +89,8 @@ export class MenuRenderer {
       dailyRequirements,
       userSettings,
       calculateOxalateRisk,
-      INGREDIENT_PROPS
+      INGREDIENT_PROPS,
+      menuManager
     } = options;
 
     const section = document.getElementById('menuDetailsSection');
@@ -103,7 +104,7 @@ export class MenuRenderer {
     let html = '<div class="details-content">';
 
     // Dietary Assessment
-    html += this.renderDietaryAssessment(data, calculateOxalateRisk);
+    html += this.renderDietaryAssessment(data, calculateOxalateRisk, menuManager, userSettings);
 
     // Recipe List
     html += this.renderRecipeList(data);
@@ -123,14 +124,26 @@ export class MenuRenderer {
   /**
    * Render dietary assessment section
    */
-  static renderDietaryAssessment(data, calculateOxalateRisk) {
+  static renderDietaryAssessment(data, calculateOxalateRisk, menuManager, userSettings) {
+    console.log('menuManager:', menuManager);  // ✅ Debug line
+    console.log('userSettings:', userSettings);  // ✅ Debug line
+    // Calculate DASH adherence from aggregated totals
+    const dashAssessment = menuManager.calculateDashAdherence(data.totals, userSettings);
+    const oxalateLevel = menuManager.calculateOverallOxalateLevel(data.oxalateMg);
     const oxalateRisk = calculateOxalateRisk(data.oxalateMg);
+
+    const color = {
+      Excellent: "green",
+      Good: "green",
+      Fair: "brown",
+      Poor: "red"
+    };
 
     let html = '<div class="details-section">';
     html += '<h3>Dietary Assessment</h3>';
-    html += `<p><strong>DASH Adherence:</strong> ${data.dashAdherence}</p>`;
-    html += `<p><strong>Reasons:</strong> ${data.dashReasons || 'N/A'}</p>`;
-    html += `<p><strong>Oxalate Level:</strong> <span style="color: ${oxalateRisk.color}; font-weight: bold;">${data.oxalateLevel}</span> (${data.oxalateMg.toFixed(2)} mg)</p>`;
+    html += `<p style="color:${color[dashAssessment.adherence] || 'black'}"><strong>DASH Adherence:</strong> ${dashAssessment.adherence}</p>`;
+    html += `<p><strong>Reasons:</strong> ${dashAssessment.reasons}</p>`;
+    html += `<p><strong>Oxalate Level:</strong> <span style="color: ${oxalateRisk.color}; font-weight: bold;">${oxalateLevel}</span> (${data.oxalateMg.toFixed(2)} mg)</p>`;
 
     if (oxalateRisk.message) {
       html += `<div class="oxalate-warning" style="border-left-color: ${oxalateRisk.color};">${oxalateRisk.message}</div>`;
