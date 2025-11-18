@@ -40,7 +40,15 @@ class ServicesClass {
 
     async calculateRecipeNutrition(request, userId) {
         return await this.recipeRepository.calculateRecipeNutrition(request, userId);
-    }   
+    }
+
+    async calculateMenuNutrition(request, userId) {
+        return await this.menuRepository.calculateMenuNutrition(request, userId);
+    }
+
+    async calculateDailyPlanNutrition(request, userId) {
+        return await this.dailyPlanRepository.calculateDailyPlanNutrition(request, userId);
+    }
 
     /**
      * Load daily requirements from database
@@ -210,34 +218,7 @@ class ServicesClass {
      * @returns {Promise<Object|null>} Full recipe details or null if not found
      */
     async getRecipeFullDetails(recipeId, userId) {
-        // Get recipe from database
-        const recipe = await this.recipeRepository.getById(recipeId, userId)
-        if (!recipe) {
-            console.error(`Recipe id ${recipeId} not found`)
-            return null
-        }
-
-        // Convert ingredients to include brandIds
-        const ingredients = []
-        for (const [brandName, measure] of Object.entries(recipe.ingredients)) {
-            // Get brand ID from database
-            const brandRecord = await database.get('SELECT id FROM brands WHERE name = ?', [brandName])
-            if (brandRecord) {
-                const measureParts = measure.split(' ')
-                ingredients.push({
-                    brandId: brandRecord.id,
-                    brandName: brandName,
-                    amount: parseFloat(measureParts[0]),
-                    unit: measureParts[1]
-                })
-            }
-        }
-
-        return {
-            id: recipe.id,
-            name: recipe.name,
-            ingredients: ingredients
-        }
+        this.recipeRepository.getRecipeFullDetails(recipeId, userId)
     }
 
     /**

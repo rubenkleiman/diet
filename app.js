@@ -37,8 +37,9 @@ const SYSTEM_USER_ID = 'a70ff520-1125-4098-90b3-144e22ebe84a'
 
 
 function reportError(msg, req, error, res, status = 500) {
-  console.error(msg, error);
-  res.status(status).json({ success: false, error: `ERROR: ${msg} - req.params: ${JSON.stringify(req.params)}; req.query: ${JSON.stringify(req.query)} - ${error.message}` });
+  msg = `ERROR: ${msg} - req.params: ${JSON.stringify(req.params)}; req.query: ${JSON.stringify(req.query)} - ${error ? error.message : ""} ${status ? `STATUS: ${status}` : ""}`;
+  console.error(msg)
+  res.status(status).json({ success: false, error: msg})
 }
 
 // API routes - Config and system data
@@ -373,9 +374,9 @@ app.get('/api/nutrients', async (req, res) => {
   try {
     const data = await services.getNutrients();
     if (data) {
-      res.send(JSON.stringify({ success: true, data }, null, 2));
+      res.json({ success: true, data }, null, 2);
     } else {
-      reportError(`DELETE /api/nutrients`, req, error, res, 404);
+      reportError(`GET /api/nutrients`, req, error, res, 404);
     }
   } catch (err) {
     reportError("GET /api/nutrients", req, err, res);
@@ -387,12 +388,41 @@ app.post('/api/preview/recipe', async (req, res) => {
     const request = req.body;
     const data = await services.calculateRecipeNutrition(request, SYSTEM_USER_ID);
     if (data) {
-      res.send(JSON.stringify({ success: true, data }, null, 2));
+      res.json({ success: true, data });
     } else {
-      reportError(`DELETE /api/preview/recipe`, req, error, res, 404);
+      reportError(`POST /api/preview/recipe`, req, error, res, 404);
     }
   } catch (error) {
-    reportError("GET /api/preview/recipe", req, error, res);
+    reportError("POST /api/preview/recipe", req, error, res);
+  }
+});
+
+app.post('/api/preview/menu', async (req, res) => {
+  try {
+    const request = req.body;
+    const data = await services.calculateMenuNutrition(request, SYSTEM_USER_ID);
+    if (data) {
+      res.json({ success: true, data });
+    } else {
+      reportError(`POST /api/preview/menu`, req, null, res, 404);
+    }
+  } catch (error) {
+    reportError("POST /api/preview/menu", req, error, res);
+  }
+});
+
+app.post('/api/preview/daily-plan', async (req, res) => {
+  try {
+    const request = req.body;
+    const data = await services.calculateDailyPlanNutrition(request, SYSTEM_USER_ID);
+    if (data) {
+      res.send(JSON.stringify({ success: true, data }, null, 2));
+      // res.json({ success: true, data });
+    } else {
+      reportError(`POST /api/preview/daily-plan`, req, null, res, 404);
+    }
+  } catch (error) {
+    reportError("POST /api/preview/daily-plan", req, error, res);
   }
 });
 

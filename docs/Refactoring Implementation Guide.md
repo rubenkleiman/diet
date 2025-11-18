@@ -173,6 +173,10 @@ This refactoring reduces `client.js` from ~1600 lines to ~800 lines (50% reducti
 }
 ```
 
+Farfalle:
+
+ curl -X POST http://localhost:3000/api/preview/menu -H "Content-Type: application/json" -d '{"recipeIds": [13, 16]}'
+
 **Response**: Same format as recipe preview
 
 **Purpose**: Backend aggregates menu nutrition from multiple recipes.
@@ -185,9 +189,12 @@ This refactoring reduces `client.js` from ~1600 lines to ~800 lines (50% reducti
 **Request**:
 ```json
 {
-  "menuIds": [1, 2, 3]
+  "menuIds": [7,9,30]
 }
 ```
+
+
+ curl -X POST http://localhost:3000/api/preview/daily-plan -H "Content-Type: application/json" -d '{"menuIds": [9,7,30]}'
 
 **Response**: Same format as recipe preview
 

@@ -73,7 +73,7 @@ select plan.id as id, plan.user_id as userId, plan.name as dailyPlanName,
 select * from daily_plans;
 select * from daily_plan_menus;
 select * from menus where id in (6);
-select * from menu_recipes where menu_id in (7, 9);
+select * from menu_recipes where menu_id in (9);
 select * from recipes;
 select * from recipe_items;
 select * from brand_data;
