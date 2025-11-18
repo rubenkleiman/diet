@@ -1576,24 +1576,24 @@ class Client {
 
     setupEventDelegation() {
         // Recipe details
-        const recipeDetails = document.getElementById('recipeDetailsContent');
-        if (recipeDetails) {
-            setupEventDelegation(recipeDetails, {
-                'toggle-nutrient-view': () => this.toggleNutrientView(),
-                'prev-nutrient-page': () => this.prevNutrientPage(),
-                'next-nutrient-page': () => this.nextNutrientPage()
-            });
-        }
+        // const recipeDetails = document.getElementById('recipeDetailsContent');
+        // if (recipeDetails) {
+        //     setupEventDelegation(recipeDetails, {
+        //         'toggle-nutrient-view': () => this.toggleNutrientView(),
+        //         'prev-nutrient-page': () => this.prevNutrientPage(),
+        //         'next-nutrient-page': () => this.nextNutrientPage()
+        //     });
+        // }
 
         // Daily plan details
-        const dailyPlanDetails = document.getElementById('dailyPlanDetailsContent');
-        if (dailyPlanDetails) {
-            setupEventDelegation(dailyPlanDetails, {
-                'toggle-daily-nutrient-view': () => this.toggleDailyNutrientView(),
-                'prev-daily-nutrient-page': () => this.prevDailyNutrientPage(),
-                'next-daily-nutrient-page': () => this.nextDailyNutrientPage()
-            });
-        }
+        // const dailyPlanDetails = document.getElementById('dailyPlanDetailsContent');
+        // if (dailyPlanDetails) {
+        //     setupEventDelegation(dailyPlanDetails, {
+        //         'toggle-daily-nutrient-view': () => this.toggleDailyNutrientView(),
+        //         'prev-daily-nutrient-page': () => this.prevDailyNutrientPage(),
+        //         'next-daily-nutrient-page': () => this.nextDailyNutrientPage()
+        //     });
+        // }
 
         // Ingredient rows
         const ingredientRows = document.getElementById('ingredientRows');
@@ -1779,6 +1779,9 @@ class Client {
                 break;
             case 'toggle-nutrient-view':
                 this.toggleNutrientView();
+                break;
+            case 'toggle-daily-nutrient-view':
+                this.toggleDailyNutrientView();
                 break;
             case 'prev-nutrient-page':
                 this.prevNutrientPage();
