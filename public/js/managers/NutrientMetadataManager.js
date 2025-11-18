@@ -13,7 +13,8 @@ export class NutrientMetadataManager {
    */
   async loadNutrients() {
     try {
-      const result = await APIClient.request('/nutrients');
+      const result = 
+      await APIClient.request('/nutrients');
       
       if (APIClient.isSuccess(result)) {
         // Store raw nutrient metadata

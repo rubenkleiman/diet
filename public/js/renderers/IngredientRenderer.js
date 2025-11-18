@@ -4,7 +4,7 @@
  */
 
 export class IngredientRenderer {
-  
+
   /**
    * Render ingredient list
    */
@@ -32,11 +32,11 @@ export class IngredientRenderer {
       listElement.appendChild(li);
     });
   }
-
+  
   /**
    * Mark ingredient as selected
    */
-  static markAsSelected(ingredientId, ingredients) {
+  static markAsSelected(ingredientId) {
     document.querySelectorAll('.ingredient-item').forEach(item => {
       item.classList.remove('selected');
     });
@@ -44,13 +44,13 @@ export class IngredientRenderer {
       item.classList.remove('selected');
     });
 
-    const index = ingredients.findIndex(i => i.id == ingredientId);
-    const selectedItem = document.querySelector(`.ingredient-item:nth-child(${index + 1})`);
+    // Find the selected item by data attribute instead of index
+    const selectedItem = document.querySelector(`[data-ingredient-id="${ingredientId}"]`);
     if (selectedItem) {
       selectedItem.classList.add('selected');
-      const compactItem = selectedItem.querySelector(".ingredient-compact")
+      const compactItem = selectedItem.querySelector(".ingredient-compact");
       if (compactItem) {
-        compactItem.classList.add('selected')
+        compactItem.classList.add('selected');
       }
     }
   }
