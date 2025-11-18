@@ -825,11 +825,14 @@ class Client {
         };
 
         try {
-            if (this.editingIngredientId) {
-                await this.ingredientManager.updateIngredient(this.editingIngredientId, payload);
+            // ✅ FIX: Get editingIngredientId from State instead of this.editingIngredientId
+            const editingId = State.get('editingIngredientId');
+
+            if (editingId) {  // ✅ CHANGED
+                await this.ingredientManager.updateIngredient(editingId, payload);  // ✅ CHANGED
                 alert('Ingredient updated successfully');
-                await this.showIngredientDetails(this.editingIngredientId);
-                this.ingredientManager.selectIngredient(this.editingIngredientId);
+                await this.showIngredientDetails(editingId);  // ✅ CHANGED
+                this.ingredientManager.selectIngredient(editingId);  // ✅ CHANGED
             } else {
                 await this.ingredientManager.createIngredient(payload);
                 alert('Ingredient created successfully');
