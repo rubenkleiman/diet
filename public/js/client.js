@@ -595,7 +595,7 @@ class Client {
                 }
             }
 
-            this.renderRecipeList(this.recipes);
+            this.renderRecipeList(State.get('recipes'));
             this.closeRecipeEditor();
         } catch (error) {
             console.error('Error saving recipe:', error);
@@ -996,7 +996,7 @@ class Client {
                 }
             }
 
-            this.renderMenuList(this.menus);
+            this.renderMenuList(State.get('menus'));
             this.closeMenuEditor();
         } catch (error) {
             console.error('Error saving menu:', error);
@@ -1269,7 +1269,7 @@ class Client {
                 }
             }
 
-            this.renderDailyPlanList(this.dailyPlans);
+            this.renderDailyPlanList(State.get('dailyPlans'));
             this.closeDailyPlanEditor();
         } catch (error) {
             console.error('Error saving daily plan:', error);
