@@ -227,7 +227,7 @@ app.get('/api/recipes/:id/full', async (req, res) => {
     const { id } = req.params;
     const recipe = await services.getRecipeFullDetails(id, SYSTEM_USER_ID);
     if (!recipe) {
-      res.status(404).json({ success: false, error: 'Recipe not found' });
+      res.status(404).json({ success: false, error: `Recipe id ${id} not found`});
     } else {
       res.json({ success: true, data: recipe });
     }

@@ -75,6 +75,7 @@ select * from daily_plan_menus;
 select * from menus where id in (6);
 select * from menu_recipes where menu_id in (9);
 select * from recipes;
+SELECT * FROM recipes WHERE id = 13 AND user_id = 'a70ff520-1125-4098-90b3-144e22ebe84a';
 select * from recipe_items;
 select * from brand_data;
 select * from brands;

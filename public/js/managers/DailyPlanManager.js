@@ -73,8 +73,12 @@ export class DailyPlanManager {
       const result = await APIClient.updateDailyPlan(id, dailyPlanData);
 
       if (APIClient.isSuccess(result)) {
-        // await this.loadDailyPlans(); // Refresh list 
-        State.set('dailyPlans', result.data);
+        // ✅ Update the specific item in the existing list
+        const currentList = State.get('dailyPlans');
+        const updatedList = currentList.map(plan =>
+          plan.id === id ? { ...plan, name: dailyPlanData.name, dailyPlanMenus: dailyPlanData.dailyPlanMenus } : plan
+        );
+        State.set('dailyPlans', updatedList);
         return result.data;
       } else {
         throw new Error(APIClient.getError(result));

@@ -208,7 +208,7 @@ class ServicesClass {
      * @returns {Promise<Object|null>} Recipe details or null if not found
      */
     async getRecipeDetails(recipeId, summary = false) {
-        return this.menu.getRecipeData(recipeId, summary)
+        return await this.menu.getRecipeData(recipeId, summary)
     }
 
     /**
@@ -218,7 +218,7 @@ class ServicesClass {
      * @returns {Promise<Object|null>} Full recipe details or null if not found
      */
     async getRecipeFullDetails(recipeId, userId) {
-        this.recipeRepository.getRecipeFullDetails(recipeId, userId)
+        return await this.recipeRepository.getRecipeFullDetails(recipeId, userId)
     }
 
     /**

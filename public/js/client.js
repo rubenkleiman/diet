@@ -336,7 +336,7 @@ class Client {
             // Setup UI
             this.settingsManager.applyUIConfig();
             this.setupEventListeners();
-            this.setupEventDelegation();
+            // this.setupEventDelegation();
             this.updateHomeCounts();
 
             // Navigate to initial page
@@ -1508,7 +1508,7 @@ class Client {
             if (form) form.addEventListener('submit', handler);
         });
 
-        // Checkboxes
+        // Checkboxes and selects
         const summaryCheckbox = document.getElementById('summaryCheckbox');
         if (summaryCheckbox) {
             summaryCheckbox.addEventListener('change', () => {
@@ -1530,7 +1530,7 @@ class Client {
             kidneyRiskSelect.addEventListener('change', () => this.updateKidneyRiskInfo());
         }
 
-        // Global click handler for data-action elements
+        // ===== SINGLE GLOBAL CLICK HANDLER - handles ALL data-action clicks =====
         document.addEventListener('click', (e) => {
             const actionElement = e.target.closest('[data-action]');
 
@@ -1547,6 +1547,12 @@ class Client {
             }
             if (!e.target.closest('.ingredient-search')) {
                 FormRenderer.hideSearchResults();
+            }
+            if (!e.target.closest('.recipe-search')) {
+                MenuRenderer.hideRecipeSearchResults();
+            }
+            if (!e.target.closest('.menu-search')) {
+                DailyPlanRenderer.hideMenuSearchResults();
             }
         });
 
@@ -1574,100 +1580,6 @@ class Client {
         });
     }
 
-    setupEventDelegation() {
-        // Recipe details
-        // const recipeDetails = document.getElementById('recipeDetailsContent');
-        // if (recipeDetails) {
-        //     setupEventDelegation(recipeDetails, {
-        //         'toggle-nutrient-view': () => this.toggleNutrientView(),
-        //         'prev-nutrient-page': () => this.prevNutrientPage(),
-        //         'next-nutrient-page': () => this.nextNutrientPage()
-        //     });
-        // }
-
-        // Daily plan details
-        // const dailyPlanDetails = document.getElementById('dailyPlanDetailsContent');
-        // if (dailyPlanDetails) {
-        //     setupEventDelegation(dailyPlanDetails, {
-        //         'toggle-daily-nutrient-view': () => this.toggleDailyNutrientView(),
-        //         'prev-daily-nutrient-page': () => this.prevDailyNutrientPage(),
-        //         'next-daily-nutrient-page': () => this.nextDailyNutrientPage()
-        //     });
-        // }
-
-        // Ingredient rows
-        const ingredientRows = document.getElementById('ingredientRows');
-        if (ingredientRows) {
-            setupEventDelegation(ingredientRows, {
-                'remove-ingredient': (target) => {
-                    const index = parseInt(target.dataset.index);
-                    this.recipeManager.removeIngredientFromRecipe(index);
-                }
-            });
-        }
-
-        // Ingredient search results
-        const searchResults = document.getElementById('ingredientSearchResults');
-        if (searchResults) {
-            setupEventDelegation(searchResults, {
-                'add-ingredient-to-recipe': (target) => {
-                    this.addIngredientToRecipe({
-                        id: target.dataset.ingredientId,
-                        name: target.dataset.ingredientName
-                    });
-                }
-            });
-        }
-
-        // Recipe rows for menu
-        const recipeRows = document.getElementById('recipeRows');
-        if (recipeRows) {
-            setupEventDelegation(recipeRows, {
-                'remove-recipe': (target) => {
-                    const index = parseInt(target.dataset.index);
-                    this.menuManager.removeRecipeFromMenu(index);
-                }
-            });
-        }
-
-        // Recipe search results for menu
-        const recipeSearchResults = document.getElementById('recipeSearchResults');
-        if (recipeSearchResults) {
-            setupEventDelegation(recipeSearchResults, {
-                'add-recipe-to-menu': (target) => {
-                    this.addRecipeToMenu({
-                        id: target.dataset.recipeId,
-                        name: target.dataset.recipeName
-                    });
-                }
-            });
-        }
-
-        // Menu rows for daily plan
-        const menuRowsForDailyPlan = document.getElementById('menuRowsForDailyPlan');
-        if (menuRowsForDailyPlan) {
-            setupEventDelegation(menuRowsForDailyPlan, {
-                'remove-menu-from-daily-plan': (target) => {
-                    const index = parseInt(target.dataset.index);
-                    this.dailyPlanManager.removeMenuFromDailyPlan(index);
-                }
-            });
-        }
-
-        // Menu search results for daily plan
-        const menuSearchResultsForDailyPlan = document.getElementById('menuSearchResultsForDailyPlan');
-        if (menuSearchResultsForDailyPlan) {
-            setupEventDelegation(menuSearchResultsForDailyPlan, {
-                'add-menu-to-daily-plan': (target) => {
-                    this.addMenuToDailyPlan({
-                        id: target.dataset.menuId,
-                        name: target.dataset.menuName
-                    });
-                }
-            });
-        }
-    }
-
     // Handle data-action clicks
     async handleAction(element) {
         const action = element.dataset.action;
@@ -1676,6 +1588,7 @@ class Client {
         const ingredientId = element.dataset.ingredientId;
         const menuId = element.dataset.menuId;
         const dailyPlanId = element.dataset.dailyPlanId;
+        const index = element.dataset.index;
 
         switch (action) {
             case 'navigate':
@@ -1692,6 +1605,43 @@ class Client {
                 break;
             case 'select-ingredient':
                 if (ingredientId) await this.selectIngredient(ingredientId);
+                break;
+
+            case 'add-ingredient-to-recipe':
+                this.addIngredientToRecipe({
+                    id: element.dataset.ingredientId,
+                    name: element.dataset.ingredientName
+                });
+                break;
+            case 'remove-ingredient':
+                if (index !== undefined) {
+                    this.recipeManager.removeIngredientFromRecipe(parseInt(index));
+                }
+                break;
+            case 'remove-recipe':
+                if (index !== undefined) {
+                    this.menuManager.removeRecipeFromMenu(parseInt(index));
+                }
+                break;
+
+            case 'remove-menu-from-daily-plan':
+                if (index !== undefined) {
+                    this.dailyPlanManager.removeMenuFromDailyPlan(parseInt(index));
+                }
+                break;
+            case 'add-recipe-to-menu':
+                this.addRecipeToMenu({
+                    id: element.dataset.recipeId,
+                    name: element.dataset.recipeName
+                });
+                break;
+
+
+            case 'add-menu-to-daily-plan':
+                this.addMenuToDailyPlan({
+                    id: element.dataset.menuId,
+                    name: element.dataset.menuName
+                });
                 break;
             case 'select-menu':
                 if (menuId) await this.selectMenu(menuId);
