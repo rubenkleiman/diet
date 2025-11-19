@@ -314,10 +314,8 @@ INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_ord
 VALUES('vitamin_k','Vitamin K','mcg', 'vitamin',false,29);
 
 
--- Note: kidney_stone_risk data maintained in kidneyStoneRisk.json
--- Could optionally be moved to database:
 /*
-
+-- an option. is now hardcoded 
 
  CREATE TABLE IF NOT EXISTS kidney_stone_risk (
  id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -26,7 +26,18 @@ select (
 
 select * from users;
 insert into users(id, username, password,display_name) values('a70ff520-1125-4098-90b3-144e22ebe84a','rk','rk','Ruben');
+insert into users(id, username, password,display_name) values('11','ss','ss','ss');
 
+select * from user_settings;
+delete from  user_settings where user_id = 11;
+update user_settings set calories_per_day = 1999 where user_id = 11;
+UPDATE user_settings 
+       SET calories_per_day = 1441, age = NULL, use_age = 0, kidney_stone_risk = 'Normal', updated_at = CURRENT_TIMESTAMP
+       where user_id = '11';
+
+SELECT calories_per_day, age, use_age, kidney_stone_risk 
+               FROM user_settings 
+               WHERE user_id = 1;
 select * from nutrients;
 select * from recipes where id = '1';
 select * from recipe_items where  recipe_id = 14;

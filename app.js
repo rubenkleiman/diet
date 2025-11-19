@@ -5,6 +5,7 @@ import livereload from 'livereload';
 import express, { request } from 'express';
 import connectLivereload from 'connect-livereload';
 import services from './lib/services/services.js';
+import { UserService } from "./lib/services/UserService.js";
 // import { patchExpress } from "./tracer.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -49,13 +50,70 @@ function reportError(msg, req, error, res, status = 500) {
 
 // API routes - Config and system data
 
+// routes/userSettings.js
 app.get('/api/user-settings/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const data = await services.getUserData(userId);
+    // Returns user settings or default settings
+    const settings = await services.getUserSettings(userId);
+    res.json({
+      success: true,
+      data: {
+        caloriesPerDay: settings.caloriesPerDay,
+        age: settings.age,
+        useAge: settings.useAge === 1,
+        kidneyStoneRisk: settings.kidneyStoneRisk
+      }
+    });
+  } catch (error) {
+    reportError('GET /api/user-settings/:userId', req, error, res);
+  }
+});
+
+app.post('/api/user-settings', async (req, res) => {
+  try {
+    const { userId, caloriesPerDay, age, useAge, kidneyStoneRisk } = req.body;
+    await services.createUserSettings(userId, { caloriesPerDay, age, useAge, kidneyStoneRisk })
+    res.json({
+      success: true,
+      data: {
+        caloriesPerDay,
+        age,
+        useAge,
+        kidneyStoneRisk
+      }
+    });
+  } catch (error) {
+    reportError('POST /api/user-settings', req, error, res);
+  }
+});
+
+app.put('/api/user-settings/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { caloriesPerDay, age, useAge, kidneyStoneRisk } = req.body;
+    await services.updateUserSettings(userId, { caloriesPerDay, age, useAge, kidneyStoneRisk });
+    res.json({
+      success: true,
+      data: {
+        caloriesPerDay,
+        age,
+        useAge,
+        kidneyStoneRisk
+      }
+    });
+  } catch (error) {
+    reportError('PUT /api/user-settings/:userId', req, error, res)
+  }
+});
+
+app.post('/api/dietary-assessment', async (req, res) => {
+  try {
+    const { userId, type, oxalateMg, totals } = req.body;
+    const data = await services.getDietaryAssessment(userId, type, oxalateMg, totals);
     res.json({ success: true, data });
   } catch (error) {
-    reportError('GET /api/kidney-stone-risk', req, error, res);
+    reportError('POST /api/dietary-assessment', req, error, res);
   }
 })
 
