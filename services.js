@@ -34,6 +34,10 @@ class ServicesClass {
         this.dailyRequirements = null
     }
 
+    async getUserData(userId) {
+        
+    }
+
     async getNutrients() {
         return await this.brandRepository.getNutrients()
     }

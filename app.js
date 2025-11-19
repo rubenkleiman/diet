@@ -44,10 +44,21 @@ const SYSTEM_USER_ID = 'a70ff520-1125-4098-90b3-144e22ebe84a'
 function reportError(msg, req, error, res, status = 500) {
   msg = `ERROR: ${msg} - req.params: ${JSON.stringify(req.params)}; req.query: ${JSON.stringify(req.query)} - ${error ? error.message : ""} ${status ? `STATUS: ${status}` : ""}`;
   console.error(msg)
-  res.status(status).json({ success: false, error: msg})
+  res.status(status).json({ success: false, error: msg })
 }
 
 // API routes - Config and system data
+
+app.get('/api/user-settings/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const data = await services.getUserData(userId);
+    res.json({ success: true, data });
+  } catch (error) {
+    reportError('GET /api/kidney-stone-risk', req, error, res);
+  }
+})
+
 app.get('/api/config', async (req, res) => {
   try {
     res.json({
@@ -232,7 +243,7 @@ app.get('/api/recipes/:id/full', async (req, res) => {
     const { id } = req.params;
     const recipe = await services.getRecipeFullDetails(id, SYSTEM_USER_ID);
     if (!recipe) {
-      res.status(404).json({ success: false, error: `Recipe id ${id} not found`});
+      res.status(404).json({ success: false, error: `Recipe id ${id} not found` });
     } else {
       res.json({ success: true, data: recipe });
     }
