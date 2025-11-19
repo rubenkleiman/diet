@@ -4,7 +4,6 @@ import { fileURLToPath } from 'url';
 import livereload from 'livereload';
 import connectLivereload from 'connect-livereload';
 import services from './services.js';
-import { report } from 'process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
