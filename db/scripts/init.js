@@ -1,9 +1,8 @@
-// FIXED 2025-10-30 2:30pm PST
-// Initialize or reset database - KEEP THIS FILE
+// Called by package.json db:init script
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import database from './Database.js'
+import database from '../../lib/db/Database.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

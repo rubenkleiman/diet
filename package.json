@@ -10,13 +10,13 @@
     "watch": "esbuild public/js/client.js --bundle --outfile=public/js/bundle.js --sourcemap --format=iife --watch",
     "dev:full": "concurrently \"npm run dev\" \"npm run watch\"",
     "db:comment": "echo 'db:* scripts handle db backup & population'",
-    "db:init": "node lib/db/init.js",
-    "db:reset": "node lib/db/init.js --reset",
-    "db:test": "node lib/db/test.js",
-    "db:populate": "node lib/db/Populate.js",
-    "db:backup": "node lib/db/Backup.js",
-    "db:backup:list": "node lib/db/Backup.js --list",
-    "db:restore": "node lib/db/Backup.js --restore"
+    "db:init": "node db/scripts/init.js",
+    "db:reset": "node db/scripts/init.js --reset",
+    "db:test": "node db/scripts/test.js",
+    "db:populate": "node db/scripts/Populate.js",
+    "db:backup": "node db/scripts/Backup.js",
+    "db:backup:list": "node db/scripts/Backup.js --list",
+    "db:restore": "node db/scripts/Backup.js --restore"
   },
   "devDependencies": {
     "@babel/core": "^7.23.0",

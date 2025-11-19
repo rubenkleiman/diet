@@ -1,5 +1,3 @@
-// FIXED 2025-10-30 5pm
-// Database backup utilities - KEEP THIS FILE
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -7,8 +5,8 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const DB_PATH = path.join(__dirname, 'diet.db')  // lib/db/diet.db
-const BACKUPS_DIR = path.join(__dirname, 'backups')  // lib/db/backups
+const DB_PATH = path.join(__dirname, '../../lib/db/diet.db') 
+const BACKUPS_DIR = path.join(__dirname, '../backups')  
 
 /**
  * Create a backup of the database

@@ -1,6 +1,4 @@
-// FIXED 2025-10-30 2:45pm PST
-// Test database connection and verify schema - THROWAWAY (for testing)
-import database from './Database.js'
+import database from '../../lib/db/Database.js'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -77,7 +75,7 @@ async function testDatabase() {
         console.log(`  - Rollback successful: ${transTest ? 'FAILED' : 'PASSED'}`)
 
         // Show database file info
-        const dbPath = path.join(__dirname, 'diet.db')
+        const dbPath = path.join(__dirname, '../../lib/db/diet.db')
         const fs = await import('fs')
         const stats = await fs.promises.stat(dbPath)
         console.log(`\n✓ Database file:`)

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import livereload from 'livereload';
 import express, { request } from 'express';
 import connectLivereload from 'connect-livereload';
-import services from './services.js';
+import services from './lib/services/services.js';
 // import { patchExpress } from "./tracer.js";
 
 const __filename = fileURLToPath(import.meta.url);

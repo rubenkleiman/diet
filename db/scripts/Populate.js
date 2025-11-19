@@ -1,9 +1,9 @@
-// FIXED 2025-10-30 5pm
-// Populate database from JSON files - THROWAWAY (one-time migration)
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import database from './Database.js'
+import database from '../../lib/db/Database.js'
+
+throw Error(`Populate directory paths need to be fixed due to previous updates`);
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
