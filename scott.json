@@ -1,0 +1,5 @@
+{
+  "entrypoint": "lib/**/*.js",
+  "includeBaseDir": false
+}
+    
