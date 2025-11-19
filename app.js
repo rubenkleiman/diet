@@ -1,15 +1,21 @@
-import express, { request } from 'express';
+import process from "node:process";
 import path from 'path';
 import { fileURLToPath } from 'url';
 import livereload from 'livereload';
+import express, { request } from 'express';
 import connectLivereload from 'connect-livereload';
 import services from './services.js';
+// import { patchExpress } from "./tracer.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ---------------- Enable tracing ----------------
+// patchExpress(app); // Wraps all endpoints automatically
+// ------------------------------------------------
 
 // Middleware
 app.use(express.json());
@@ -425,20 +431,6 @@ app.post('/api/preview/daily-plan', async (req, res) => {
   }
 });
 
-/*
-POST / api / preview / recipe
-Body: { ingredients: [{ brandId, amount, unit }] }
-Response: { totals: { calories: 450, sodium: 230, ... }, oxalateMg: 43.2 }
-
-POST / api / preview / menu
-Body: { recipeIds: [1, 2, 3] }
-Response: { totals: { ... }, oxalateMg: 43.2 }
-
-POST / api / preview / daily - plan
-Body: { menuIds: [1, 2, 3] }
-Response: { totals: { ... }, oxalateMg: 43.2 }
-
-*/
 
 // Serve index.html for all other routes (SPA)
 if (process.env.NODE_ENV === 'production') {
