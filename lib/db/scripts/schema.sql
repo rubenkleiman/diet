@@ -21,6 +21,25 @@ VALUES(
         'Admin'
     );
 
+-- User settings (age, calories/day, kidney stone risk)
+CREATE TABLE IF NOT EXISTS user_settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id VARCHAR(36) NOT NULL UNIQUE,
+    calories_per_day INTEGER NOT NULL DEFAULT 2000,
+    age INTEGER,
+    use_age BOOLEAN NOT NULL DEFAULT 0,
+    kidney_stone_risk VARCHAR(32) NOT NULL DEFAULT 'Normal' CHECK(
+        kidney_stone_risk IN ('Normal', 'High', 'Extremely High')
+    ),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT user_settings_user_fk FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Set it for admin user(the default)
+INSERT INTO user_settings(user_id, calories_per_day, use_age, kidney_stone_risk)
+VALUES('a70ff520-1125-4098-90b3-144e22ebe84a', 2000, 0, 'Normal');
+
 -- Ingredient Categories table (ingredients)
 CREATE TABLE IF NOT EXISTS ingredient_categories(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
