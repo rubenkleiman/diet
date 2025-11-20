@@ -9,6 +9,7 @@ import { FormRenderer } from '../renderers/FormRenderer.js';
 import { EntityController } from '../controllers/EntityController.js';
 import { EditorController } from '../controllers/EditorController.js';
 import { State } from '../core/State.js';
+import { dietaryAssessmentHelper } from '../utils/DietaryAssessmentHelper.js';
 
 export class MenuPageController {
   constructor(client) {
@@ -111,19 +112,19 @@ export class MenuPageController {
   }
 
   /**
-   * Show menu details
+   * Show menu details (async - waits for dietary assessment)
    */
   async showDetails(menuId) {
     try {
       const menu = await this.menuManager.getMenu(menuId);
       const nutritionalData = await this.menuManager.getMenuNutritionalData(menu);
 
-      MenuRenderer.renderDetails(nutritionalData, {
+      // Now await the async renderDetails
+      await MenuRenderer.renderDetails(nutritionalData, {
         dailyRequirements: State.get('dailyRequirements'),
         userSettings: State.get('userSettings'),
         calculateOxalateRisk: (ox) => this.menuManager.calculateOxalateRisk(ox),
-        INGREDIENT_PROPS: State.get('nutrientMap') || {},
-        menuManager: this.menuManager
+        INGREDIENT_PROPS: State.get('nutrientMap') || {}
       });
     } catch (error) {
       console.error('Error loading menu details:', error);
@@ -314,7 +315,7 @@ export class MenuPageController {
   }
 
   /**
-   * Update nutrient preview
+   * Update nutrient preview with debounced dietary assessment
    */
   async updateNutrientPreview() {
     const container = document.getElementById('menuNutrientPreview');
@@ -336,23 +337,24 @@ export class MenuPageController {
       return;
     }
 
-    const html = this.showPreviewAllNutrients
-      ? this.client.nutrientPreviewManager.renderAllNutrients(
-        data,
-        State.get('userSettings'),
-        State.get('dailyRequirements'),
-        this.previewNutrientPage,
-        this.client.nutrientMetadataManager
-      )
-      : this.client.nutrientPreviewManager.renderKeyNutrients(
-        data,
-        State.get('userSettings'),
-        State.get('dailyRequirements'),
-        (ox) => this.menuManager.calculateOxalateRisk(ox),
-        this.client.nutrientMetadataManager
-      );
+    // Show loading state
+    container.innerHTML = '<p class="preview-empty">Loading assessment...</p>';
 
-    container.innerHTML = html;
+    // Use debounced assessment (500ms delay)
+    dietaryAssessmentHelper.getAssessmentDebounced(
+      'menu-preview',
+      data.totals,
+      data.oxalateMg,
+      'menu',
+      (error, assessment) => {
+        if (error) {
+          container.innerHTML = dietaryAssessmentHelper.renderError(error);
+        } else {
+          const html = dietaryAssessmentHelper.renderAssessment(assessment, { showProgressBar: true });
+          container.innerHTML = html;
+        }
+      }
+    );
   }
 
   togglePreviewNutrients() {

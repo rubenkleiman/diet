@@ -9,6 +9,7 @@ import { FormRenderer } from '../renderers/FormRenderer.js';
 import { EntityController } from '../controllers/EntityController.js';
 import { EditorController } from '../controllers/EditorController.js';
 import { State } from '../core/State.js';
+import { dietaryAssessmentHelper } from '../utils/DietaryAssessmentHelper.js';
 
 export class DailyPlanPageController {
   constructor(client) {
@@ -112,21 +113,21 @@ export class DailyPlanPageController {
   }
 
   /**
-   * Show daily plan details
+   * Show daily plan details (async - waits for dietary assessment)
    */
   async showDetails(dailyPlanId) {
     try {
       const data = await this.dailyPlanManager.getDailyPlan(dailyPlanId);
 
-      DailyPlanRenderer.renderDetails(data, {
+      // Now await the async renderDetails
+      await DailyPlanRenderer.renderDetails(data, {
         dailyRequirements: State.get('dailyRequirements'),
         userSettings: State.get('userSettings'),
         showAllNutrients: State.get('showAllDailyNutrients'),
         currentNutrientPage: State.get('currentDailyNutrientPage'),
         calculateOxalateRisk: (ox) => this.dailyPlanManager.calculateOxalateRisk(ox),
         INGREDIENT_PROPS: State.get('nutrientMap') || {},
-        NUTRIENTS_PER_PAGE: 5,
-        dailyPlanManager: this.dailyPlanManager
+        NUTRIENTS_PER_PAGE: 5
       });
     } catch (error) {
       console.error('Error loading daily plan details:', error);
@@ -309,7 +310,7 @@ export class DailyPlanPageController {
   }
 
   /**
-   * Update nutrient preview
+   * Update nutrient preview with debounced dietary assessment
    */
   async updateNutrientPreview() {
     const container = document.getElementById('dailyPlanNutrientPreview');
@@ -331,23 +332,24 @@ export class DailyPlanPageController {
       return;
     }
 
-    const html = this.showPreviewAllNutrients
-      ? this.client.nutrientPreviewManager.renderAllNutrients(
-        data,
-        State.get('userSettings'),
-        State.get('dailyRequirements'),
-        this.previewNutrientPage,
-        this.client.nutrientMetadataManager
-      )
-      : this.client.nutrientPreviewManager.renderKeyNutrients(
-        data,
-        State.get('userSettings'),
-        State.get('dailyRequirements'),
-        (ox) => this.dailyPlanManager.calculateOxalateRisk(ox),
-        this.client.nutrientMetadataManager
-      );
+    // Show loading state
+    container.innerHTML = '<p class="preview-empty">Loading assessment...</p>';
 
-    container.innerHTML = html;
+    // Use debounced assessment (500ms delay)
+    dietaryAssessmentHelper.getAssessmentDebounced(
+      'daily-plan-preview',
+      data.totals,
+      data.oxalateMg,
+      'daily_plan',
+      (error, assessment) => {
+        if (error) {
+          container.innerHTML = dietaryAssessmentHelper.renderError(error);
+        } else {
+          const html = dietaryAssessmentHelper.renderAssessment(assessment, { showProgressBar: true });
+          container.innerHTML = html;
+        }
+      }
+    );
   }
 
   togglePreviewNutrients() {

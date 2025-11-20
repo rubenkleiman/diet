@@ -109,7 +109,7 @@ app.put('/api/user-settings/:userId', async (req, res) => {
 
 app.post('/api/dietary-assessment', async (req, res) => {
   try {
-    const { userId, type, oxalateMg, totals } = req.body;
+    const { userId, type, oxalateMg, totals } = req.  body;
     const data = await services.getDietaryAssessment(userId, type, oxalateMg, totals);
     res.json({ success: true, data });
   } catch (error) {

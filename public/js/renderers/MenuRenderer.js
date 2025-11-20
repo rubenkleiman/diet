@@ -4,6 +4,7 @@
  */
 
 import { State } from '../core/State.js';
+import { dietaryAssessmentHelper } from '../utils/DietaryAssessmentHelper.js';
 
 export class MenuRenderer {
 
@@ -82,15 +83,14 @@ export class MenuRenderer {
   }
 
   /**
-   * Render menu details
+   * Render menu details (async - fetches dietary assessment)
    */
-  static renderDetails(data, options = {}) {
+  static async renderDetails(data, options = {}) {
     const {
       dailyRequirements,
       userSettings,
       calculateOxalateRisk,
-      INGREDIENT_PROPS,
-      menuManager
+      INGREDIENT_PROPS
     } = options;
 
     const section = document.getElementById('menuDetailsSection');
@@ -101,56 +101,56 @@ export class MenuRenderer {
 
     title.textContent = `Menu: ${data.menuName}`;
 
-    let html = '<div class="details-content">';
-
-    // Dietary Assessment
-    html += this.renderDietaryAssessment(data, calculateOxalateRisk, menuManager, userSettings);
-
-    // Recipe List
-    html += this.renderRecipeList(data);
-
-    // Nutritional Totals
-    html += this.renderNutritionalTotals(data, {
-      dailyRequirements,
-      userSettings,
-      INGREDIENT_PROPS
-    });
-
-    html += '</div>';
-    content.innerHTML = html;
+    // Show loading state
+    content.innerHTML = '<div class="details-content"><p>Loading dietary assessment...</p></div>';
     section.style.display = 'block';
+
+    try {
+      // Fetch dietary assessment from backend
+      const assessment = await dietaryAssessmentHelper.getAssessment(
+        data.totals,
+        data.oxalateMg,
+        'menu'
+      );
+
+      // Now render with assessment data
+      let html = '<div class="details-content">';
+
+      // Dietary Assessment (from backend)
+      html += this.renderDietaryAssessment(assessment);
+
+      // Recipe List
+      html += this.renderRecipeList(data);
+
+      // Nutritional Totals
+      html += this.renderNutritionalTotals(data, {
+        dailyRequirements,
+        userSettings,
+        INGREDIENT_PROPS
+      });
+
+      html += '</div>';
+      content.innerHTML = html;
+
+    } catch (error) {
+      console.error('Error loading dietary assessment:', error);
+      // Show error prominently
+      content.innerHTML = `
+        <div class="details-content">
+          ${dietaryAssessmentHelper.renderError(error)}
+        </div>
+      `;
+    }
   }
 
   /**
-   * Render dietary assessment section
+   * Render dietary assessment section (from backend)
    */
-  static renderDietaryAssessment(data, calculateOxalateRisk, menuManager, userSettings) {
-    console.log('menuManager:', menuManager);  // ✅ Debug line
-    console.log('userSettings:', userSettings);  // ✅ Debug line
-    // Calculate DASH adherence from aggregated totals
-    const dashAssessment = menuManager.calculateDashAdherence(data.totals, userSettings);
-    const oxalateLevel = menuManager.calculateOverallOxalateLevel(data.oxalateMg);
-    const oxalateRisk = calculateOxalateRisk(data.oxalateMg);
-
-    const color = {
-      Excellent: "green",
-      Good: "green",
-      Fair: "brown",
-      Poor: "red"
-    };
-
+  static renderDietaryAssessment(assessment) {
     let html = '<div class="details-section">';
     html += '<h3>Dietary Assessment</h3>';
-    html += `<p style="color:${color[dashAssessment.adherence] || 'black'}"><strong>DASH Adherence:</strong> ${dashAssessment.adherence}</p>`;
-    html += `<p><strong>Reasons:</strong> ${dashAssessment.reasons}</p>`;
-    html += `<p><strong>Oxalate Level:</strong> <span style="color: ${oxalateRisk.color}; font-weight: bold;">${oxalateLevel}</span> (${data.oxalateMg.toFixed(2)} mg)</p>`;
-
-    if (oxalateRisk.message) {
-      html += `<div class="oxalate-warning" style="border-left-color: ${oxalateRisk.color};">${oxalateRisk.message}</div>`;
-    }
-
+    html += dietaryAssessmentHelper.renderAssessment(assessment, { showProgressBar: true });
     html += '</div>';
-
     return html;
   }
 
