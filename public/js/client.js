@@ -173,6 +173,38 @@ class Client {
       btn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
     }
   }
+  
+  filterNutritionInputs(searchTerm) {
+    const container = document.getElementById('nutritionInputsContainer');
+    const countEl = document.getElementById('nutritionSearchCount');
+
+    if (!container) return;
+
+    const term = searchTerm.toLowerCase().trim();
+    const allGroups = container.querySelectorAll('.form-group[data-nutrient]');
+
+    let visibleCount = 0;
+
+    allGroups.forEach(group => {
+      const nutrientName = group.dataset.nutrient.toLowerCase();
+      const label = group.querySelector('label')?.textContent.toLowerCase() || '';
+
+      if (!term || nutrientName.includes(term) || label.includes(term)) {
+        group.style.display = '';
+        visibleCount++;
+      } else {
+        group.style.display = 'none';
+      }
+    });
+
+    if (countEl) {
+      if (term) {
+        countEl.textContent = `Showing ${visibleCount} of ${allGroups.length} fields`;
+      } else {
+        countEl.textContent = `Showing all ${allGroups.length} fields`;
+      }
+    }
+  }
 
   setupEventListeners() {
     // Popstate for browser navigation
@@ -230,6 +262,7 @@ class Client {
     // Ingredient page
     this.setupInputListener('ingredientSearchInput', (value) => this.ingredientPageController.filter(value));
     this.setupFormListener('ingredientEditForm', (e) => this.ingredientPageController.save(e));
+    this.setupInputListener('nutritionSearchInput', (value) => this.filterNutritionInputs(value));
 
     // Menu page
     this.setupInputListener('menuSearchInput', (value) => this.menuPageController.filter(value));

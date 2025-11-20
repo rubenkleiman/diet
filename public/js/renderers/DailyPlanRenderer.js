@@ -4,6 +4,7 @@
  */
 
 import { State } from '../core/State.js';
+import { dietaryAssessmentHelper } from '../utils/DietaryAssessmentHelper.js';
 
 export class DailyPlanRenderer {
 
@@ -98,9 +99,9 @@ export class DailyPlanRenderer {
   }
 
   /**
-   * Render daily plan details
+   * Render daily plan details (async - fetches dietary assessment)
    */
-  static renderDetails(data, options = {}) {
+  static async renderDetails(data, options = {}) {
     const {
       dailyRequirements,
       userSettings,
@@ -108,8 +109,7 @@ export class DailyPlanRenderer {
       currentNutrientPage,
       calculateOxalateRisk,
       INGREDIENT_PROPS,
-      NUTRIENTS_PER_PAGE,
-      dailyPlanManager
+      NUTRIENTS_PER_PAGE
     } = options;
 
     const section = document.getElementById('dailyPlanDetailsSection');
@@ -120,28 +120,61 @@ export class DailyPlanRenderer {
 
     title.textContent = `Daily Plan: ${data.dailyPlanName}`;
 
-    let html = '<div class="details-content">';
-
-    // Dietary Assessment (from aggregated totals)
-    html += this.renderDietaryAssessment(data, calculateOxalateRisk, dailyPlanManager, userSettings);
-
-    // Daily Totals Section
-    html += this.renderDailyTotals(data, {
-      dailyRequirements,
-      userSettings,
-      showAllNutrients,
-      currentNutrientPage,
-      calculateOxalateRisk,
-      INGREDIENT_PROPS,
-      NUTRIENTS_PER_PAGE
-    });
-
-    // Menus Grouped by Type
-    html += this.renderMenusByType(data);
-
-    html += '</div>';
-    content.innerHTML = html;
+    // Show loading state
+    content.innerHTML = '<div class="details-content"><p>Loading dietary assessment...</p></div>';
     section.style.display = 'block';
+
+    try {
+      // Fetch dietary assessment from backend
+      const assessment = await dietaryAssessmentHelper.getAssessment(
+        data.totals,
+        data.oxalateMg,
+        'daily_plan'
+      );
+
+      // Now render with assessment data
+      let html = '<div class="details-content">';
+
+      // Dietary Assessment (from backend)
+      html += this.renderDietaryAssessment(assessment);
+
+      // Daily Totals Section
+      html += this.renderDailyTotals(data, {
+        dailyRequirements,
+        userSettings,
+        showAllNutrients,
+        currentNutrientPage,
+        calculateOxalateRisk,
+        INGREDIENT_PROPS,
+        NUTRIENTS_PER_PAGE
+      });
+
+      // Menus Grouped by Type
+      html += this.renderMenusByType(data);
+
+      html += '</div>';
+      content.innerHTML = html;
+
+    } catch (error) {
+      console.error('Error loading dietary assessment:', error);
+      // Show error prominently
+      content.innerHTML = `
+        <div class="details-content">
+          ${dietaryAssessmentHelper.renderError(error)}
+        </div>
+      `;
+    }
+  }
+
+  /**
+   * Render dietary assessment section (from backend)
+   */
+  static renderDietaryAssessment(assessment) {
+    let html = '<div class="details-section">';
+    html += '<h3>Dietary Assessment</h3>';
+    html += dietaryAssessmentHelper.renderAssessment(assessment, { showProgressBar: true });
+    html += '</div>';
+    return html;
   }
 
   /**
@@ -160,13 +193,14 @@ export class DailyPlanRenderer {
 
     const oxalateRisk = calculateOxalateRisk(data.oxalateMg);
 
-    let html = '<div class="details-section">';
+    let html = '<div class="details-section contribution-section">';
     html += '<div class="contribution-header">';
     html += '<h3>Daily Totals</h3>';
     html += '<button class="btn btn-secondary btn-small" data-action="toggle-daily-nutrient-view">';
     html += showAllNutrients ? 'Show Key Nutrients' : 'Show All Nutrients';
     html += '</button>';
     html += '</div>';
+    html += '<div><i>Aggregated nutrition from all menus (% of Daily Requirement)</i></div><br/>';
 
     if (showAllNutrients) {
       html += this.renderAllNutrientsTotals(data, {
@@ -194,37 +228,6 @@ export class DailyPlanRenderer {
   }
 
   /**
-   * Render dietary assessment section
-   */
-  static renderDietaryAssessment(data, calculateOxalateRisk, dailyPlanManager, userSettings) {
-    // Calculate DASH adherence from aggregated totals
-    const dashAssessment = dailyPlanManager.calculateDashAdherence(data.totals, userSettings);
-    const oxalateLevel = dailyPlanManager.calculateOverallOxalateLevel(data.oxalateMg);
-    const oxalateRisk = calculateOxalateRisk(data.oxalateMg);
-
-    const color = {
-      Excellent: "green",
-      Good: "green",
-      Fair: "brown",
-      Poor: "red"
-    };
-
-    let html = '<div class="details-section">';
-    html += '<h3>Dietary Assessment</h3>';
-    html += `<p style="color:${color[dashAssessment.adherence] || 'black'}"><strong>DASH Adherence:</strong> ${dashAssessment.adherence}</p>`;
-    html += `<p><strong>Reasons:</strong> ${dashAssessment.reasons}</p>`;
-    html += `<p><strong>Oxalate Level:</strong> <span style="color: ${oxalateRisk.color}; font-weight: bold;">${oxalateLevel}</span> (${data.oxalateMg.toFixed(2)} mg)</p>`;
-
-    if (oxalateRisk.message) {
-      html += `<div class="oxalate-warning" style="border-left-color: ${oxalateRisk.color};">${oxalateRisk.message}</div>`;
-    }
-
-    html += '</div>';
-
-    return html;
-  }
-
-  /**
    * Render key nutrients totals (calories, sodium, oxalates)
    */
   static renderKeyNutrientsTotals(data, options) {
@@ -237,15 +240,23 @@ export class DailyPlanRenderer {
     const sodiumReq = parseFloat(dailyRequirements['sodium']?.maximum) || 2300;
     const sodiumPercent = ((sodium / sodiumReq) * 100).toFixed(1);
 
-    const oxalates = data.oxalateMg || 0;  // ✅ FIXED: Use data.oxalateMg, not data.totals.oxalates
+    const oxalates = data.oxalateMg || 0;
     const oxalateRisk = calculateOxalateRisk(oxalates);
     const oxalatesPercent = oxalateRisk.percent.toFixed(1);
 
-    let html = '<table class="nutrition-table" style="margin-top: 1rem;">';
-    html += `<tr><td class="nutrient-name">Calories</td><td class="nutrient-value">${calories.toFixed(0)} (${caloriesPercent}%)</td></tr>`;
-    html += `<tr><td class="nutrient-name">Sodium</td><td class="nutrient-value">${sodium.toFixed(0)} mg (${sodiumPercent}%)</td></tr>`;
-    html += `<tr><td class="nutrient-name">Oxalates</td><td class="nutrient-value" style="color: ${oxalateRisk.color}">${oxalates.toFixed(1)} mg (${oxalatesPercent}%)</td></tr>`;
-    html += '</table>';
+    let html = '<div class="table-scroll">';
+    html += '<table class="contribution-table">';
+    html += '<thead><tr>';
+    html += '<th>Nutrient</th>';
+    html += '<th>Amount</th>';
+    html += '<th>% Daily</th>';
+    html += '</tr></thead>';
+    html += '<tbody>';
+    html += `<tr><td class="nutrient-name">Calories</td><td class="ing-amount">${calories.toFixed(0)}</td><td class="ing-amount">${caloriesPercent}%</td></tr>`;
+    html += `<tr><td class="nutrient-name">Sodium</td><td class="ing-amount">${sodium.toFixed(0)} mg</td><td class="ing-amount">${sodiumPercent}%</td></tr>`;
+    html += `<tr><td class="nutrient-name">Oxalates</td><td class="ing-amount" style="color: ${oxalateRisk.color}">${oxalates.toFixed(1)} mg</td><td class="ing-amount" style="color: ${oxalateRisk.color}">${oxalatesPercent}%</td></tr>`;
+    html += '</tbody></table>';
+    html += '</div>';
 
     return html;
   }
@@ -273,7 +284,14 @@ export class DailyPlanRenderer {
       html += '</div>';
     }
 
-    html += '<table class="nutrition-table" style="margin-top: 1rem;">';
+    html += '<div class="table-scroll">';
+    html += '<table class="contribution-table">';
+    html += '<thead><tr>';
+    html += '<th>Nutrient</th>';
+    html += '<th>Amount</th>';
+    html += '<th>% Daily</th>';
+    html += '</tr></thead>';
+    html += '<tbody>';
 
     pageNutrients.forEach(nutrient => {
       const value = data.totals[nutrient];
@@ -282,7 +300,7 @@ export class DailyPlanRenderer {
 
       if (nutrient === 'calories') {
         const percent = ((value / userSettings.caloriesPerDay) * 100).toFixed(1);
-        percentDaily = ` (${percent}%)`;
+        percentDaily = `${percent}%`;
       } else if (dailyRequirements[nutrient]) {
         const req = dailyRequirements[nutrient];
         let dailyValue = null;
@@ -295,7 +313,7 @@ export class DailyPlanRenderer {
 
         if (dailyValue) {
           const percent = ((value / dailyValue) * 100).toFixed(1);
-          percentDaily = ` (${percent}%)`;
+          percentDaily = `${percent}%`;
         }
       }
 
@@ -306,10 +324,15 @@ export class DailyPlanRenderer {
         }
       }
 
-      html += `<tr><td class="nutrient-name">${nutrient}</td><td class="nutrient-value">${formattedValue}${percentDaily}</td></tr>`;
+      html += '<tr>';
+      html += `<td class="nutrient-name">${nutrient}</td>`;
+      html += `<td class="ing-amount">${formattedValue}</td>`;
+      html += `<td class="ing-amount">${percentDaily}</td>`;
+      html += '</tr>';
     });
 
-    html += '</table>';
+    html += '</tbody></table>';
+    html += '</div>';
 
     return html;
   }

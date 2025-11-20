@@ -383,10 +383,164 @@
                         </div>
 
                         <div class="form-group">
-                            <h4>Nutritional Information (per serving)</h4>
-                            <small>Leave blank if unknown. Scroll to see all fields.</small>
+                            <label for="nutritionSearchInput">🔍 Search Nutrition Fields</label>
+                            <input type="text" id="nutritionSearchInput" class="form-control"
+                                placeholder="Type to filter fields (e.g., 'vitamin', 'iron', 'protein')..."
+                                autocomplete="off">
+                            <small id="nutritionSearchCount" style="color: #7f8c8d;"></small>
                         </div>
 
+                        <div class="nutrition-inputs-scroll">
+                            <div class="nutrition-inputs" id="nutritionInputsContainer">
+                                <div class="form-group" data-nutrient="calories">
+                                    <label for="caloriesInput">Calories</label>
+                                    <input type="number" id="caloriesInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="sodium">
+                                    <label for="sodiumInput">Sodium (mg)</label>
+                                    <input type="number" id="sodiumInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="cholesterol">
+                                    <label for="cholesterolInput">Cholesterol (mg)</label>
+                                    <input type="number" id="cholesterolInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="sugars">
+                                    <label for="sugarsInput">Sugars (g)</label>
+                                    <input type="number" id="sugarsInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="protein">
+                                    <label for="proteinInput">Protein (g)</label>
+                                    <input type="number" id="proteinInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="dietary fiber">
+                                    <label for="dietaryFiberInput">Dietary Fiber (g)</label>
+                                    <input type="number" id="dietaryFiberInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="carbohydrates">
+                                    <label for="carbohydratesInput">Carbohydrates (g)</label>
+                                    <input type="number" id="carbohydratesInput" class="form-control" step="0.1"
+                                        min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="calcium">
+                                    <label for="calciumInput">Calcium (mg)</label>
+                                    <input type="number" id="calciumInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="potassium">
+                                    <label for="potassiumInput">Potassium (mg)</label>
+                                    <input type="number" id="potassiumInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="magnesium">
+                                    <label for="magnesiumInput">Magnesium (mg)</label>
+                                    <input type="number" id="magnesiumInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="selenium">
+                                    <label for="seleniumInput">Selenium (mcg)</label>
+                                    <input type="number" id="seleniumInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="manganese">
+                                    <label for="manganeseInput">Manganese (mg)</label>
+                                    <input type="number" id="manganeseInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="zinc">
+                                    <label for="zincInput">Zinc (mg)</label>
+                                    <input type="number" id="zincInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="iron">
+                                    <label for="ironInput">Iron (mg)</label>
+                                    <input type="number" id="ironInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="fat">
+                                    <label for="fatInput">Fat (g)</label>
+                                    <input type="number" id="fatInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="saturated fat">
+                                    <label for="saturatedFatInput">Saturated Fat (g)</label>
+                                    <input type="number" id="saturatedFatInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="polyunsaturated fat">
+                                    <label for="polysaturatedFatInput">Polyunsaturated Fat (g)</label>
+                                    <input type="number" id="polysaturatedFatInput" class="form-control" step="0.1"
+                                        min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="monounsaturated fat">
+                                    <label for="monosaturatedFatInput">Monounsaturated Fat (g)</label>
+                                    <input type="number" id="monosaturatedFatInput" class="form-control" step="0.1"
+                                        min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="thiamin">
+                                    <label for="thiaminInput">Thiamin (mg)</label>
+                                    <input type="number" id="thiaminInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="riboflavin">
+                                    <label for="riboflavinInput">Riboflavin (mg)</label>
+                                    <input type="number" id="riboflavinInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="niacin">
+                                    <label for="niacinInput">Niacin (mg)</label>
+                                    <input type="number" id="niacinInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="folic acid">
+                                    <label for="folicAcidInput">Folic Acid (mcg)</label>
+                                    <input type="number" id="folicAcidInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="phosphorus">
+                                    <label for="phosphorusInput">Phosphorus (mg)</label>
+                                    <input type="number" id="phosphorusInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="vitamin a">
+                                    <label for="vitaminAInput">Vitamin A (IU)</label>
+                                    <input type="number" id="vitaminAInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="vitamin b6">
+                                    <label for="vitaminB6Input">Vitamin B6 (mg)</label>
+                                    <input type="number" id="vitaminB6Input" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="vitamin c">
+                                    <label for="vitaminCInput">Vitamin C (mg)</label>
+                                    <input type="number" id="vitaminCInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="vitamin d">
+                                    <label for="vitaminDInput">Vitamin D (IU)</label>
+                                    <input type="number" id="vitaminDInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="vitamin e">
+                                    <label for="vitaminEInput">Vitamin E (mg)</label>
+                                    <input type="number" id="vitaminEInput" class="form-control" step="0.1" min="0">
+                                </div>
+
+                                <div class="form-group" data-nutrient="vitamin k">
+                                    <label for="vitaminKInput">Vitamin K (mcg)</label>
+                                    <input type="number" id="vitaminKInput" class="form-control" step="0.1" min="0">
+                                </div>
+                            </div>
+                        </div>
                         <div class="nutrition-inputs-scroll">
                             <div class="nutrition-inputs">
                                 <div class="form-group">
