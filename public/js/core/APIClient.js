@@ -13,7 +13,6 @@ class APIClientManager {
    */
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
-    // console.trace(`APIClient Endpoint Stack Trace: ${url}`)
 
     try {
       const data = {
@@ -23,15 +22,12 @@ class APIClientManager {
         },
         ...options,
       };
-      // console.log(`APIClient Endpoint: ${url}; FETCH OPTIONS:\n${JSON.stringify(data)}`)
       const response = await fetch(url, data);
-      // console.log(`RESPONSE: ${response.ok ? 'success':'failure'} URL: ${url} DATA:\n${JSON.stringify(data)}`)
 
       const result = await response.json();
       if (!response.ok) {
         throw Error(`Response error. URL ${url}. ${JSON.stringify(result)}`)
       }
-      // console.log(`JSON: ${url} DATATYPE: ${typeof data} DATALEN:${typeof data == "object" ? Object.keys(data).length : data?.length} DATA:\n${JSON.stringify(data)}`)
       return result;
     } catch (error) {
       console.error(`API Error (${endpoint}):`, error);
@@ -54,6 +50,52 @@ class APIClientManager {
 
   async getDailyRequirements() {
     return await this.request('/daily-requirements');
+  }
+
+  // ===== USER SETTINGS ENDPOINTS =====
+
+  /**
+   * Get user settings
+   * @param {string} userId - User ID
+   */
+  async getUserSettings(userId) {
+    return await this.request(`/user-settings/${userId}`);
+  }
+
+  /**
+   * Create user settings
+   * @param {Object} settings - { userId, caloriesPerDay, age, useAge, kidneyStoneRisk }
+   */
+  async createUserSettings(settings) {
+    return await this.request('/user-settings', {
+      method: 'POST',
+      body: JSON.stringify(settings),
+    });
+  }
+
+  /**
+   * Update user settings (creates if doesn't exist)
+   * @param {string} userId - User ID
+   * @param {Object} settings - { caloriesPerDay, age, useAge, kidneyStoneRisk }
+   */
+  async updateUserSettings(userId, settings) {
+    return await this.request(`/user-settings/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    });
+  }
+
+  // ===== DIETARY ASSESSMENT ENDPOINT =====
+
+  /**
+   * Get dietary assessment
+   * @param {Object} data - { totals, oxalateMg, type, userId }
+   */
+  async getDietaryAssessment(data) {
+    return await this.request('/dietary-assessment', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   }
 
   // ===== RECIPE ENDPOINTS =====

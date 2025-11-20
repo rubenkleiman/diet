@@ -59,9 +59,9 @@ export class SettingsPageController {
   }
 
   /**
-   * Save settings
+   * Save settings to backend
    */
-  save(e) {
+  async save(e) {
     e.preventDefault();
 
     const updates = {
@@ -73,11 +73,17 @@ export class SettingsPageController {
       kidneyStoneRisk: document.getElementById('kidneyRiskSelect').value
     };
 
-    this.settingsManager.updateSettings(updates);
-    
-    // Reload recipes since they depend on user settings
-    this.client.recipePageController.recipeManager.loadRecipes();
-    
-    this.client.navigateTo('home');
+    try {
+      await this.settingsManager.updateSettings(updates);
+      
+      // Reload recipes since they depend on user settings
+      await this.client.recipePageController.recipeManager.loadRecipes();
+      
+      alert('Settings saved successfully!');
+      this.client.navigateTo('home');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Failed to save settings. Please try again.');
+    }
   }
 }

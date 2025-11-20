@@ -4,6 +4,7 @@
  */
 
 import { State } from '../core/State.js';
+import { dietaryAssessmentHelper } from '../utils/DietaryAssessmentHelper.js';
 
 export class RecipeRenderer {
 
@@ -78,7 +79,7 @@ export class RecipeRenderer {
   /**
    * Render recipe details
    */
-  static renderDetails(data, options = {}) {
+  static async renderDetails(data, options = {}) {
     const {
       dailyRequirements,
       userSettings,
@@ -98,35 +99,68 @@ export class RecipeRenderer {
 
     title.textContent = `Recipe: ${data.name}`;
 
-    let html = '<div class="details-content">';
-
-    // Dietary Assessment
-    html += this.renderDietaryAssessment(data, calculateOxalateRisk);
-
-    // Ingredient Contributions
-    if (data.ingredients && data.ingredients.length > 0) {
-      html += this.renderIngredientContributions(data, {
-        showAllNutrients,
-        currentNutrientPage,
-        calculateContributions,
-        dailyRequirements,
-        NUTRIENTS_PER_PAGE
-      });
-    }
-
-    // Nutritional Totals
-    html += this.renderNutritionalTotals(data, {
-      dailyRequirements,
-      userSettings,
-      INGREDIENT_PROPS
-    });
-
-    // Ingredient Details
-    html += this.renderIngredientDetails(data);
-
-    html += '</div>';
-    content.innerHTML = html;
+    // Show loading state
+    content.innerHTML = '<div class="details-content"><p>Loading dietary assessment...</p></div>';
     section.style.display = 'block';
+
+    try {
+      // Fetch dietary assessment from backend
+      const assessment = await dietaryAssessmentHelper.getAssessment(
+        data.totals,
+        data.oxalateMg,
+        'recipe'
+      );
+
+      // Now render with assessment data
+      let html = '<div class="details-content">';
+
+      // Dietary Assessment (from backend)
+      html += this.renderDietaryAssessment(assessment);
+
+      // Ingredient Contributions
+      if (data.ingredients && data.ingredients.length > 0) {
+        html += this.renderIngredientContributions(data, {
+          showAllNutrients,
+          currentNutrientPage,
+          calculateContributions,
+          dailyRequirements,
+          NUTRIENTS_PER_PAGE
+        });
+      }
+
+      // Nutritional Totals
+      html += this.renderNutritionalTotals(data, {
+        dailyRequirements,
+        userSettings,
+        INGREDIENT_PROPS
+      });
+
+      // Ingredient Details
+      html += this.renderIngredientDetails(data);
+
+      html += '</div>';
+      content.innerHTML = html;
+
+    } catch (error) {
+      console.error('Error loading dietary assessment:', error);
+      // Show error prominently
+      content.innerHTML = `
+        <div class="details-content">
+          ${dietaryAssessmentHelper.renderError(error)}
+        </div>
+      `;
+    }
+  }
+
+  /**
+   * Render dietary assessment section (from backend)
+   */
+  static renderDietaryAssessment(assessment) {
+    let html = '<div class="details-section">';
+    html += '<h3>Dietary Assessment</h3>';
+    html += dietaryAssessmentHelper.renderAssessment(assessment, { showProgressBar: true });
+    html += '</div>';
+    return html;
   }
 
   /**
@@ -176,28 +210,6 @@ export class RecipeRenderer {
     }
 
     html += '</table>';
-    html += '</div>';
-
-    return html;
-  }
-
-  /**
-   * Render dietary assessment section
-   */
-  static renderDietaryAssessment(data, calculateOxalateRisk) {
-    const oxalateRisk = calculateOxalateRisk(data.oxalateMg);
-
-    let html = '<div class="details-section">';
-    html += '<h3>Dietary Assessment</h3>';
-    const color = {Excellent: "green", Good: "green", Fair: "brown", Poor: "red"};
-    html += `<p style="color:${color[data.dashAdherence]}"><strong>DASH Adherence:</strong> ${data.dashAdherence} </p>`;
-    html += `<p><strong>Reasons:</strong> ${data.dashReasons}</p>`;
-    html += `<p><strong>Oxalate Level:</strong> <span style="color: ${oxalateRisk.color}; font-weight: bold;">${data.oxalateLevel}</span> (${data.oxalateMg.toFixed(2)} mg)</p>`;
-
-    if (oxalateRisk.message) {
-      html += `<div class="oxalate-warning" style="border-left-color: ${oxalateRisk.color};">${oxalateRisk.message}</div>`;
-    }
-
     html += '</div>';
 
     return html;
