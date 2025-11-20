@@ -29,7 +29,7 @@ or
 
 {"success": false, "error": "an error message"}
  
-## Update settings for user
+## Update settings for user (creates settings if they don't exist in db)
 
 ### curl command
  curl -X PUT http://localhost:3000/api/user-settings/a70ff520-1125-4098-90b3-144e22ebe84a   -H "Content-Type: application/json" -d '{"caloriesPerDay": 2222, "age": null, "useAge": false, "kidneyStoneRisk": "High" }'
