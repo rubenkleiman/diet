@@ -389,4 +389,4 @@ class APIClientManager {
 }
 
 // Export singleton instance
-export const APIClient = new APIClientManager();
+export const APIClient = new APIClientManager();  
