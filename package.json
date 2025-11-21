@@ -1,14 +1,14 @@
-  {
+{
   "name": "diet-guidelines",
   "type": "module",
   "version": "1.0.0",
   "description": "Diet Guidelines Application",
   "main": "app.js",
   "scripts": {
-    "dev": "nodemon --inspect=9229  app.js",
-    "build": "esbuild public/js/client.js --bundle --outfile=public/js/bundle.js --sourcemap --format=iife",
+    "dev": "nodemon --inspect=9229 --trace-event-categories v8,node,node.async_hooks --trace-event-file-pattern './traces/trace.json' app.js",
     "watch": "esbuild public/js/client.js --bundle --outfile=public/js/bundle.js --sourcemap --format=iife --watch",
     "dev:full": "concurrently \"npm run dev\" \"npm run watch\"",
+    "build": "esbuild public/js/client.js --bundle --outfile=public/js/bundle.js --sourcemap --format=iife",
     "db:comment": "echo 'db:* scripts handle db backup & population'",
     "db:init": "node db/scripts/init.js",
     "db:reset": "node db/scripts/init.js --reset",
@@ -30,12 +30,13 @@
     "knip": "^5.70.0",
     "livereload": "^0.10.3",
     "nodemon": "^3.0.1",
-    "nyc": "^17.1.0",
     "skott": "^0.35.6",
     "style-loader": "^3.3.3"
   },
   "dependencies": {
     "express": "^5.1.0",
+    "require-in-the-middle": "^8.0.1",
+    "sqlite": "^5.1.1",
     "sqlite3": "^5.1.6"
   }
 }
