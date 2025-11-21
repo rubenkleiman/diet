@@ -247,31 +247,8 @@ export class MenuManager {
 
   /**
    * Calculate oxalate risk for menu
-   * (Still needed for list item coloring)
    */
   calculateOxalateRisk(oxalateMg) {
-    const userSettings = State.get('userSettings');
-    const kidneyStoneRiskData = State.get('kidneyStoneRiskData');
-
-    const maxOxalates = kidneyStoneRiskData[userSettings.kidneyStoneRisk]?.maxOxalatesPerDay || 200;
-    const percent = (oxalateMg / maxOxalates) * 100;
-
-    if (percent < 50) {
-      return { status: 'safe', percent, color: '#27ae60', message: '' };
-    } else if (percent < 100) {
-      return {
-        status: 'warning',
-        percent,
-        color: '#b8860b',
-        message: `Approaching your daily oxalate limit (${maxOxalates}mg)`
-      };
-    } else {
-      return {
-        status: 'danger',
-        percent,
-        color: '#e74c3c',
-        message: `Exceeds your daily oxalate limit (${maxOxalates}mg). This menu contains ${oxalateMg.toFixed(1)}mg oxalates, which is ${(percent - 100).toFixed(0)}% over your ${userSettings.kidneyStoneRisk.toLowerCase()} risk limit.`
-      };
-    }
+    return OxalateHelper.calculateRisk(oxalateMg);
   }
 }
