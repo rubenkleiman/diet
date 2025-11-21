@@ -48,7 +48,9 @@ select r.*, i.* from recipes r
 select * from daily_requirements where name like '%sugar%' order by name;
 insert into daily_requirements(name, recommended, dash_recommendation,minimum,
     maximum, note,source) values('folic_acid','400 mcg',null,null,null,null,'NIH');
-update daily_requirements set maximum = '25 mg', recommended = '25 mg' where name = "sugars";
+update daily_requirements 
+set recommended = ' ', dash_recommendation = '25 mg' 
+where name = "sodium";
 
 -- PLANS
 select * from daily_plans;

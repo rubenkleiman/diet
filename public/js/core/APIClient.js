@@ -45,7 +45,7 @@ class APIClientManager {
         throw Error(`Response error. URL ${url}. ${JSON.stringify(result)}`);
       }
 
-      // ✅ Cache successful GET requests
+      // Cache successful GET requests
       if (method === 'GET') {
         const cacheKey = this.getCacheKey(endpoint, options);
         this.cache.set(cacheKey, {
@@ -55,7 +55,7 @@ class APIClientManager {
         console.log(`💾 Cached: ${endpoint}`);
       }
 
-      // ✅ Invalidate cache on mutations
+      // Invalidate cache on mutations
       if (['POST', 'PUT', 'DELETE'].includes(method)) {
         // Clear related cache entries
         const resource = endpoint.split('/')[1]; // e.g., 'recipes' from '/recipes/123'
