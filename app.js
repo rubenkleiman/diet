@@ -50,6 +50,19 @@ function reportError(msg, req, error, res, status = 500) {
 
 // API routes - Config and system data
 
+// Backend: GET /api/menus
+// Current: Returns { id, name, recipeIds }
+// Needed: Returns { id, name, recipeIds, summary: { calories, sodium, oxalates, recipeCount } }
+
+// Backend: GET /api/daily-plans  
+// Current: Returns { id, name, dailyPlanMenus }
+// Needed: Returns { id, name, dailyPlanMenus, summary: { calories, sodium, oxalates, menuCount } }
+
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // routes/userSettings.js
 app.get('/api/user-settings/:userId', async (req, res) => {
   try {
