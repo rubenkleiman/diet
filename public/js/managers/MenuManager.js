@@ -5,6 +5,7 @@
 
 import { State } from '../core/State.js';
 import { APIClient } from '../core/APIClient.js';
+import { OxalateHelper } from '../utils/OxalateHelper.js';
 
 export class MenuManager {
 
@@ -210,10 +211,7 @@ export class MenuManager {
         menuName: menu.name,
         recipes: recipes,
         totals: aggregated.totals,
-        oxalateMg: aggregated.oxalateMg,
-        dashAdherence: aggregated.dashAdherence,
-        dashReasons: aggregated.dashReasons,
-        oxalateLevel: aggregated.oxalateLevel
+        oxalateMg: aggregated.oxalateMg
       };
     } catch (error) {
       console.error('Error fetching menu nutritional data:', error);
@@ -227,7 +225,6 @@ export class MenuManager {
   aggregateNutrition(recipes) {
     const totals = {};
     let totalOxalates = 0;
-    const oxalateLevelList = [];
 
     recipes.forEach(recipe => {
       // Sum up totals
@@ -240,28 +237,17 @@ export class MenuManager {
 
       // Sum oxalates
       totalOxalates += recipe.oxalateMg || 0;
-
-      // Collect oxalate levels for reference
-      if (recipe.oxalateLevel) {
-        oxalateLevelList.push(recipe.oxalateLevel);
-      }
     });
-
-    // Calculate DASH adherence from aggregated totals (will be done in renderer)
-    // Calculate overall oxalate level
-    const oxalateLevel = this.calculateOverallOxalateLevel(totalOxalates);
 
     return {
       totals,
-      oxalateMg: totalOxalates,
-      dashAdherence: null,  // Will be calculated from totals in renderer
-      dashReasons: null,    // Will be calculated from totals in renderer
-      oxalateLevel
+      oxalateMg: totalOxalates
     };
   }
 
   /**
    * Calculate oxalate risk for menu
+   * (Still needed for list item coloring)
    */
   calculateOxalateRisk(oxalateMg) {
     const userSettings = State.get('userSettings');
@@ -287,127 +273,5 @@ export class MenuManager {
         message: `Exceeds your daily oxalate limit (${maxOxalates}mg). This menu contains ${oxalateMg.toFixed(1)}mg oxalates, which is ${(percent - 100).toFixed(0)}% over your ${userSettings.kidneyStoneRisk.toLowerCase()} risk limit.`
       };
     }
-  }
-  /**
-   * Calculate DASH adherence for menu based on aggregated totals
-   */
-  calculateDashAdherence(totals, userSettings) {
-    const reasons = [];
-    let goodCount = 0;
-    let poorCount = 0;
-
-    // Get total calories
-    const totalCalories = totals.calories || 0;
-
-    // 1. Sodium (should be < 2300mg per day, for a meal < ~800mg)
-    const sodium = totals.sodium || 0;
-    if (sodium < 500) {
-      reasons.push('excellent sodium ✓✓');
-      goodCount += 2;
-    } else if (sodium < 800) {
-      reasons.push('low sodium ✓');
-      goodCount++;
-    } else if (sodium < 1200) {
-      reasons.push('moderate sodium ⚠');
-    } else {
-      reasons.push('high sodium ✗');
-      poorCount++;
-    }
-
-    // 2. Saturated Fat (should be < 6% of calories)
-    const saturatedFat = totals.saturated_fat || 0;
-    const saturatedFatCalories = saturatedFat * 9; // 9 cal per gram
-    const saturatedFatPercent = totalCalories > 0 ? (saturatedFatCalories / totalCalories * 100) : 0;
-    if (saturatedFatPercent < 6) {
-      reasons.push('low saturated fat ✓');
-      goodCount++;
-    } else if (saturatedFatPercent < 10) {
-      reasons.push('moderate saturated fat ⚠');
-    } else {
-      reasons.push('high saturated fat ✗');
-      poorCount++;
-    }
-
-    // 3. Sugars (WHO recommends < 10% of calories, ideally < 5%)
-    const sugars = totals.sugars || 0;
-    const sugarCalories = sugars * 4; // 4 cal per gram
-    const sugarPercent = totalCalories > 0 ? (sugarCalories / totalCalories * 100) : 0;
-    if (sugarPercent < 5) {
-      reasons.push('low sugar ✓');
-      goodCount++;
-    } else if (sugarPercent <= 10) {
-      reasons.push(`moderate sugar (${sugarPercent.toFixed(0)}% of calories) ⚠`);
-    } else {
-      reasons.push(`high sugar (${sugarPercent.toFixed(0)}% > 10% calories WHO) ⚠`);
-      poorCount++;
-    }
-
-    // 4. Potassium (for a meal, good if > 1000mg)
-    const potassium = totals.potassium || 0;
-    if (potassium >= 1500) {
-      reasons.push('excellent potassium ✓✓');
-      goodCount += 2;
-    } else if (potassium >= 1000) {
-      reasons.push('good potassium ✓');
-      goodCount++;
-    } else if (potassium >= 500) {
-      reasons.push('moderate potassium');
-    } else {
-      reasons.push('low potassium ⚠');
-    }
-
-    // 5. Fiber (for a meal, good if > 8g)
-    const fiber = totals.dietary_fiber || 0;
-    if (fiber >= 10) {
-      reasons.push('excellent fiber ✓✓');
-      goodCount += 2;
-    } else if (fiber >= 8) {
-      reasons.push('good fiber ✓');
-      goodCount++;
-    } else if (fiber >= 5) {
-      reasons.push('moderate fiber');
-    } else {
-      reasons.push('low fiber ⚠');
-    }
-
-    // 6. Protein (should be adequate but not excessive)
-    const protein = totals.protein || 0;
-    const proteinCalories = protein * 4; // 4 cal per gram
-    const proteinPercent = totalCalories > 0 ? (proteinCalories / totalCalories * 100) : 0;
-    if (proteinPercent >= 15 && proteinPercent <= 25) {
-      reasons.push('good protein ✓');
-      goodCount++;
-    } else if (proteinPercent < 10) {
-      reasons.push('low protein ⚠');
-    } else if (proteinPercent > 30) {
-      reasons.push('high protein ⚠');
-    }
-
-    // Determine overall adherence
-    let adherence;
-    if (poorCount >= 2) {
-      adherence = 'Poor';
-    } else if (poorCount === 1 || goodCount < 3) {
-      adherence = 'Fair';
-    } else if (goodCount >= 5) {
-      adherence = 'Excellent';
-    } else {
-      adherence = 'Good';
-    }
-
-    return {
-      adherence,
-      reasons: reasons.join(', ')
-    };
-  }
-
-  /**
-   * Calculate overall oxalate level based on total mg
-   */
-  calculateOverallOxalateLevel(totalOxalates) {
-    if (totalOxalates < 50) return 'Low';
-    if (totalOxalates < 100) return 'Moderate';
-    if (totalOxalates < 200) return 'High';
-    return 'Very High';
   }
 }

@@ -5,44 +5,40 @@
 
 import { State } from '../core/State.js';
 import { dietaryAssessmentHelper } from '../utils/DietaryAssessmentHelper.js';
+import { ListRenderer } from '../utils/ListRenderer.js';
 
 export class DailyPlanRenderer {
 
   /**
-   * Render daily plan list
+   * Render daily plan list (using ListRenderer helper)
    */
   static renderList(dailyPlans, onSelect) {
-    const listElement = document.getElementById('dailyPlanList');
-    if (!listElement) return;
-
-    listElement.innerHTML = '';
-
-    if (dailyPlans.length === 0) {
-      listElement.innerHTML = '<li class="no-results">No daily plans found</li>';
-      return;
-    }
-
-    // Sort alphabetically by name
-    const sortedPlans = [...dailyPlans].sort((a, b) => a.name.localeCompare(b.name));
-
-    sortedPlans.forEach(plan => {
-      const li = document.createElement('li');
-      li.className = 'daily-plan-item';
-      li.dataset.dailyPlanId = plan.id;
-      li.dataset.action = 'select-daily-plan';
-      li.innerHTML = `
+    ListRenderer.render({
+      items: dailyPlans,
+      containerId: 'dailyPlanList',
+      itemClass: 'daily-plan-item',
+      dataAttribute: 'dailyPlanId',
+      action: 'select-daily-plan',
+      renderItem: (plan) => `
         <span class="daily-plan-name">${plan.name}</span>
         <span class="daily-plan-meta">
           <span class="daily-plan-menu-count">${plan.dailyPlanMenus?.length || 0} menus</span>
         </span>
-      `;
-
-      listElement.appendChild(li);
+      `,
+      emptyMessage: 'No daily plans found',
+      sortItems: ListRenderer.sortByName
     });
   }
 
   /**
-   * Update daily plan item
+   * Mark daily plan as selected (using ListRenderer helper)
+   */
+  static markAsSelected(dailyPlanId) {
+    ListRenderer.markAsSelected('daily-plan-item', 'dailyPlanId', dailyPlanId);
+  }
+
+  /**
+   * Update daily plan item with summary data
    */
   static updateDailyPlanItemWithSummary(dailyPlanId, data, calculateOxalateRisk) {
     const item = document.querySelector(`[data-daily-plan-id="${dailyPlanId}"]`);
@@ -81,20 +77,6 @@ export class DailyPlanRenderer {
     const selectedDailyPlanId = State.get('selectedDailyPlanId');
     if (dailyPlanId == selectedDailyPlanId) {
       item.classList.add('selected');
-    }
-  }
-
-  /**
-   * Mark daily plan as selected
-   */
-  static markAsSelected(dailyPlanId) {
-    document.querySelectorAll('.daily-plan-item').forEach(item => {
-      item.classList.remove('selected');
-    });
-
-    const selectedItem = document.querySelector(`[data-daily-plan-id="${dailyPlanId}"]`);
-    if (selectedItem) {
-      selectedItem.classList.add('selected');
     }
   }
 

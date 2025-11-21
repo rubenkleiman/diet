@@ -5,6 +5,7 @@
 
 import { State } from '../core/State.js';
 import { APIClient } from '../core/APIClient.js';
+import { OxalateHelper } from '../utils/OxalateHelper.js';
 
 export class RecipeManager {
   constructor() {
@@ -155,32 +156,10 @@ export class RecipeManager {
   }
 
   /**
-   * Calculate oxalate risk
+   * Calculate oxalate risk (using centralized helper)
    */
   calculateOxalateRisk(oxalateMg) {
-    const userSettings = State.get('userSettings');
-    const kidneyStoneRiskData = State.get('kidneyStoneRiskData');
-    
-    const maxOxalates = kidneyStoneRiskData[userSettings.kidneyStoneRisk]?.maxOxalatesPerDay || 200;
-    const percent = (oxalateMg / maxOxalates) * 100;
-
-    if (percent < 50) {
-      return { status: 'safe', percent, color: '#27ae60', message: '' };
-    } else if (percent < 100) {
-      return {
-        status: 'warning',
-        percent,
-        color: '#b8860b',
-        message: `Approaching your daily oxalate limit (${maxOxalates}mg)`
-      };
-    } else {
-      return {
-        status: 'danger',
-        percent,
-        color: '#e74c3c',
-        message: `Exceeds your daily oxalate limit (${maxOxalates}mg). This recipe contains ${oxalateMg.toFixed(1)}mg oxalates, which is ${(percent - 100).toFixed(0)}% over your ${userSettings.kidneyStoneRisk.toLowerCase()} risk limit.`
-      };
-    }
+    return OxalateHelper.calculateRisk(oxalateMg);
   }
 
   /**

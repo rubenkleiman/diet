@@ -3,52 +3,38 @@
  * Handles all ingredient-related UI rendering
  */
 
+import { ListRenderer } from '../utils/ListRenderer.js';
+
 export class IngredientRenderer {
 
   /**
-   * Render ingredient list
+   * Render ingredient list (using ListRenderer helper)
    */
   static renderList(ingredients, onSelect) {
-    const listElement = document.getElementById('ingredientList');
-    if (!listElement) return;
-
-    listElement.innerHTML = '';
-
-    if (ingredients.length === 0) {
-      listElement.innerHTML = '<li class="no-results">No ingredients found</li>';
-      return;
-    }
-
-    ingredients.forEach(ingredient => {
-      const li = document.createElement('li');
-      li.className = 'ingredient-item';
-      li.dataset.ingredientId = ingredient.id;
-      li.dataset.action = 'select-ingredient';
-      li.innerHTML = `
+    ListRenderer.render({
+      items: ingredients,
+      containerId: 'ingredientList',
+      itemClass: 'ingredient-item',
+      dataAttribute: 'ingredientId',
+      action: 'select-ingredient',
+      renderItem: (ingredient) => `
         <span class="ingredient-name">${ingredient.name}</span>
         <span class="ingredient-compact">${ingredient.compact.display}</span>
-      `;
-
-      listElement.appendChild(li);
+      `,
+      emptyMessage: 'No ingredients found'
     });
   }
   
   /**
-   * Mark ingredient as selected
+   * Mark ingredient as selected (using ListRenderer helper)
    */
   static markAsSelected(ingredientId) {
-    document.querySelectorAll('.ingredient-item').forEach(item => {
-      item.classList.remove('selected');
-    });
-    document.querySelectorAll('.ingredient-compact').forEach(item => {
-      item.classList.remove('selected');
-    });
-
-    // Find the selected item by data attribute instead of index
+    ListRenderer.markAsSelected('ingredient-item', 'ingredientId', ingredientId);
+    
+    // Also mark the compact display
     const selectedItem = document.querySelector(`[data-ingredient-id="${ingredientId}"]`);
     if (selectedItem) {
-      selectedItem.classList.add('selected');
-      const compactItem = selectedItem.querySelector(".ingredient-compact");
+      const compactItem = selectedItem.querySelector('.ingredient-compact');
       if (compactItem) {
         compactItem.classList.add('selected');
       }

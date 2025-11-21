@@ -5,37 +5,35 @@
 
 import { State } from '../core/State.js';
 import { dietaryAssessmentHelper } from '../utils/DietaryAssessmentHelper.js';
+import { ListRenderer } from '../utils/ListRenderer.js';
 
 export class MenuRenderer {
 
   /**
-   * Render menu list
+   * Render menu list (using ListRenderer helper)
    */
   static renderList(menus, onSelect) {
-    const listElement = document.getElementById('menuList');
-    if (!listElement) return;
-
-    listElement.innerHTML = '';
-
-    if (menus.length === 0) {
-      listElement.innerHTML = '<li class="no-results">No menus found</li>';
-      return;
-    }
-
-    menus.forEach(menu => {
-      const li = document.createElement('li');
-      li.className = 'menu-item';
-      li.dataset.menuId = menu.id;
-      li.dataset.action = 'select-menu';
-      li.innerHTML = `
+    ListRenderer.render({
+      items: menus,
+      containerId: 'menuList',
+      itemClass: 'menu-item',
+      dataAttribute: 'menuId',
+      action: 'select-menu',
+      renderItem: (menu) => `
         <span class="menu-name">${menu.name}</span>
         <span class="menu-meta">
           <span class="menu-recipe-count">${menu.recipeIds.length} recipes</span>
         </span>
-      `;
-
-      listElement.appendChild(li);
+      `,
+      emptyMessage: 'No menus found'
     });
+  }
+
+  /**
+   * Mark menu as selected (using ListRenderer helper)
+   */
+  static markAsSelected(menuId) {
+    ListRenderer.markAsSelected('menu-item', 'menuId', menuId);
   }
 
   /**
@@ -65,20 +63,6 @@ export class MenuRenderer {
     const selectedMenuId = State.get('selectedMenuId');
     if (menuId === selectedMenuId) {
       item.classList.add('selected');
-    }
-  }
-
-  /**
-   * Mark menu as selected
-   */
-  static markAsSelected(menuId) {
-    document.querySelectorAll('.menu-item').forEach(item => {
-      item.classList.remove('selected');
-    });
-
-    const selectedItem = document.querySelector(`[data-menu-id="${menuId}"]`);
-    if (selectedItem) {
-      selectedItem.classList.add('selected');
     }
   }
 
