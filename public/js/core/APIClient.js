@@ -6,13 +6,27 @@
 class APIClientManager {
   constructor() {
     this.baseURL = '/api';
+    this.cache = new Map();
+    this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
   }
 
   /**
-   * Generic fetch wrapper with error handling
+   * Generic fetch wrapper with error handling and caching
    */
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+    const method = options.method || 'GET';
+
+    // ✅ Only cache GET requests
+    if (method === 'GET') {
+      const cacheKey = this.getCacheKey(endpoint, options);
+      const cached = this.cache.get(cacheKey);
+
+      if (this.isCacheValid(cached)) {
+        console.log(`📦 Cache HIT: ${endpoint}`);
+        return cached.data;
+      }
+    }
 
     try {
       const data = {
@@ -22,12 +36,33 @@ class APIClientManager {
         },
         ...options,
       };
-      const response = await fetch(url, data);
 
+      console.log(`🌐 API Call: ${method} ${endpoint}`);
+      const response = await fetch(url, data);
       const result = await response.json();
+
       if (!response.ok) {
-        throw Error(`Response error. URL ${url}. ${JSON.stringify(result)}`)
+        throw Error(`Response error. URL ${url}. ${JSON.stringify(result)}`);
       }
+
+      // ✅ Cache successful GET requests
+      if (method === 'GET') {
+        const cacheKey = this.getCacheKey(endpoint, options);
+        this.cache.set(cacheKey, {
+          data: result,
+          timestamp: Date.now()
+        });
+        console.log(`💾 Cached: ${endpoint}`);
+      }
+
+      // ✅ Invalidate cache on mutations
+      if (['POST', 'PUT', 'DELETE'].includes(method)) {
+        // Clear related cache entries
+        const resource = endpoint.split('/')[1]; // e.g., 'recipes' from '/recipes/123'
+        this.clearCache(resource);
+        console.log(`🗑️ Cache cleared for: ${resource}`);
+      }
+
       return result;
     } catch (error) {
       console.error(`API Error (${endpoint}):`, error);
@@ -36,6 +71,72 @@ class APIClientManager {
         error: error.message || 'Network error',
       };
     }
+  }
+
+
+  /**
+   * Generate cache key from endpoint and options
+   */
+  getCacheKey(endpoint, options = {}) {
+    const method = options.method || 'GET';
+    const body = options.body || '';
+    return `${method}:${endpoint}:${body}`;
+  }
+
+  /**
+   * Check if cache entry is still valid
+   */
+  isCacheValid(entry) {
+    return entry && (Date.now() - entry.timestamp < this.cacheTimeout);
+  }
+
+  /**
+   * Clear cache for specific endpoint pattern
+   */
+  clearCache(pattern) {
+    if (pattern) {
+      // Clear entries matching pattern
+      for (const key of this.cache.keys()) {
+        if (key.includes(pattern)) {
+          this.cache.delete(key);
+        }
+      }
+    } else {
+      // Clear entire cache
+      this.cache.clear();
+    }
+  }
+  /**
+   * Force refresh data by clearing cache and making request
+   */
+  async forceRefresh(endpoint, options = {}) {
+    const cacheKey = this.getCacheKey(endpoint, options);
+    this.cache.delete(cacheKey);
+    return await this.request(endpoint, options);
+  }
+
+  /**
+   * Get cache statistics
+   */
+  getCacheStats() {
+    const now = Date.now();
+    let valid = 0;
+    let expired = 0;
+
+    for (const entry of this.cache.values()) {
+      if (this.isCacheValid(entry)) {
+        valid++;
+      } else {
+        expired++;
+      }
+    }
+
+    return {
+      total: this.cache.size,
+      valid,
+      expired,
+      size: `${(JSON.stringify([...this.cache.values()]).length / 1024).toFixed(2)} KB`
+    };
   }
 
   // ===== CONFIG ENDPOINTS =====

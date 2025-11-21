@@ -61,7 +61,7 @@ class Client {
       // Load settings
       this.settingsManager.loadUserSettings();
 
-      // Load all configuration in parallel
+      // Load all configuration in parallel (these are lightweight)
       await Promise.all([
         this.settingsManager.loadConfig(),
         this.settingsManager.loadKidneyStoneRiskData(),
@@ -69,18 +69,13 @@ class Client {
         this.nutrientMetadataManager.loadNutrients()
       ]);
 
-      // Load data for all managers in parallel
-      await Promise.all([
-        this.recipePageController.recipeManager.loadRecipes(),
-        this.ingredientPageController.ingredientManager.loadIngredients(),
-        this.menuPageController.menuManager.loadMenus(),
-        this.loadDailyPlans()
-      ]);
+      // ✅ REMOVED: No longer loading all data on startup
+      // Data will be loaded lazily when each page is visited
 
       // Setup UI
       this.settingsManager.applyUIConfig();
       this.setupEventListeners();
-      this.updateHomeCounts();
+      this.updateHomeCounts(); // Will show 0 until data loads
 
       // Navigate to initial page
       const page = window.location.hash.slice(1) || 'home';
@@ -173,7 +168,7 @@ class Client {
       btn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
     }
   }
-  
+
   filterNutritionInputs(searchTerm) {
     const container = document.getElementById('nutritionInputsContainer');
     const countEl = document.getElementById('nutritionSearchCount');
@@ -593,11 +588,6 @@ class Client {
       default:
         console.warn('Unknown settings action:', action);
     }
-  }
-
-  async handleGenericAction(action, element) {
-    // Fallback for any unhandled actions
-    console.warn('Unhandled action:', action);
   }
 }
 

@@ -57,12 +57,29 @@ export class DailyPlanPageController {
       );
       this.updateNutrientPreview();
     });
+
+    this._dataLoaded = false;
   }
 
   /**
    * Initialize page
+   * Lazy load data only when page is visited
    */
-  init() {
+async init() {
+    if (!this._dataLoaded) {
+      try {
+        await this.dailyPlanManager.loadDailyPlans();
+        this._dataLoaded = true;
+      } catch (error) {
+        console.error('Failed to load daily plans:', error);
+        const list = document.getElementById('dailyPlanList');
+        if (list) {
+          list.innerHTML = '<li class="error-message">Failed to load daily plans. Please refresh.</li>';
+        }
+        return;
+      }
+    }
+
     const dailyPlans = State.get('dailyPlans');
     this.renderList(dailyPlans);
   }
@@ -74,29 +91,10 @@ export class DailyPlanPageController {
     DailyPlanRenderer.renderList(dailyPlans, (dailyPlanId) => {
       this.entityController.select(dailyPlanId);
     });
-
-    // Load summaries asynchronously
-    dailyPlans.forEach(plan => {
-      this.fetchSummary(plan.id).then(data => {
-        if (data && Object.keys(data).length) {
-          DailyPlanRenderer.updateDailyPlanItemWithSummary(
-            plan.id,
-            data,
-            (ox) => this.dailyPlanManager.calculateOxalateRisk(ox)
-          );
-        }
-      });
-    });
-  }
-
-  async fetchSummary(dailyPlanId) {
-    try {
-      return await this.dailyPlanManager.getDailyPlan(dailyPlanId);
-    } catch (error) {
-      console.error('Error fetching daily plan summary:', error);
-      return null;
-    }
-  }
+    // ✅ FUTURE: When backend returns summary data with list endpoint,
+    // render summaries directly without additional API calls:
+    // DailyPlanRenderer.renderListWithSummaries(dailyPlans, calculateOxalateRisk);
+}
 
   /**
    * Filter daily plans

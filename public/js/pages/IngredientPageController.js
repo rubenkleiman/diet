@@ -38,12 +38,29 @@ export class IngredientPageController {
       manager: this.ingredientManager,
       renderer: FormRenderer
     });
+
+    this._dataLoaded = false;
   }
 
   /**
    * Initialize page
+   * Lazy load data only when page is visited
    */
-  init() {
+  async init() {
+    if (!this._dataLoaded) {
+      try {
+        await this.ingredientManager.loadIngredients();
+        this._dataLoaded = true;
+      } catch (error) {
+        console.error('Failed to load ingredients:', error);
+        const list = document.getElementById('ingredientList');
+        if (list) {
+          list.innerHTML = '<li class="error-message">Failed to load ingredients. Please refresh.</li>';
+        }
+        return;
+      }
+    }
+
     const ingredients = State.get('ingredients');
     this.renderList(ingredients);
   }

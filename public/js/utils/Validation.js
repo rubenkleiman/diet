@@ -51,23 +51,3 @@ export function validateIngredient(name, serving) {
     errors
   };
 }
-
-/**
- * Validate settings data
- */
-export function validateSettings(caloriesPerDay, useAge, age) {
-  const errors = [];
-
-  if (!caloriesPerDay || caloriesPerDay < 300 || caloriesPerDay > 5000) {
-    errors.push({ field: 'caloriesPerDay', message: 'Calories must be between 300 and 5000' });
-  }
-
-  if (useAge && (!age || age < 6 || age > 100)) {
-    errors.push({ field: 'age', message: 'Age must be between 6 and 100' });
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors
-  };
-}

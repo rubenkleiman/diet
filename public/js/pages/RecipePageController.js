@@ -58,12 +58,30 @@ export class RecipePageController {
             });
             this.updateNutrientPreview();
         });
+
+        this._dataLoaded = false;
     }
 
     /**
      * Initialize page (called when navigating to recipes page)
+     * Lazy load data only when page is visited
      */
-    init() {
+    async init() {
+        if (!this._dataLoaded) {
+            try {
+                await this.recipeManager.loadRecipes();
+                this._dataLoaded = true;
+            } catch (error) {
+                console.error('Failed to load recipes:', error);
+                // Show user-friendly error
+                const list = document.getElementById('recipeList');
+                if (list) {
+                    list.innerHTML = '<li class="error-message">Failed to load recipes. Please refresh.</li>';
+                }
+                return;
+            }
+        }
+
         const recipes = State.get('recipes');
         this.renderList(recipes);
     }
@@ -75,15 +93,6 @@ export class RecipePageController {
         RecipeRenderer.renderList(recipes, (recipeId) => {
             this.entityController.select(recipeId);
         });
-    }
-
-    async fetchSummary(recipeId) {
-        try {
-            return await this.recipeManager.getRecipe(recipeId, true);
-        } catch (error) {
-            console.error('Error fetching recipe summary:', error);
-            return null;
-        }
     }
 
     /**

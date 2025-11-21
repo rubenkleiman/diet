@@ -54,12 +54,29 @@ export class MenuPageController {
       });
       this.updateNutrientPreview();
     });
+
+    this._dataLoaded = false;
   }
 
   /**
    * Initialize page
+   * Lazy load data only when page is visited
    */
-  init() {
+ async init() {
+    if (!this._dataLoaded) {
+      try {
+        await this.menuManager.loadMenus();
+        this._dataLoaded = true;
+      } catch (error) {
+        console.error('Failed to load menus:', error);
+        const list = document.getElementById('menuList');
+        if (list) {
+          list.innerHTML = '<li class="error-message">Failed to load menus. Please refresh.</li>';
+        }
+        return;
+      }
+    }
+
     const menus = State.get('menus');
     this.renderList(menus);
   }
@@ -72,28 +89,9 @@ export class MenuPageController {
       this.entityController.select(menuId);
     });
 
-    // Load summaries asynchronously
-    menus.forEach(menu => {
-      this.fetchSummary(menu.id).then(data => {
-        if (data) {
-          MenuRenderer.updateMenuItemWithSummary(
-            menu.id,
-            data,
-            (ox) => this.menuManager.calculateOxalateRisk(ox)
-          );
-        }
-      });
-    });
-  }
-
-  async fetchSummary(menuId) {
-    try {
-      const menu = await this.menuManager.getMenu(menuId);
-      return await this.menuManager.getMenuNutritionalData(menu);
-    } catch (error) {
-      console.error('Error fetching menu summary:', error);
-      return null;
-    }
+    // ✅ FUTURE: When backend returns summary data with list endpoint,
+    // render summaries directly without additional API calls:
+    // MenuRenderer.renderListWithSummaries(menus, calculateOxalateRisk);
   }
 
   /**
