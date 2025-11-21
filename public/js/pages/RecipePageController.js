@@ -75,19 +75,6 @@ export class RecipePageController {
         RecipeRenderer.renderList(recipes, (recipeId) => {
             this.entityController.select(recipeId);
         });
-
-        // Load summaries asynchronously
-        recipes.forEach(recipe => {
-            this.fetchSummary(recipe.id).then(data => {
-                if (data) {
-                    RecipeRenderer.updateRecipeItemWithSummary(
-                        recipe.id,
-                        data,
-                        (ox) => this.recipeManager.calculateOxalateRisk(ox)
-                    );
-                }
-            });
-        });
     }
 
     async fetchSummary(recipeId) {
