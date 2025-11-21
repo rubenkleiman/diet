@@ -69,10 +69,7 @@ export class RecipeRenderer {
       // Now render with assessment data
       let html = '<div class="details-content">';
 
-      // Dietary Assessment (from backend)
-      html += this.renderDietaryAssessment(assessment);
-
-      // Ingredient Contributions
+      // 1. Ingredient Contributions (AT TOP) - renamed to "Ingredients"
       if (data.ingredients && data.ingredients.length > 0) {
         html += this.renderIngredientContributions(data, {
           showAllNutrients,
@@ -83,14 +80,17 @@ export class RecipeRenderer {
         });
       }
 
-      // Nutritional Totals
+      // 2. Dietary Assessment
+      html += this.renderDietaryAssessment(assessment);
+
+      // 3. Nutritional Totals (AT BOTTOM)
       html += this.renderNutritionalTotals(data, {
         dailyRequirements,
         userSettings,
         INGREDIENT_PROPS
       });
 
-      // Ingredient Details
+      // 4. Ingredient Details (keep at very bottom)
       html += this.renderIngredientDetails(data);
 
       html += '</div>';

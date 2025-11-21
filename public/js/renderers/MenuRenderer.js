@@ -100,13 +100,13 @@ export class MenuRenderer {
       // Now render with assessment data
       let html = '<div class="details-content">';
 
-      // Dietary Assessment (from backend)
-      html += this.renderDietaryAssessment(assessment);
-
-      // Recipe List
+      // 1. Recipe List (AT TOP)
       html += this.renderRecipeList(data);
 
-      // Nutritional Totals
+      // 2. Dietary Assessment
+      html += this.renderDietaryAssessment(assessment);
+
+      // 3. Nutritional Totals (AT BOTTOM)
       html += this.renderNutritionalTotals(data, {
         dailyRequirements,
         userSettings,

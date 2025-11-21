@@ -117,10 +117,13 @@ export class DailyPlanRenderer {
       // Now render with assessment data
       let html = '<div class="details-content">';
 
-      // Dietary Assessment (from backend)
+      // 1. Menus Grouped by Type (AT TOP)
+      html += this.renderMenusByType(data);
+
+      // 2. Dietary Assessment
       html += this.renderDietaryAssessment(assessment);
 
-      // Daily Totals Section
+      // 3. Daily Totals Section (AT BOTTOM)
       html += this.renderDailyTotals(data, {
         dailyRequirements,
         userSettings,
@@ -130,9 +133,6 @@ export class DailyPlanRenderer {
         INGREDIENT_PROPS,
         NUTRIENTS_PER_PAGE
       });
-
-      // Menus Grouped by Type
-      html += this.renderMenusByType(data);
 
       html += '</div>';
       content.innerHTML = html;
