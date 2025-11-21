@@ -254,7 +254,7 @@ export class MenuRenderer {
       return;
     }
 
-    container.innerHTML = '';
+    const fragment = document.createDocumentFragment();
 
     recipes.forEach((recipe, index) => {
       const row = document.createElement('div');
@@ -277,8 +277,11 @@ export class MenuRenderer {
       row.appendChild(nameSpan);
       row.appendChild(removeBtn);
 
-      container.appendChild(row);
+      fragment.appendChild(row);
     });
+
+    container.innerHTML = '';
+    container.appendChild(fragment);
   }
 
   /**
@@ -294,30 +297,27 @@ export class MenuRenderer {
       return;
     }
 
-    resultsContainer.innerHTML = '';
-
-    results.forEach(recipe => {
+    const html = results.map(recipe => {
       const alreadyAdded = selectedRecipes.some(r => r.id == recipe.id);
+      const classes = `search-result-item${alreadyAdded ? ' selected' : ''}`;
+      const cursor = alreadyAdded ? 'not-allowed' : 'pointer';
+      const opacity = alreadyAdded ? '0.5' : '1';
+      const action = alreadyAdded ? '' : 'data-action="add-recipe-to-menu"';
+      const title = alreadyAdded ? 'Already added' : '';
 
-      const item = document.createElement('div');
-      item.className = 'search-result-item';
-      if (alreadyAdded) item.classList.add('selected');
-      item.textContent = recipe.name;
-      item.dataset.recipeId = recipe.id;
-      item.dataset.recipeName = recipe.name;
+      return `
+        <div class="${classes}"
+             data-recipe-id="${recipe.id}"
+             data-recipe-name="${recipe.name}"
+             style="cursor: ${cursor}; opacity: ${opacity}"
+             title="${title}"
+             ${action}>
+          ${recipe.name}
+        </div>
+      `;
+    }).join('');
 
-      if (!alreadyAdded) {
-        item.style.cursor = 'pointer';
-        item.dataset.action = 'add-recipe-to-menu';
-      } else {
-        item.style.opacity = '0.5';
-        item.style.cursor = 'not-allowed';
-        item.title = 'Already added';
-      }
-
-      resultsContainer.appendChild(item);
-    });
-
+    resultsContainer.innerHTML = html;
     resultsContainer.classList.add('show');
   }
 

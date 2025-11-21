@@ -1,5 +1,3 @@
-// client.js - Phase 3 Refactored
-
 import { State } from './core/State.js';
 import { SettingsManager } from './managers/SettingsManager.js';
 import { NutrientMetadataManager } from './managers/NutrientMetadataManager.js';

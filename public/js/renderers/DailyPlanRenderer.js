@@ -398,7 +398,7 @@ export class DailyPlanRenderer {
       return;
     }
 
-    container.innerHTML = '';
+    const fragment = document.createDocumentFragment();
 
     menus.forEach((menu, index) => {
       const row = document.createElement('div');
@@ -434,15 +434,17 @@ export class DailyPlanRenderer {
       row.appendChild(typeSelect);
       row.appendChild(removeBtn);
 
-      // Add direct event listener for type change
       if (onTypeChange) {
         typeSelect.addEventListener('change', () => {
           onTypeChange(index, typeSelect.value);
         });
       }
 
-      container.appendChild(row);
+      fragment.appendChild(row);
     });
+
+    container.innerHTML = '';
+    container.appendChild(fragment);
   }
 
   /**
@@ -458,20 +460,17 @@ export class DailyPlanRenderer {
       return;
     }
 
-    resultsContainer.innerHTML = '';
+    const html = results.map(menu => `
+      <div class="search-result-item"
+           data-menu-id="${menu.id}"
+           data-menu-name="${menu.name}"
+           data-action="add-menu-to-daily-plan"
+           style="cursor: pointer">
+        ${menu.name}
+      </div>
+    `).join('');
 
-    results.forEach(menu => {
-      const item = document.createElement('div');
-      item.className = 'search-result-item';
-      item.textContent = menu.name;
-      item.dataset.menuId = menu.id;
-      item.dataset.menuName = menu.name;
-      item.style.cursor = 'pointer';
-      item.dataset.action = 'add-menu-to-daily-plan';
-
-      resultsContainer.appendChild(item);
-    });
-
+    resultsContainer.innerHTML = html;
     resultsContainer.classList.add('show');
   }
 

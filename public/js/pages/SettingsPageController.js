@@ -3,7 +3,6 @@
  * Handles all settings page logic
  */
 
-import { SettingsManager } from '../managers/SettingsManager.js';
 import { State } from '../core/State.js';
 
 export class SettingsPageController {

@@ -1,6 +1,7 @@
 /**
  * Form Renderer
  * Handles form rendering and selected ingredients display
+ * Optimized for performance using DocumentFragment
  */
 
 export class FormRenderer {
@@ -17,7 +18,8 @@ export class FormRenderer {
       return;
     }
 
-    container.innerHTML = '';
+    // ✅ Create DocumentFragment for batch DOM operations
+    const fragment = document.createDocumentFragment();
 
     ingredients.forEach((ingredient, index) => {
       const row = document.createElement('div');
@@ -60,7 +62,6 @@ export class FormRenderer {
       row.appendChild(unitSelect);
       row.appendChild(removeBtn);
 
-      // Add direct event listeners for inputs (not delegation)
       if (onUpdate) {
         amountInput.addEventListener('change', () => {
           onUpdate.amount(index, amountInput.value);
@@ -71,8 +72,11 @@ export class FormRenderer {
         });
       }
 
-      container.appendChild(row);
+      fragment.appendChild(row);
     });
+
+    container.innerHTML = '';
+    container.appendChild(fragment);
   }
 
   /**
@@ -88,41 +92,28 @@ export class FormRenderer {
       return;
     }
 
-    resultsContainer.innerHTML = '';
-
-    results.forEach(ingredient => {
+    // ✅ Build HTML string instead of DOM manipulation
+    const html = results.map(ingredient => {
       const alreadyAdded = selectedIngredients.some(ing => ing.brandId === ingredient.id);
+      const classes = `search-result-item${alreadyAdded ? ' selected' : ''}`;
+      const cursor = alreadyAdded ? 'not-allowed' : 'pointer';
+      const opacity = alreadyAdded ? '0.5' : '1';
+      const action = alreadyAdded ? '' : 'data-action="add-ingredient-to-recipe"';
+      const title = alreadyAdded ? 'Already added' : '';
 
-      const item = document.createElement('div');
-      item.className = 'search-result-item';
-      if (alreadyAdded) item.classList.add('selected');
-      item.textContent = ingredient.name;
-      item.dataset.ingredientId = ingredient.id;
-      item.dataset.ingredientName = ingredient.name;
+      return `
+        <div class="${classes}" 
+             data-ingredient-id="${ingredient.id}" 
+             data-ingredient-name="${ingredient.name}"
+             style="cursor: ${cursor}; opacity: ${opacity}"
+             title="${title}"
+             ${action}>
+          ${ingredient.name}
+        </div>
+      `;
+    }).join('');
 
-      if (!alreadyAdded) {
-        item.style.cursor = 'pointer';
-        item.dataset.action = 'add-ingredient-to-recipe';
-      } else {
-        item.style.opacity = '0.5';
-        item.style.cursor = 'not-allowed';
-        item.title = 'Already added';
-      }
-
-      resultsContainer.appendChild(item);
-    });
-
-    // Add click handler
-    resultsContainer.addEventListener('click', (e) => {
-      const item = e.target.closest('[data-action="add-ingredient-to-recipe"]');
-      if (item && onAdd) {
-        onAdd({
-          id: item.dataset.ingredientId,
-          name: item.dataset.ingredientName
-        });
-      }
-    });
-
+    resultsContainer.innerHTML = html;
     resultsContainer.classList.add('show');
   }
 
