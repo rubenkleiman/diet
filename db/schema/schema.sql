@@ -241,7 +241,7 @@ CREATE INDEX idx_daily_plan_type ON daily_plan_menus(type);
 CREATE INDEX idx_daily_plan_id ON daily_plan_menus(daily_plan_id);
 CREATE INDEX idx_daily_plan_menu ON daily_plan_menus(menu_id);
 
-CREATE TABLE nutrients(
+CREATE TABLE IF NOT EXISTS nutrients(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     -- Use AUTO_INCREMENT for MySQL
     key varchar(32) NOT NULL,
@@ -314,6 +314,39 @@ INSERT INTO nutrients(key, display_name, unit, category, dash_relevant, item_ord
 VALUES('vitamin_k','Vitamin K','mcg', 'vitamin',false,29);
 
 
+-- The admin user is the default guidelines
+-- Users can (or will be able to) customize the guidelines
+CREATE TABLE IF NOT EXISTS nutrient_guidelines(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    -- Use AUTO_INCREMENT for MySQL
+    user_id VARCHAR(36) NOT NULL,
+    nutrient_id VARCHAR(36) NOT NULL,
+    amount FLOAT NOT NULL,
+    unit VARCHAR(8) NOT NULL CHECK (unit in ('g','mg','mcg','ml')),
+    min_age INTEGER NOT NULL DEFAULT 0 CHECK (min_age >= 0 and min_age <= 120),
+    max_age INTEGER NOT NULL DEFAULT 120 CHECK (max_age >= 0 and max_age <= 120),
+    min_age_unit VARCHAR(12) NOT NULL DEFAULT 'years' CHECK (min_age_unit in ('years','months')),
+    max_age_unit VARCHAR(12) NOT NULL DEFAULT 'years' CHECK (max_age_unit in ('years','months')),
+    gender VARCHAR(32) NOT NULL CHECK(gender in ('Male','Female')),
+    physical_state VARCHAR(32) DEFAULT NULL CHECK(physical_state in ('Pregnancy', 'Lactation', NULL)),
+    CONSTRAINT guidelines_user_fk FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT nutrient_id_fk FOREIGN KEY(nutrient_id) REFERENCES nutrients(id) ON DELETE CASCADE
+);
+-- Potassium
+INSERT INTO nutrient_guidelines(user_id, nutrient_id, amount, unit, min_age, min_age_unit, max_age, max_age_unit, gender, physical_state)
+VALUES('a70ff520-1125-4098-90b3-144e22ebe84a', 9, 0, 'months', 6, 'months', 'Male', null);
+INSERT INTO nutrient_guidelines(user_id, nutrient_id, amount, unit, min_age, min_age_unit, max_age, max_age_unit, gender, physical_state)
+VALUES('a70ff520-1125-4098-90b3-144e22ebe84a', 9, 0, 'months', 6, 'months', 'Female', null);
+INSERT INTO nutrient_guidelines(user_id, nutrient_id, amount, unit, min_age, min_age_unit, max_age, max_age_unit, gender, physical_state)
+VALUES('a70ff520-1125-4098-90b3-144e22ebe84a', 9, 7, 'months', 12, 'months', 'Male', null);
+INSERT INTO nutrient_guidelines(user_id, nutrient_id, amount, unit, min_age, min_age_unit, max_age, max_age_unit, gender, physical_state)
+VALUES('a70ff520-1125-4098-90b3-144e22ebe84a', 9, 7, 'months', 12, 'months', 'Female', null);
+INSERT INTO nutrient_guidelines(user_id, nutrient_id, amount, unit, min_age, max_age, gender, physical_state)
+VALUES('a70ff520-1125-4098-90b3-144e22ebe84a', 9, 1, 3, 'Male', null);
+INSERT INTO nutrient_guidelines(user_id, nutrient_id, amount, unit, min_age, max_age, gender, physical_state)
+VALUES('a70ff520-1125-4098-90b3-144e22ebe84a', 9, 1, 3, 'Female', null);
+drop table  nutrient_guidelines;
+-- select * from nutrients
 /*
 -- an option. is now hardcoded 
 
