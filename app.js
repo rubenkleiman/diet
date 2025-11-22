@@ -50,14 +50,6 @@ function reportError(msg, req, error, res, status = 500) {
 
 // API routes - Config and system data
 
-// Backend: GET /api/menus
-// Current: Returns { id, name, recipeIds }
-// Needed: Returns { id, name, recipeIds, summary: { calories, sodium, oxalates, recipeCount } }
-
-// Backend: GET /api/daily-plans  
-// Current: Returns { id, name, dailyPlanMenus }
-// Needed: Returns { id, name, dailyPlanMenus, summary: { calories, sodium, oxalates, menuCount } }
-
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
   next();
@@ -165,10 +157,11 @@ app.get('/api/daily-requirements', async (req, res) => {
 });
 
 // Daily plans routes
+
 app.get('/api/daily-plans', async (req, res) => {
   try {
     const searchTerm = req.query.search;
-    const data = await services.getAllDailyPlans(searchTerm, SYSTEM_USER_ID);
+    const data = await services.getAllDailyPlans({ searchTerm, summary: true, userId: SYSTEM_USER_ID });
     res.json({ success: true, data });
   } catch (error) {
     reportError('GET /api/daily-plans', req, error, res);
@@ -229,9 +222,14 @@ app.delete('/api/daily-plans/:id', async (req, res) => {
 });
 
 // Menu routes
+
+
+// Backend: GET /api/menus
+// Current: Returns { id, name, recipeIds }
+// Needed: Returns { id, name, recipeIds, summary: { calories, sodium, oxalates, recipeCount } }
 app.get('/api/menus', async (req, res) => {
   try {
-    const menus = await services.getAllMenus(SYSTEM_USER_ID);
+    const menus = await services.getAllMenus({userId: SYSTEM_USER_ID, summary: true});
     res.json({ success: true, data: menus });
   } catch (error) {
     reportError('GET /api/menus', req, error, res);
