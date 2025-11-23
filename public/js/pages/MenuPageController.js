@@ -9,6 +9,7 @@ import { FormRenderer } from '../renderers/FormRenderer.js';
 import { EntityController } from '../controllers/EntityController.js';
 import { EditorController } from '../controllers/EditorController.js';
 import { State } from '../core/State.js';
+import { APIClient } from '../core/APIClient.js';
 
 export class MenuPageController {
   constructor(client) {
@@ -49,11 +50,19 @@ export class MenuPageController {
     this.recipeSearchTimeout = null;
 
     State.subscribe('selectedRecipesForMenu', (newValue) => {
-      MenuRenderer.renderSelectedRecipes(newValue, (index) => {
-        this.menuManager.removeRecipeFromMenu(index);
-      });
+      MenuRenderer.renderSelectedRecipes(
+        newValue,
+        {
+          amount: (index, value) => this.handleAmountChange(index, value),
+          unit: (index, value) => this.handleUnitChange(index, value)
+        },
+        (index) => this.menuManager.removeRecipeFromMenu(index)
+      );
       this.updateNutrientPreview();
     });
+
+    // Setup event delegation for reset buttons
+    this.setupResetButtonHandlers();
 
     this._dataLoaded = false;
   }
@@ -62,9 +71,10 @@ export class MenuPageController {
    * Initialize page
    * Lazy load data only when page is visited
    */
- async init() {
+  async init() {
     if (!this._dataLoaded) {
       try {
+        // Only load menus - recipes loaded on demand
         await this.menuManager.loadMenus();
         this._dataLoaded = true;
       } catch (error) {
@@ -82,6 +92,18 @@ export class MenuPageController {
   }
 
   /**
+   * Setup event delegation for reset amount buttons
+   */
+  setupResetButtonHandlers() {
+    document.addEventListener('click', async (e) => {
+      if (e.target.classList.contains('reset-amount-btn')) {
+        const index = parseInt(e.target.dataset.index);
+        await this.handleResetAmount(index);
+      }
+    });
+  }
+
+  /**
    * Render menu list
    */
   renderList(menus) {
@@ -89,7 +111,7 @@ export class MenuPageController {
       this.entityController.select(menuId);
     });
 
-    // ✅ FUTURE: When backend returns summary data with list endpoint,
+    // TODO: When backend returns summary data with list endpoint,
     // render summaries directly without additional API calls:
     // MenuRenderer.renderListWithSummaries(menus, calculateOxalateRisk);
   }
@@ -135,12 +157,16 @@ export class MenuPageController {
   create() {
     this.menuManager.startEdit(null);
     this.editorController.open('Create New Menu');
-    MenuRenderer.renderSelectedRecipes([]);
+    MenuRenderer.renderSelectedRecipes([], {
+      amount: (index, value) => this.handleAmountChange(index, value),
+      unit: (index, value) => this.handleUnitChange(index, value)
+    });
     this.updateNutrientPreview();
   }
 
   /**
    * Edit existing menu
+   * Lazy loads recipe names from API
    */
   async edit() {
     const selectedId = State.get('selectedMenuId');
@@ -155,14 +181,30 @@ export class MenuPageController {
       this.editorController.setName(menu.name);
       document.getElementById('recipeSearchBox').value = '';
 
-      const recipes = State.get('recipes');
-      const recipePromises = menu.recipes.map(id =>
-        recipes.find(r => r.id === id)
-      );
+      // 🎯 Lazy load recipe names in parallel
+      const recipePromises = menu.recipes.map(async (recipeEntry) => {
+        try {
+          const result = await APIClient.getRecipe(recipeEntry.id, true); // summary=true for performance
+          const recipeName = APIClient.isSuccess(result) ? result.data.name : `Recipe ${recipeEntry.id}`;
 
-      const selectedRecipes = recipePromises
-        .filter(r => r !== undefined)
-        .map(r => ({ id: r.id, name: r.name }));
+          return {
+            id: recipeEntry.id,
+            name: recipeName,
+            amount: recipeEntry.amount,
+            unit: recipeEntry.unit
+          };
+        } catch (error) {
+          console.error(`Error loading recipe ${recipeEntry.id}:`, error);
+          return {
+            id: recipeEntry.id,
+            name: `Recipe ${recipeEntry.id}`,
+            amount: recipeEntry.amount,
+            unit: recipeEntry.unit
+          };
+        }
+      });
+
+      const selectedRecipes = await Promise.all(recipePromises);
 
       State.set('selectedRecipesForMenu', selectedRecipes);
       this.editorController.show();
@@ -281,19 +323,54 @@ export class MenuPageController {
     }, 300);
   }
 
-  performRecipeSearch(searchTerm) {
-    const recipes = State.get('recipes');
-    const term = searchTerm.toLowerCase();
-    const results = recipes.filter(recipe =>
-      recipe.name.toLowerCase().includes(term)
-    );
+  /**
+   * Handle amount change with validation
+   */
+  handleAmountChange(index, value) {
+    // Round to 1 decimal place
+    const rounded = Math.round(parseFloat(value) * 10) / 10;
 
-    const selectedRecipes = State.get('selectedRecipesForMenu');
-    MenuRenderer.renderRecipeSearchResults(
-      results,
-      selectedRecipes,
-      (recipe) => this.addRecipe(recipe)
-    );
+    if (!isNaN(rounded) && rounded >= 0.1) {
+      this.menuManager.updateRecipeAmount(index, rounded.toFixed(1));
+      this.updateNutrientPreview();
+    }
+  }
+
+  /**
+   * Handle unit change
+   */
+  handleUnitChange(index, value) {
+    this.menuManager.updateRecipeUnit(index, value);
+    this.updateNutrientPreview();
+  }
+
+  /**
+   * Handle reset amount to default
+   */
+  async handleResetAmount(index) {
+    await this.menuManager.resetRecipeAmount(index);
+    this.updateNutrientPreview();
+  }
+
+  async performRecipeSearch(searchTerm) {
+    try {
+      // 🎯 Use API search instead of State.get('recipes')
+      const result = await APIClient.getRecipes(searchTerm);
+
+      if (APIClient.isSuccess(result)) {
+        const results = result.data;
+        const selectedRecipes = State.get('selectedRecipesForMenu');
+
+        MenuRenderer.renderRecipeSearchResults(
+          results,
+          selectedRecipes,
+          (recipe) => this.addRecipe(recipe)
+        );
+      }
+    } catch (error) {
+      console.error('Error searching recipes:', error);
+      MenuRenderer.hideRecipeSearchResults();
+    }
   }
 
   /**

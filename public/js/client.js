@@ -349,8 +349,8 @@ class Client {
       action === 'toggle-daily-plan-preview-nutrients' ||
       action === 'prev-daily-plan-preview-nutrient-page' ||
       action === 'next-daily-plan-preview-nutrient-page' ||
-      action === 'add-menu-to-daily-plan' ||  // ✅ ADD THIS
-      action === 'remove-menu-from-daily-plan') {  // ✅ ADD THIS
+      action === 'add-menu-to-daily-plan' ||
+      action === 'remove-menu-from-daily-plan') {
       this.handleDailyPlanAction(action, element, index);
     }
     // Menu actions (check before recipe since 'add-recipe-to-menu' contains 'recipe')
@@ -363,8 +363,8 @@ class Client {
       action === 'toggle-menu-preview-nutrients' ||
       action === 'prev-menu-preview-nutrient-page' ||
       action === 'next-menu-preview-nutrient-page' ||
-      action === 'add-recipe-to-menu' ||  // ✅ ADD THIS
-      action === 'remove-recipe') {  // ✅ ADD THIS
+      action === 'add-recipe-to-menu' ||
+      action === 'remove-recipe') {
       this.handleMenuAction(action, element, index);
     }
     // Recipe actions

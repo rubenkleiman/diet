@@ -152,11 +152,11 @@ export class MenuRenderer {
     data.recipes.forEach(recipe => {
       const calories = recipe.totals?.calories || 0;
       const oxalates = recipe.oxalateMg || 0;
-      
+
       // Display the amount from menu
       const amount = recipe.menuAmount || '100';
       const unit = recipe.menuUnit || 'g';
-      
+
       html += `
         <li class="menu-recipe-item">
           <span class="recipe-name">${recipe.name}</span>
@@ -276,23 +276,26 @@ export class MenuRenderer {
       nameSpan.title = recipe.name;
       nameSpan.textContent = recipe.name;
 
-      // Amount input
+      // Amount input - 🎯 FIXED: Up to 1 decimal, no required decimal point
       const amountInput = document.createElement('input');
       amountInput.type = 'number';
       amountInput.className = 'amount-input';
       amountInput.value = recipe.amount;
-      amountInput.min = '0.01';
-      amountInput.step = '0.1';
+      amountInput.min = '0.1';
+      amountInput.step = '0.1'; // ✅ Changed from 0.01 to 0.1
       amountInput.dataset.index = index;
+      amountInput.placeholder = '100';
+      // Remove the default decimal formatting requirement
+      amountInput.setAttribute('lang', 'en');
 
       // Unit select
       const unitSelect = document.createElement('select');
       unitSelect.className = 'unit-select';
       unitSelect.dataset.index = index;
       unitSelect.innerHTML = `
-        <option value="g" ${recipe.unit === 'g' ? 'selected' : ''}>g</option>
-        <option value="ml" ${recipe.unit === 'ml' ? 'selected' : ''}>ml</option>
-      `;
+      <option value="g" ${recipe.unit === 'g' ? 'selected' : ''}>g</option>
+      <option value="ml" ${recipe.unit === 'ml' ? 'selected' : ''}>ml</option>
+    `;
 
       // Reset button
       const resetBtn = document.createElement('button');

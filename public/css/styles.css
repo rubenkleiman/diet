@@ -1322,12 +1322,15 @@ body {
     border-radius: 4px;
     font-size: 0.9rem;
     width: 100%;
+    min-width: 80px; /* fits "9999.9" */
+    font-family: 'Courier New', monospace; /* Monospace for better number alignment */
 }
 
 .amount-input:focus {
     outline: none;
     border-color: var(--secondary-color);
 }
+
 
 .unit-select {
     padding: 0.5rem;
@@ -1583,10 +1586,10 @@ body {
 }
 
 .recipe-row {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 2fr 100px 80px auto auto; /* Fixed widths for inputs */
+    gap: 0.5rem;
     align-items: center;
-    gap: 1rem;
     background: white;
     padding: 0.75rem;
     border-radius: 4px;
