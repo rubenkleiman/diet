@@ -1841,3 +1841,50 @@ body {
     font-family: 'Courier New', monospace;
     font-weight: 600;
 }
+
+/* Recipe row with amount controls */
+.recipe-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto auto;
+    gap: 0.5rem;
+    align-items: center;
+    background: white;
+    padding: 0.75rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+/* Reset amount button */
+.reset-amount-btn {
+    padding: 0.4rem 0.6rem;
+    font-size: 1.1rem;
+    min-width: auto;
+    background-color: #95a5a6;
+    border-radius: 4px;
+}
+
+.reset-amount-btn:hover {
+    background-color: #7f8c8d;
+}
+
+/* Recipe amount display in menu details */
+.recipe-amount {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: #8e44ad;
+    background: #f3e5f5;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .recipe-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .recipe-name {
+        grid-column: 1;
+    }
+}

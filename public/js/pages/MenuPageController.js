@@ -156,7 +156,7 @@ export class MenuPageController {
       document.getElementById('recipeSearchBox').value = '';
 
       const recipes = State.get('recipes');
-      const recipePromises = menu.recipeIds.map(id =>
+      const recipePromises = menu.recipes.map(id =>
         recipes.find(r => r.id === id)
       );
 

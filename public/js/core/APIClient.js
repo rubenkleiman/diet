@@ -17,7 +17,7 @@ class APIClientManager {
     const url = `${this.baseURL}${endpoint}`;
     const method = options.method || 'GET';
 
-    // ✅ Only cache GET requests
+    // Only cache GET requests
     if (method === 'GET') {
       const cacheKey = this.getCacheKey(endpoint, options);
       const cached = this.cache.get(cacheKey);

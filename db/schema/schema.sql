@@ -1,4 +1,3 @@
--- FIXED 2025-10-30 4pm
 -- SQLite3 and MySQL compatible schema
 -- Note: Use AUTOINCREMENT for SQLite, AUTO_INCREMENT for MySQL
 -- This schema uses INTEGER PRIMARY KEY which works for both
@@ -208,6 +207,10 @@ CREATE TABLE IF NOT EXISTS menu_recipes (
     CONSTRAINT menu_recipes_menu_fk FOREIGN KEY(menu_id) REFERENCES menus(id) ON DELETE CASCADE,
     CONSTRAINT menu_recipes_fk FOREIGN KEY(recipe_id) REFERENCES recipes(id)
 );
+-- ALTER TABLE menu_recipes DROP COLUMN amount;
+-- ALTER TABLE menu_recipes DROP COLUMN unit;
+ALTER TABLE menu_recipes ADD COLUMN amount FLOAT;
+ALTER TABLE menu_recipes ADD COLUMN unit VARCHAR(8);
 CREATE INDEX idx_menu_recipes_menu ON menu_recipes(menu_id);
 CREATE INDEX idx_menu_recipes_recipe ON menu_recipes(recipe_id);
 

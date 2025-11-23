@@ -213,7 +213,10 @@ export class RecipeRenderer {
     html += showAllNutrients ? 'Show Key Nutrients' : 'Show All Nutrients';
     html += '</button>';
     html += '</div>';
-    html += "<div><i>Displays each nutrient's quantity and its percent contribution towards the recipe's content. Totals show the total nutrition quantity and the percent of the recommended daily requirements.</i></div><br/>"
+
+    const servingSize = this.calculateServingSize(data);
+    html += "<div><i>Displays each nutrient's quantity and its percent contribution towards the recipe's content. Totals show the total nutrition quantity and the percent of the recommended daily requirements.</i></div><br/>";
+    html += `<div style="margin-bottom: 1rem;"><strong>Serving size:</strong> ${servingSize}</div>`;
 
     const contributions = calculateContributions(data);
 
@@ -399,6 +402,32 @@ export class RecipeRenderer {
     html += '</div>';
 
     return html;
+  }
+
+  /**
+ * Calculate and format recipe serving size (total weight)
+ * ENCAPSULATED: Can be replaced with backend-provided value
+ */
+  static calculateServingSize(recipe) {
+    if (!recipe.ingredients || recipe.ingredients.length === 0) {
+      return '0 g';
+    }
+
+    const totalGrams = recipe.ingredients.reduce((sum, ingredient) => {
+      let amountInGrams = parseFloat(ingredient.amount) || 0;
+
+      if (ingredient.unit === 'ml') {
+        amountInGrams = amountInGrams * 1; // Assume density of 1
+      } else if (ingredient.unit === 'mg') {
+        amountInGrams = amountInGrams / 1000;
+      } else if (ingredient.unit === 'mcg') {
+        amountInGrams = amountInGrams / 1000000;
+      }
+
+      return sum + amountInGrams;
+    }, 0);
+
+    return `${totalGrams.toFixed(1)} g`;
   }
 
   /**

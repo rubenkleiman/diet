@@ -19,12 +19,15 @@ export class MenuRenderer {
       itemClass: 'menu-item',
       dataAttribute: 'menuId',
       action: 'select-menu',
-      renderItem: (menu) => `
-        <span class="menu-name">${menu.name}</span>
-        <span class="menu-meta">
-          <span class="menu-recipe-count">${menu.recipeIds.length} recipes</span>
-        </span>
-      `,
+      renderItem: (menu) => {
+        const recipeCount = menu.recipes?.length || menu.recipeIds?.length || 0;
+        return `
+          <span class="menu-name">${menu.name}</span>
+          <span class="menu-meta">
+            <span class="menu-recipe-count">${recipeCount} recipes</span>
+          </span>
+        `;
+      },
       emptyMessage: 'No menus found'
     });
   }
@@ -100,7 +103,7 @@ export class MenuRenderer {
       // Now render with assessment data
       let html = '<div class="details-content">';
 
-      // 1. Recipe List (AT TOP)
+      // 1. Recipe List (AT TOP) - NOW WITH AMOUNTS
       html += this.renderRecipeList(data);
 
       // 2. Dietary Assessment
@@ -139,7 +142,7 @@ export class MenuRenderer {
   }
 
   /**
-   * Render recipe list section
+   * Render recipe list section - NOW WITH AMOUNTS
    */
   static renderRecipeList(data) {
     let html = '<div class="details-section">';
@@ -149,10 +152,16 @@ export class MenuRenderer {
     data.recipes.forEach(recipe => {
       const calories = recipe.totals?.calories || 0;
       const oxalates = recipe.oxalateMg || 0;
+      
+      // Display the amount from menu
+      const amount = recipe.menuAmount || '100';
+      const unit = recipe.menuUnit || 'g';
+      
       html += `
         <li class="menu-recipe-item">
           <span class="recipe-name">${recipe.name}</span>
           <span class="recipe-stats">
+            <span class="recipe-amount">${amount}${unit}</span>
             <span>${calories.toFixed(0)} cal</span>
             <span>${oxalates.toFixed(1)}mg ox</span>
           </span>
@@ -243,9 +252,9 @@ export class MenuRenderer {
   }
 
   /**
-   * Render selected recipes for menu editor
+   * Render selected recipes for menu editor - NOW WITH AMOUNTS
    */
-  static renderSelectedRecipes(recipes, onRemove) {
+  static renderSelectedRecipes(recipes, onUpdate, onRemove) {
     const container = document.getElementById('recipeRows');
     if (!container) return;
 
@@ -261,11 +270,39 @@ export class MenuRenderer {
       row.className = 'recipe-row';
       row.dataset.index = index;
 
+      // Recipe name
       const nameSpan = document.createElement('span');
       nameSpan.className = 'recipe-name';
       nameSpan.title = recipe.name;
       nameSpan.textContent = recipe.name;
 
+      // Amount input
+      const amountInput = document.createElement('input');
+      amountInput.type = 'number';
+      amountInput.className = 'amount-input';
+      amountInput.value = recipe.amount;
+      amountInput.min = '0.01';
+      amountInput.step = '0.1';
+      amountInput.dataset.index = index;
+
+      // Unit select
+      const unitSelect = document.createElement('select');
+      unitSelect.className = 'unit-select';
+      unitSelect.dataset.index = index;
+      unitSelect.innerHTML = `
+        <option value="g" ${recipe.unit === 'g' ? 'selected' : ''}>g</option>
+        <option value="ml" ${recipe.unit === 'ml' ? 'selected' : ''}>ml</option>
+      `;
+
+      // Reset button
+      const resetBtn = document.createElement('button');
+      resetBtn.type = 'button';
+      resetBtn.className = 'btn btn-secondary btn-small reset-amount-btn';
+      resetBtn.dataset.index = index;
+      resetBtn.title = 'Reset to default amount';
+      resetBtn.textContent = '↻';
+
+      // Remove button
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
       removeBtn.className = 'remove-btn';
@@ -275,7 +312,20 @@ export class MenuRenderer {
       removeBtn.innerHTML = '&times;';
 
       row.appendChild(nameSpan);
+      row.appendChild(amountInput);
+      row.appendChild(unitSelect);
+      row.appendChild(resetBtn);
       row.appendChild(removeBtn);
+
+      if (onUpdate) {
+        amountInput.addEventListener('change', () => {
+          onUpdate.amount(index, amountInput.value);
+        });
+
+        unitSelect.addEventListener('change', () => {
+          onUpdate.unit(index, unitSelect.value);
+        });
+      }
 
       fragment.appendChild(row);
     });

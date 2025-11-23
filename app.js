@@ -226,10 +226,10 @@ app.delete('/api/daily-plans/:id', async (req, res) => {
 
 // Backend: GET /api/menus
 // Current: Returns { id, name, recipeIds }
-// Needed: Returns { id, name, recipeIds, summary: { calories, sodium, oxalates, recipeCount } }
+// Needed: Returns { id, name, recipes: [{id: 5, amount: '10', unit: 'g'},{id: 6, amount: '21', unit: 'ml'}] }
 app.get('/api/menus', async (req, res) => {
   try {
-    const menus = await services.getAllMenus({userId: SYSTEM_USER_ID, summary: true});
+    const menus = await services.getAllMenus({ userId: SYSTEM_USER_ID, summary: true });
     res.json({ success: true, data: menus });
   } catch (error) {
     reportError('GET /api/menus', req, error, res);
@@ -240,7 +240,7 @@ app.get('/api/menus/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const summary = req.query.summary === 'true';
-    const data = await services.getMenuDetails(id, summary);
+    const data = await services.getMenu({ menuId: id, userId: SYSTEM_USER_ID, summary });
     if (!data) {
       res.status(404).json({ success: false, error: 'Menu not found' });
     } else {
