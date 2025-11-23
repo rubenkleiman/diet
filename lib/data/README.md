@@ -2,9 +2,105 @@
 
 # TODO
 
-- seems that /api/ingredients/:brandName should more safely be /api/ingredients/:brandId
-- api/conf should have only client data. Would be better to name the file: conf.json => client-conf.json
-- except for oxalates and the compact.display, omit displaying nutrition data when there's zero content
+## POST '/api/menus'
+## CURRENT API
+### request body:
+{
+  name: "MENU NAME",
+  recipeIds: [5, 16],
+}
+### response:
+{
+    success: true,
+    data: {
+        id: 31,
+        name: "MENU NAME",
+        recipeIds: ["5", "16"]
+    }
+}
+## NEW API
+### request body
+{
+  name: "MENU NAME",
+  recipes: [{id: 5, amount: '10', unit: 'g'},{id: 6, amount: '21', unit: 'ml'}]
+}
+
+### response:
+{
+    success: true,
+    data: {
+        id: 31,
+        name: "MENU NAME",
+        recipeIds: [{id: 5, amount: '10 g'},{id: 6, amount: '21 ml'}]
+    }
+}
+
+
+## PUT '/api/menus/:id'
+## CURRENT API
+### request body:
+{
+  name: "MENU NAME",
+  recipeIds: [5, 6],
+}
+### response
+{menuId: "31"}
+
+## NEW API
+### request body:
+{
+  name: "MENU NAME",
+  recipes: [{id: 5, amount: '10 g'},{id: 6, amount: '21 ml'}, {id: 10, amount: '3 g'}]
+}
+### response
+{menuId: "31"}
+
+
+## GET '/api/menus'
+## CURRENT API
+### response:
+[
+  {
+    id: 30,
+    name: "Red Apple Snack",
+    recipeIds: [16],
+  },
+  {
+    id: 31,
+    name: "MENU NAME",
+    recipeIds: [5,16,10],
+  },
+]
+## NEW API
+### response:
+[
+  {
+    id: 30,
+    name: "Red Apple Snack",
+    recipes: [{id: 16, amount: '10 g'}]
+  },
+  {
+    id: 31,
+    name: "MENU NAME",
+    recipes: [{id: 5, amount: '10 g'},{id: 6, amount: '21 ml'}, {id: 10, amount: '3 g'}]
+  },
+]
+
+## GET '/api/menus/:id'
+## CURRENT API
+### response:
+{
+  id: 31,
+  name: "MENU NAME",
+  recipeIds: [5, 16]
+}
+## NEW API
+### response:
+{
+  id: 31,
+  name: "MENU NAME",
+  recipes: [{id: 5, amount: '10 g'},{id: 6, amount: '21 ml'}, {id: 10, amount: '3 g'}]
+}
 
 #  brand.json
 
