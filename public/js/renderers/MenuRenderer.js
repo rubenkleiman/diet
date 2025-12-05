@@ -250,7 +250,6 @@ export class MenuRenderer {
       if (section) section.style.display = 'block';
     }
   }
-
   /**
    * Render selected recipes for menu editor - NOW WITH AMOUNTS
    */

@@ -53,8 +53,8 @@ export class MenuPageController {
       MenuRenderer.renderSelectedRecipes(
         newValue,
         {
-          amount: (index, value) => this.handleAmountChange(index, value),
-          unit: (index, value) => this.handleUnitChange(index, value)
+          amount: (index, value) => this.menuManager.updateRecipeAmount(index, value),
+          unit: (index, value) => this.menuManager.updateRecipeUnit(index, value)
         },
         (index) => this.menuManager.removeRecipeFromMenu(index)
       );
@@ -65,6 +65,39 @@ export class MenuPageController {
     this.setupResetButtonHandlers();
 
     this._dataLoaded = false;
+  }
+
+  /**
+   * Setup event delegation for reset amount buttons
+   */
+  setupResetButtonHandlers() {
+    document.addEventListener('click', async (e) => {
+      if (e.target.classList.contains('reset-amount-btn')) {
+        const index = parseInt(e.target.dataset.index);
+        await this.handleResetAmount(index);
+      }
+    });
+  }
+
+  /**
+ * Handle amount change with validation
+ */
+  handleAmountChange(index, value) {
+    // Round to 1 decimal place
+    const rounded = Math.round(parseFloat(value) * 10) / 10;
+
+    if (!isNaN(rounded) && rounded >= 0.1) {
+      this.menuManager.updateRecipeAmount(index, rounded.toFixed(1));
+      this.updateNutrientPreview();
+    }
+  }
+
+  /**
+   * Handle reset amount to default
+   */
+  async handleResetAmount(index) {
+    await this.menuManager.resetRecipeAmount(index);
+    this.updateNutrientPreview();
   }
 
   /**
@@ -92,28 +125,12 @@ export class MenuPageController {
   }
 
   /**
-   * Setup event delegation for reset amount buttons
-   */
-  setupResetButtonHandlers() {
-    document.addEventListener('click', async (e) => {
-      if (e.target.classList.contains('reset-amount-btn')) {
-        const index = parseInt(e.target.dataset.index);
-        await this.handleResetAmount(index);
-      }
-    });
-  }
-
-  /**
    * Render menu list
    */
   renderList(menus) {
     MenuRenderer.renderList(menus, (menuId) => {
       this.entityController.select(menuId);
     });
-
-    // TODO: When backend returns summary data with list endpoint,
-    // render summaries directly without additional API calls:
-    // MenuRenderer.renderListWithSummaries(menus, calculateOxalateRisk);
   }
 
   /**
@@ -158,8 +175,8 @@ export class MenuPageController {
     this.menuManager.startEdit(null);
     this.editorController.open('Create New Menu');
     MenuRenderer.renderSelectedRecipes([], {
-      amount: (index, value) => this.handleAmountChange(index, value),
-      unit: (index, value) => this.handleUnitChange(index, value)
+      amount: (index, value) => this.menuManager.updateRecipeAmount(index, value),
+      unit: (index, value) => this.menuManager.updateRecipeUnit(index, value)
     });
     this.updateNutrientPreview();
   }
@@ -250,9 +267,14 @@ export class MenuPageController {
 
     FormRenderer.clearErrors();
 
+    // 🎯 NEW PAYLOAD FORMAT
     const payload = {
       name: menuName,
-      recipeIds: selectedRecipes.map(r => r.id)
+      recipes: selectedRecipes.map(r => ({
+        id: r.id,
+        amount: r.amount,
+        unit: r.unit
+      }))
     };
 
     try {
@@ -324,34 +346,8 @@ export class MenuPageController {
   }
 
   /**
-   * Handle amount change with validation
+   * Perform recipe search via API
    */
-  handleAmountChange(index, value) {
-    // Round to 1 decimal place
-    const rounded = Math.round(parseFloat(value) * 10) / 10;
-
-    if (!isNaN(rounded) && rounded >= 0.1) {
-      this.menuManager.updateRecipeAmount(index, rounded.toFixed(1));
-      this.updateNutrientPreview();
-    }
-  }
-
-  /**
-   * Handle unit change
-   */
-  handleUnitChange(index, value) {
-    this.menuManager.updateRecipeUnit(index, value);
-    this.updateNutrientPreview();
-  }
-
-  /**
-   * Handle reset amount to default
-   */
-  async handleResetAmount(index) {
-    await this.menuManager.resetRecipeAmount(index);
-    this.updateNutrientPreview();
-  }
-
   async performRecipeSearch(searchTerm) {
     try {
       // 🎯 Use API search instead of State.get('recipes')
@@ -376,8 +372,8 @@ export class MenuPageController {
   /**
    * Add recipe to menu
    */
-  addRecipe(recipe) {
-    const added = this.menuManager.addRecipeToMenu(recipe);
+  async addRecipe(recipe) {
+    const added = await this.menuManager.addRecipeToMenu(recipe);
 
     if (added) {
       MenuRenderer.hideRecipeSearchResults();
@@ -390,6 +386,7 @@ export class MenuPageController {
 
   /**
    * Update nutrient preview
+   * 🎯 Now passes recipe amounts to preview manager
    */
   async updateNutrientPreview() {
     const container = document.getElementById('menuNutrientPreview');

@@ -244,6 +244,7 @@ app.get('/api/menus/:id', async (req, res) => {
     if (!data) {
       res.status(404).json({ success: false, error: 'Menu not found' });
     } else {
+      console.log(JSON.stringify({ success: true, data },null,2))
       res.json({ success: true, data });
     }
   } catch (error) {
@@ -253,9 +254,9 @@ app.get('/api/menus/:id', async (req, res) => {
 
 app.post('/api/menus', async (req, res) => {
   try {
-    const { name, recipeIds } = req.body
-    const menu = await services.createMenu(name, recipeIds, SYSTEM_USER_ID);
-    res.json({ success: true, data: menu });
+    const { name, recipes } = req.body
+    const data = await services.createMenu({name, recipes, userId: SYSTEM_USER_ID});
+    res.json({ success: true, data });
   } catch (error) {
     reportError(`POST /api/menus`, req, error, res);
   }
@@ -264,8 +265,8 @@ app.post('/api/menus', async (req, res) => {
 app.put('/api/menus/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, recipeIds } = req.body;
-    const data = await services.updateMenu(id, name, recipeIds, SYSTEM_USER_ID);
+    const { name, recipes } = req.body;
+    const data = await services.updateMenu({ id, name, recipes, userId: SYSTEM_USER_ID });
     res.json({ success: true, data });
   } catch (error) {
     reportError(`PUT /api/menus/:id`, req, error, res);

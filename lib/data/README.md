@@ -1,189 +1,59 @@
-[
-  {
-    id: 9,
-    name: "Farfalle (Plain)",
-    recipe_id: 13,
-    amount: 50,
-    unit: "g",
-    density: null,
-  },
-  {
-    id: 9,
-    name: "Farfalle (Plain)",
-    recipe_id: 13,
-    amount: 118,
-    unit: "ml",
-    density: 0.99,
-  },
-  {
-    id: 9,
-    name: "Farfalle (Plain)",
-    recipe_id: 13,
-    amount: 80,
-    unit: "g",
-    density: null,
-  },
-  {
-    id: 9,
-    name: "Farfalle (Plain)",
-    recipe_id: 16,
-    amount: 100,
-    unit: "g",
-    density: null,
-  },
-  {
-    id: 7,
-    name: "Granola with Milk",
-    recipe_id: 1,
-    amount: 20,
-    unit: "g",
-    density: null,
-  },
-  {
-    id: 7,
-    name: "Granola with Milk",
-    recipe_id: 1,
-    amount: 20,
-    unit: "g",
-    density: 0.92,
-  },
-  {
-    id: 7,
-    name: "Granola with Milk",
-    recipe_id: 1,
-    amount: 20,
-    unit: "g",
-    density: 1.37,
-  },
-  {
-    id: 7,
-    name: "Granola with Milk",
-    recipe_id: 1,
-    amount: 200,
-    unit: "g",
-    density: 1.033,
-  },
-  {
-    id: 7,
-    name: "Granola with Milk",
-    recipe_id: 1,
-    amount: 10,
-    unit: "g",
-    density: null,
-  },
-  {
-    id: 7,
-    name: "Granola with Milk",
-    recipe_id: 1,
-    amount: 30,
-    unit: "g",
-    density: null,
-  },
-  {
-    id: 6,
-    name: "Hot Oatmeal",
-    recipe_id: 12,
-    amount: 56,
-    unit: "g",
-    density: null,
-  },
-  {
-    id: 6,
-    name: "Hot Oatmeal",
-    recipe_id: 12,
-    amount: 10,
-    unit: "g",
-    density: 1.37,
-  },
-  {
-    id: 6,
-    name: "Hot Oatmeal",
-    recipe_id: 12,
-    amount: 125,
-    unit: "g",
-    density: 1.033,
-  },
-  {
-    id: 31,
-    name: "MENU NAME",
-    recipe_id: 5,
-    amount: 100,
-    unit: "g",
-    density: null,
-  },
-  {
-    id: 31,
-    name: "MENU NAME",
-    recipe_id: 5,
-    amount: 44,
-    unit: "ml",
-    density: 0.92,
-  },
-  {
-    id: 31,
-    name: "MENU NAME",
-    recipe_id: 5,
-    amount: 113,
-    unit: "g",
-    density: null,
-  },
-  {
-    id: 31,
-    name: "MENU NAME",
-    recipe_id: 5,
-    amount: 80,
-    unit: "g",
-    density: null,
-  },
-  {
-    id: 31,
-    name: "MENU NAME",
-    recipe_id: 16,
-    amount: 100,
-    unit: "g",
-    density: null,
-  },
-  {
-    id: 30,
-    name: "Red Apple Snack",
-    recipe_id: 16,
-    amount: 100,
-    unit: "g",
-    density: null,
-  },
-  {
-    id: 29,
-    name: "Risotto",
-    recipe_id: 5,
-    amount: 100,
-    unit: "g",
-    density: null,
-  },
-  {
-    id: 29,
-    name: "Risotto",
-    recipe_id: 5,
-    amount: 44,
-    unit: "ml",
-    density: 0.92,
-  },
-  {
-    id: 29,
-    name: "Risotto",
-    recipe_id: 5,
-    amount: 113,
-    unit: "g",
-    density: null,
-  },
-  {
-    id: 29,
-    name: "Risotto",
-    recipe_id: 5,
-    amount: 80,
-    unit: "g",
-    density: null,
-  },
-]
+# I have a nodejs/express web app that helps me plan my meals using nutritional information.
+# I'd like you to play the role of backend engineer.
+# I'm uploading the relevant backend files for your first feature.
+## Study schema.sql. The new feature is that the user can now change the serving amount for any of the menu's recipes. 
+## KEEP THIS IN MIND: Later in this conversation you will implement a couple of endpoints to support menu creation and updates.
+# Task: Inspect the code in MenuRepository.js and DailyPlanRepository.js. 
+## Wherever there is a query in these files that references either recipe_items.amount or recipe_items.unit, the correct reference is now to menu_recipes.serving_amount and menu_recipes.unit, respectively.
+### Suggest changes to these queries. DON'T CHANGE THE FILES YET.
+### Suggest any other changes related to this issue.
+DO YOU HAVE ANY CLARIFYING QUESTIONS?
+
+# Task 2: Menu creation and update api end points.
+## The front end currently supports this new feature.
+## POST /api/menus
+### This creates the menu.
+### Request body: 
+{
+  "name": "Test Menu",
+  "recipes": [
+    {
+      "id": "6",
+      "amount": "20.0",
+      "unit": "g"
+    },
+    {
+      "id": "1",
+      "amount": "340.0",
+      "unit": "g"
+    }
+  ]
+}
+### Expected response: 
+{
+    "success": true,
+    "data": {
+        "id": 31,
+        "name": "Test Menu",
+        "recipes": [
+          {
+            "id": "6",
+            "amount": "20.0",
+            "unit": "g"
+          },
+          {
+            "id": "1",
+            "amount": "340.0",
+            "unit": "g"
+          }
+        ]
+    }
+}
+### The endpoint is currently handled by app.js and services.js.
+### Your job is to implement the createMenu method in MenuRepository.js.
+#### By inspecting the code, you will see that this createMenu method returns the "data" object expected by the endpoint handler in app.js
+ANY QUESTIONS TO CLARIFY ANYTHING?
+
 
 # TODO
 
@@ -206,18 +76,39 @@
 ## NEW API
 ### request body
 {
-  id: 11,
-  name: "MENU NAME",
-  recipes: [{id: 5, amount: '10', unit: 'g'},{id: 6, amount: '21', unit: 'ml'}]
+  "name": "Test Menu",
+  "recipes": [
+    {
+      "id": "6",
+      "amount": "20.0",
+      "unit": "g"
+    },
+    {
+      "id": "1",
+      "amount": "340.0",
+      "unit": "g"
+    }
+  ]
 }
 
 ### response:
 {
-    success: true,
-    data: {
-        id: 31,
-        name: "MENU NAME",
-        recipeIds: [{id: 5, amount: '10 g'},{id: 6, amount: '21 ml'}]
+    "success": true,
+    "data": {
+        "id": 31,
+        "name": "Test Menu",
+        "recipes": [
+          {
+            "id": "6",
+            "amount": "20.0",
+            "unit": "g"
+          },
+          {
+            "id": "1",
+            "amount": "340.0",
+            "unit": "g"
+          }
+        ]
     }
 }
 

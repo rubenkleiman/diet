@@ -192,25 +192,33 @@ on recipe_items.brand_id = brands.id
 and menus.user_id = 'a70ff520-1125-4098-90b3-144e22ebe84a'
 order by menus.name;
 
-select * from menus where id = 9;
-select * from menu_recipes where menu_id = 9;
+select * from menus where id = 31;
+select * from menu_recipes where menu_id = 31;
 select * from recipes where id in (13,16);
 select * from recipe_items where recipe_id in (13,16);
 
 
-select menus.id as id, menus.name as name,
-     menu_recipes.recipe_id, recipe_items.amount as recipe_amount,
-     recipe_items.unit as recipe_unit, brands.density
-from menus
-inner join menu_recipes
-on menus.id = menu_recipes.menu_id
-inner join recipe_items
-on recipe_items.recipe_id = menu_recipes.recipe_id
-inner join brands
-on brands.id = recipe_items.brand_id
-where menus.id = 9;
+select *
+from recipe_items
+where recipe_items.recipe_id in (13,16);
 
 select * from menus;
-select * from menu_recipes;
+select * from menu_recipes where menu_id = 9;
+update menu_recipes set serving_amount = 333, unit = 'g' where menu_id = 7;
 select * from recipe_items where recipe_id = 13;
 select * from recipes where id = 13;
+select * from brands where id = 34;
+
+
+    select menus.id as id, menus.name as name,
+            menu_recipes.recipe_id, menu_recipes.amount as menu_amount, menu_recipes.unit as menu_unit,
+            recipe_items.amount as recipe_amount,
+            recipe_items.unit as recipe_unit, brands.density
+            from menus
+            inner join menu_recipes
+            on menus.id = menu_recipes.menu_id
+            inner join recipe_items
+            on recipe_items.recipe_id = menu_recipes.recipe_id
+            inner join brands
+            on brands.id = recipe_items.brand_id
+         and menus.user_id = 'a70ff520-1125-4098-90b3-144e22ebe84a' and menus.id = 9 ORDER BY menus.name
