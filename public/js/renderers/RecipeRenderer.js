@@ -81,7 +81,7 @@ export class RecipeRenderer {
       }
 
       // 2. Dietary Assessment
-      html += this.renderDietaryAssessment(assessment);
+      // html += this.renderDietaryAssessment(assessment);
 
       // 3. Nutritional Totals (AT BOTTOM)
       html += this.renderNutritionalTotals(data, {
@@ -110,13 +110,13 @@ export class RecipeRenderer {
   /**
    * Render dietary assessment section (from backend)
    */
-  static renderDietaryAssessment(assessment) {
-    let html = '<div class="details-section">';
-    html += '<h3>Dietary Assessment</h3>';
-    html += dietaryAssessmentHelper.renderAssessment(assessment, { showProgressBar: true });
-    html += '</div>';
-    return html;
-  }
+  // static renderDietaryAssessment(assessment) {
+  //   let html = '<div class="details-section">';
+  //   html += '<h3>Dietary Assessment</h3>';
+  //   html += dietaryAssessmentHelper.renderAssessment(assessment, { showProgressBar: true });
+  //   html += '</div>';
+  //   return html;
+  // }
 
   /**
    * Render nutritional totals section
