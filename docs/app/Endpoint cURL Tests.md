@@ -71,3 +71,28 @@ or
 
 {"success": false, "error": "an error message"}
 
+# Create menu
+curl -X POST http://localhost:3000/api/menus \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test Menu",
+    "recipes": [
+      {"id": "6", "amount": "20.0", "unit": "g"},
+      {"id": "1", "amount": "340.0", "unit": "g"}
+    ]
+  }'
+# Returns something like
+{"success":true,"data":{"id":34,"name":"Test Menu","recipes":[{"id":6,"amount":20,"unit":"g"},{"id":1,"amount":340,"unit":"g"}]}}
+
+# Edit menu
+curl -X PUT http://localhost:3000/api/menus/34 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated Test Menu",
+    "recipes": [
+      {"id": "6", "amount": "26.0", "unit": "g"},
+      {"id": "1", "amount": "350.0", "unit": "g"}
+    ]
+  }'
+# Returns something like
+{"success":true,"data":{"id":34,"name":"Updated Test Menu","recipes":[{"id":6,"amount":26,"unit":"g"},{"id":1,"amount":350,"unit":"g"}]}}
