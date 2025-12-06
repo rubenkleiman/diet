@@ -9,7 +9,7 @@ import { RecipeRenderer } from '../renderers/RecipeRenderer.js';
 import { FormRenderer } from '../renderers/FormRenderer.js';
 import { EntityController } from '../controllers/EntityController.js';
 import { EditorController } from '../controllers/EditorController.js';
-import { State } from '../core/State.js';
+import { State, showModal } from '../core/State.js';
 import { validateRecipe } from '../utils/Validation.js';
 
 export class RecipePageController {
@@ -172,7 +172,7 @@ export class RecipePageController {
       this.updateNutrientPreview();
     } catch (error) {
       console.error('Error loading recipe for editing:', error);
-      alert('Failed to load recipe details');
+      await showModal(`${recipe.name}`, 'Failed to load recipe details', [{ OK: "blue" }]);
     }
   }
 
@@ -225,12 +225,12 @@ export class RecipePageController {
 
       if (editingId) {
         await this.recipeManager.updateRecipe(editingId, payload);
-        alert('Recipe updated successfully');
+        await showModal(`Edit ${recipeName}`, 'Recipe updated successfully', [{ OK: "blue" }]);
         this.recipeManager.selectRecipe(editingId);
         await this.showDetails(editingId);
       } else {
         await this.recipeManager.createRecipe(payload);
-        alert('Recipe created successfully');
+        await showModal(`Create ${recipeName}`, 'Recipe created successfully', [{ OK: "blue" }]);
         const recipes = State.get('recipes');
         const newRecipe = recipes.find(r => r.name == recipeName);
         if (newRecipe) {

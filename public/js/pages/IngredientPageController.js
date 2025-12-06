@@ -8,7 +8,7 @@ import { IngredientRenderer } from '../renderers/IngredientRenderer.js';
 import { FormRenderer } from '../renderers/FormRenderer.js';
 import { EntityController } from '../controllers/EntityController.js';
 import { EditorController } from '../controllers/EditorController.js';
-import { State } from '../core/State.js';
+import { State, showModal } from '../core/State.js';
 import { validateIngredient } from '../utils/Validation.js';
 
 export class IngredientPageController {
@@ -126,7 +126,7 @@ export class IngredientPageController {
       this.editorController.show();
     } catch (error) {
       console.error('Error loading ingredient for editing:', error);
-      alert('Failed to load ingredient details');
+      await showModal(`Ingredient Details`, "Failed to load ingredient details", [{ OK: "blue" }])
     }
   }
 
@@ -201,12 +201,12 @@ export class IngredientPageController {
 
       if (editingId) {
         await this.ingredientManager.updateIngredient(editingId, payload);
-        alert('Ingredient updated successfully');
+        await showModal(`Ingredient ${name}`, "Ingredient updated successfully", [{ OK: "blue" }])
         await this.showDetails(editingId);
         this.ingredientManager.selectIngredient(editingId);
       } else {
         await this.ingredientManager.createIngredient(payload);
-        alert('Ingredient created successfully');
+        await showModal(`Ingredient ${name}`, "Ingredient created successfully", [{ OK: "blue" }])
         const ingredients = State.get('ingredients');
         const newIngredient = ingredients.find(i => i.name == name);
         if (newIngredient) {

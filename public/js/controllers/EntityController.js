@@ -3,6 +3,7 @@
  * Handles common CRUD patterns for all entities (recipes, menus, daily plans, ingredients)
  */
 
+import { showModal } from '../core/State.js';
 import { setButtonsDisabled, hideElement } from '../utils/dom.js';
 
 export class EntityController {
@@ -38,13 +39,17 @@ export class EntityController {
     if (!entity) return;
 
     const displayName = this.getDisplayName();
-    if (!confirm(`Delete ${displayName} "${entity.name}"? This cannot be undone.`)) {
+    const result = await showModal(`Delete ${entity.name}`, `Delete ${displayName} "${entity.name}"? This cannot be undone.`, [{ "Cancel": "neutral" },{ Delete: "red" }])
+    if (result != "Delete") {
       return;
     }
+    // if (!confirm(`Delete ${displayName} "${entity.name}"? This cannot be undone.`)) {
+    //   return;
+    // }
 
     try {
       await this.manager[`delete${this.capitalize(this.entityName)}`](selectedId);
-      
+
       // Refresh list
       const updatedList = this.state.get(this.entityNamePlural);
       this.renderList(updatedList);
@@ -54,10 +59,10 @@ export class EntityController {
       setButtonsDisabled([this.editButtonId, this.deleteButtonId], true);
       hideElement(this.detailsSectionId);
 
-      alert(`${displayName} deleted successfully`);
+      await showModal(`Delete ${displayName}`, `${displayName} deleted successfully`, [{ "OK": "blue" }]);
     } catch (error) {
       console.error(`Error deleting ${this.entityName}:`, error);
-      alert(`Failed to delete ${displayName}`);
+      await showModal(`Delete ${displayName}`, `Failed to delete ${displayName}`, [{ "Oh no!": "red" }]);
     }
   }
 

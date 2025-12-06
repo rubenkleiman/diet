@@ -8,7 +8,7 @@ import { DailyPlanRenderer } from '../renderers/DailyPlanRenderer.js';
 import { FormRenderer } from '../renderers/FormRenderer.js';
 import { EntityController } from '../controllers/EntityController.js';
 import { EditorController } from '../controllers/EditorController.js';
-import { State } from '../core/State.js';
+import { State, showModal } from '../core/State.js';
 import { dietaryAssessmentHelper } from '../utils/DietaryAssessmentHelper.js';
 
 export class DailyPlanPageController {
@@ -65,7 +65,7 @@ export class DailyPlanPageController {
    * Initialize page
    * Lazy load data only when page is visited
    */
-async init() {
+  async init() {
     if (!this._dataLoaded) {
       try {
         await this.dailyPlanManager.loadDailyPlans();
@@ -94,7 +94,7 @@ async init() {
     // ✅ FUTURE: When backend returns summary data with list endpoint,
     // render summaries directly without additional API calls:
     // DailyPlanRenderer.renderListWithSummaries(dailyPlans, calculateOxalateRisk);
-}
+  }
 
   /**
    * Filter daily plans
@@ -172,7 +172,7 @@ async init() {
       this.editorController.show();
     } catch (error) {
       console.error('Error loading daily plan for editing:', error);
-      alert('Failed to load daily plan details');
+      await showModal(`Load ${dailyPlan.dailyPlanName}`, `Failed to load ${dailyPlan.dailyPlanName} daily plan details`, [{OK: "blue"}])
     }
   }
 
@@ -224,12 +224,12 @@ async init() {
 
       if (editingId) {
         await this.dailyPlanManager.updateDailyPlan(editingId, payload);
-        alert('Daily plan updated successfully');
+        await showModal(`Daily Plan ${dailyPlanName}`, `Daily plan ${dailyPlanName} updated successfully`, [{OK: "blue"}]);
         this.dailyPlanManager.selectDailyPlan(editingId);
         await this.showDetails(editingId);
       } else {
         await this.dailyPlanManager.createDailyPlan(payload);
-        alert('Daily plan created successfully');
+        await showModal(`Daily Plan ${dailyPlanName}`, `Daily plan ${dailyPlanName} created successfully`, [{OK: "blue"}]);
         const dailyPlans = State.get('dailyPlans');
         const newDailyPlan = dailyPlans.find(dp => dp.name === dailyPlanName);
         if (newDailyPlan) {

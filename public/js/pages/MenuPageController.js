@@ -8,7 +8,7 @@ import { MenuRenderer } from '../renderers/MenuRenderer.js';
 import { FormRenderer } from '../renderers/FormRenderer.js';
 import { EntityController } from '../controllers/EntityController.js';
 import { EditorController } from '../controllers/EditorController.js';
-import { State } from '../core/State.js';
+import { State, showModal } from '../core/State.js';
 import { APIClient } from '../core/APIClient.js';
 
 export class MenuPageController {
@@ -228,7 +228,7 @@ export class MenuPageController {
       this.updateNutrientPreview();
     } catch (error) {
       console.error('Error loading menu for editing:', error);
-      alert('Failed to load menu details');
+      await showModal(`Load ${menu.name} Details`, 'Failed to load menu details', [{ OK: "blue" }]);
     }
   }
 
@@ -282,12 +282,12 @@ export class MenuPageController {
 
       if (editingId) {
         await this.menuManager.updateMenu(editingId, payload);
-        alert('Menu updated successfully');
+        await showModal(`Edit ${menuName}`, 'Menu updated successfully', [{ OK: "blue" }]);
         this.menuManager.selectMenu(editingId);
         await this.showDetails(editingId);
       } else {
         await this.menuManager.createMenu(payload);
-        alert('Menu created successfully');
+        await showModal(`Menu ${menuName}`, 'Menu created successfully', [{ OK: "blue" }]);
         const menus = State.get('menus');
         const newMenu = menus.find(m => m.name === menuName);
         if (newMenu) {
@@ -380,7 +380,7 @@ export class MenuPageController {
       document.getElementById('recipeSearchBox').value = '';
       this.updateNutrientPreview();
     } else {
-      alert('This recipe is already in the menu');
+      await showModal(`Add ${recipe.name}`, 'This recipe is already in the menu', [{ OK: "blue" }]);
     }
   }
 
