@@ -95,21 +95,21 @@ export class DietaryAssessmentHelper {
     html += `</p>`;
 
     // Nutrition Score Progress Bar
-    if (showProgressBar && assessment.nutritionScore !== undefined) {
-      const score = assessment.nutritionScore;
-      let barColor = '#e74c3c'; // Red
-      if (score >= 80) barColor = '#27ae60'; // Green
-      else if (score >= 60) barColor = '#f39c12'; // Yellow
+    // if (showProgressBar && assessment.nutritionScore !== undefined) {
+    //   const score = assessment.nutritionScore;
+    //   let barColor = '#e74c3c'; // Red
+    //   if (score >= 80) barColor = '#27ae60'; // Green
+    //   else if (score >= 60) barColor = '#f39c12'; // Yellow
 
-      // html += `
-      //   <div style="margin-top: 1rem;">
-      //     <p><strong>Nutrition Score:</strong> ${score}/100</p>
-      //     <div style="width: 100%; background-color: #ecf0f1; border-radius: 10px; height: 20px; overflow: hidden;">
-      //       <div style="width: ${score}%; background-color: ${barColor}; height: 100%; transition: width 0.3s ease;"></div>
-      //     </div>
-      //   </div>
-      // `;
-    }
+    //   html += `
+    //     <div style="margin-top: 1rem;">
+    //       <p><strong>Nutrition Score:</strong> ${score}/100</p>
+    //       <div style="width: 100%; background-color: #ecf0f1; border-radius: 10px; height: 20px; overflow: hidden;">
+    //         <div style="width: ${score}%; background-color: ${barColor}; height: 100%; transition: width 0.3s ease;"></div>
+    //       </div>
+    //     </div>
+    //   `;
+    // }
 
     // Recommendations Section
     if (assessment.recommendations && assessment.recommendations.length > 0) {

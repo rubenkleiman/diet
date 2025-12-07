@@ -1,5 +1,6 @@
 # BUGS
-polyunsaturated fats not saving in ingredients edit
+## polyunsaturated fats not saving in ingredients edit
+## remove dead nutrition score code
 
 # Can you give me a javascript function that for a set of nutritional amounts will return some measure of adherence to DASH guidelines? 
 ## The input argument is "totals" (it looks like this):
