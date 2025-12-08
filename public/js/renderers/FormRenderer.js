@@ -229,7 +229,7 @@ export class FormRenderer {
       'proteinInput', 'dietaryFiberInput', 'carbohydratesInput', 'calciumInput',
       'potassiumInput', 'magnesiumInput', 'seleniumInput', 'manganeseInput',
       'zincInput', 'ironInput', 'fatInput', 'saturatedFatInput',
-      'polysaturatedFatInput', 'monosaturatedFatInput', 'thiaminInput',
+      'polyunsaturatedFatInput', 'monosaturatedFatInput', 'thiaminInput',
       'riboflavinInput', 'niacinInput', 'folicAcidInput', 'phosphorusInput',
       'vitaminAInput', 'vitaminB6Input', 'vitaminCInput', 'vitaminDInput',
       'vitaminEInput', 'vitaminKInput'
@@ -271,7 +271,7 @@ export class FormRenderer {
       ironInput: 'iron',
       fatInput: 'fat',
       saturatedFatInput: 'saturated_fat',
-      polysaturatedFatInput: 'polyunsaturated_fat',
+      polyunsaturatedFatInput: 'polyunsaturated_fat',
       monosaturatedFatInput: 'monosaturated_fat',
       thiaminInput: 'thiamin',
       riboflavinInput: 'riboflavin',

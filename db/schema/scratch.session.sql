@@ -201,14 +201,17 @@ select * from recipe_items where recipe_id in (13,16);
 select *
 from recipe_items
 where recipe_items.recipe_id in (13,16);
+select * from brands inner join brand_data on brands.id = brand_data.brand_id and  brands.id = 65; -- where name = 'Walnuts';
 
+select distinct key, display_name from nutrients where key = 'monosaturated_fat';
+update nutrients set display_name = 'Monounsaturated Fat' where key = 'monosaturated_fat';
 select * from menus;
 select * from menu_recipes where menu_id = 9;
 update menu_recipes set serving_amount = 333, unit = 'g' where menu_id = 7;
 select * from recipe_items where recipe_id = 13;
 select * from recipes where id = 13;
-select * from brands where id = 34;
-
+select * from brand_data where brand_id = 65;
+update brand_data set polyunsaturated_fat = 47.2 where brand_id = 65;
 
     select menus.id as id, menus.name as name,
             menu_recipes.recipe_id, menu_recipes.amount as menu_amount, menu_recipes.unit as menu_unit,

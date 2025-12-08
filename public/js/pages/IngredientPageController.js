@@ -229,7 +229,12 @@ export class IngredientPageController {
   getNutrientInputId(nutrientKey) {
     // Convert nutrient key to input ID format
     // e.g., 'saturated_fat' -> 'saturatedFatInput'
-    const camelCase = nutrientKey.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
-    return camelCase + 'Input';
+    let key = nutrientKey;
+    if (/poly/.test(key)) { // KLUDGE 
+      key = 'polysaturated_fat';
+    }
+    const camelCase = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+    const id = camelCase + 'Input';
+    return id;
   }
 }
