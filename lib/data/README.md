@@ -1,6 +1,6 @@
 # BUGS
-## polyunsaturated fats not saving in ingredients edit
-## remove dead nutrition score code
+# Check how kidney stone data is actually used - oxalate calculation ok?
+# double-check dash nutrition
 
 # Can you give me a javascript function that for a set of nutritional amounts will return some measure of adherence to DASH guidelines? 
 ## The input argument is "totals" (it looks like this):

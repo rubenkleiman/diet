@@ -234,7 +234,6 @@ export class IngredientPageController {
       key = 'polysaturated_fat';
     }
     const camelCase = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
-    const id = camelCase + 'Input';
-    return id;
+    return camelCase + 'Input';
   }
 }

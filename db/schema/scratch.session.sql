@@ -203,7 +203,7 @@ from recipe_items
 where recipe_items.recipe_id in (13,16);
 select * from brands inner join brand_data on brands.id = brand_data.brand_id and  brands.id = 65; -- where name = 'Walnuts';
 
-select distinct key, display_name from nutrients where key = 'monosaturated_fat';
+select distinct key, display_name from nutrients where key like '%poly%';
 update nutrients set display_name = 'Monounsaturated Fat' where key = 'monosaturated_fat';
 select * from menus;
 select * from menu_recipes where menu_id = 9;
